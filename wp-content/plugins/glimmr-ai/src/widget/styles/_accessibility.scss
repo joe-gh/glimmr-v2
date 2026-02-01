@@ -1,0 +1,68 @@
+// ==========================================================================
+// Accessibility
+// ==========================================================================
+
+// Screen reader only - visually hidden but accessible to screen readers
+.glimmr-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+// Focus visible styles
+.glimmr-widget *:focus-visible {
+    outline: 2px solid var(--glimmr-secondary);
+    outline-offset: 2px;
+}
+
+// Reduced motion - disable all animations and transitions
+@media (prefers-reduced-motion: reduce) {
+    .glimmr-widget,
+    .glimmr-widget * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .glimmr-bubble-pulse,
+    .glimmr-typing-dot,
+    .glimmr-send-loading,
+    .glimmr-loading-spinner {
+        animation: none;
+    }
+
+    .glimmr-window {
+        animation: none;
+    }
+
+    // Disable scroll smooth behavior
+    .glimmr-messages {
+        scroll-behavior: auto;
+    }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+    .glimmr-widget {
+        --glimmr-border: #000;
+        --glimmr-text-muted: #333;
+    }
+
+    .glimmr-message-bubble {
+        border: 1px solid currentColor;
+    }
+
+    .glimmr-btn {
+        border: 2px solid currentColor;
+    }
+
+    .glimmr-menu-item:focus {
+        outline: 2px solid currentColor;
+    }
+}

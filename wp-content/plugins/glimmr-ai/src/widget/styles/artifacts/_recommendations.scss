@@ -1,0 +1,188 @@
+// ==========================================================================
+// Recommendation Carousel
+// ==========================================================================
+
+.glimmr-carousel-wrapper {
+    width: 100%;
+}
+
+.glimmr-carousel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.glimmr-carousel-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-carousel-nav {
+    display: flex;
+    gap: 4px;
+}
+
+.glimmr-carousel-arrow {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--glimmr-border);
+    border-radius: 50%;
+    background: var(--glimmr-bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--glimmr-text-dark);
+    transition: all var(--glimmr-transition);
+
+    &:hover:not(:disabled) {
+        border-color: var(--glimmr-primary);
+        color: var(--glimmr-primary);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.glimmr-carousel {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.glimmr-carousel-card {
+    flex: 0 0 calc((100% - 24px) / var(--carousel-items, 3));
+    min-width: 140px;
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+    scroll-snap-align: start;
+}
+
+.glimmr-carousel-image-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+}
+
+.glimmr-carousel-image-btn img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.glimmr-carousel-placeholder {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glimmr-bg-light);
+    color: var(--glimmr-text-muted);
+
+    svg {
+        width: 40%;
+        height: 40%;
+    }
+}
+
+.glimmr-carousel-discount {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    padding: 2px 6px;
+    background: var(--glimmr-error);
+    color: #FFF;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 3px;
+}
+
+.glimmr-carousel-content {
+    padding: 10px;
+}
+
+.glimmr-carousel-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+    margin: 0 0 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--glimmr-primary);
+    }
+}
+
+.glimmr-carousel-rating {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.glimmr-carousel-price {
+    font-size: 12px;
+    margin-bottom: 6px;
+
+    .glimmr-price-sale {
+        font-size: 13px;
+    }
+}
+
+.glimmr-carousel-reason {
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+    margin: 0 0 8px;
+    font-style: italic;
+}
+
+.glimmr-carousel-add {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 11px;
+}
+
+.glimmr-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.glimmr-carousel-dot {
+    width: 6px;
+    height: 6px;
+    border: none;
+    border-radius: 50%;
+    background: var(--glimmr-border);
+    cursor: pointer;
+    padding: 0;
+    transition: all var(--glimmr-transition);
+
+    &.is-active {
+        background: var(--glimmr-primary);
+        width: 16px;
+        border-radius: 3px;
+    }
+}

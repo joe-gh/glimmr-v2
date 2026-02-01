@@ -1,0 +1,42 @@
+/**
+ * Artifact Components Index
+ *
+ * Imports all artifact-specific styles. These are the rich UI
+ * components for displaying tool results (products, orders, etc.)
+ *
+ * @package Glimmr_AI
+ * @since 1.0.0
+ */
+
+// Shared styles (buttons, modals, ratings).
+@import 'shared';
+
+// Product-related artifacts.
+@import 'product-grid';
+@import 'product-modal';
+@import 'variation-selector';
+@import 'image-gallery';
+@import 'comparison';
+@import 'recommendations';
+@import 'stock-badge';
+@import 'reviews';
+
+// Order artifacts.
+@import 'order-status';
+@import 'order-history';
+
+// Cart & checkout artifacts.
+@import 'cart-enhanced';
+@import 'cart-action';
+@import 'checkout-cta';
+@import 'coupon';
+
+// Account & knowledge artifacts.
+@import 'account';
+@import 'knowledge';
+
+// Navigation indicator.
+@import 'navigation';
+
+// Mobile responsive for all artifacts.
+@import 'mobile';

@@ -1,0 +1,290 @@
+// ==========================================================================
+// Order Status Card
+// ==========================================================================
+
+.glimmr-order-status-card {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+}
+
+.glimmr-order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--glimmr-bg-light);
+}
+
+.glimmr-order-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.glimmr-order-number {
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-order-date {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+
+    &.glimmr-status-pending { background: color-mix(in srgb, var(--glimmr-status-pending) 20%, white); color: var(--glimmr-status-pending); }
+    &.glimmr-status-processing { background: color-mix(in srgb, var(--glimmr-status-processing) 20%, white); color: var(--glimmr-status-processing); }
+    &.glimmr-status-shipped { background: color-mix(in srgb, var(--glimmr-status-shipped) 20%, white); color: var(--glimmr-status-shipped); }
+    &.glimmr-status-delivered,
+    &.glimmr-status-completed { background: color-mix(in srgb, var(--glimmr-status-delivered) 20%, white); color: var(--glimmr-status-delivered); }
+    &.glimmr-status-cancelled,
+    &.glimmr-status-refunded,
+    &.glimmr-status-failed { background: color-mix(in srgb, var(--glimmr-status-cancelled) 20%, white); color: var(--glimmr-status-cancelled); }
+}
+
+// Order timeline
+.glimmr-order-timeline {
+    padding: 16px;
+    display: flex;
+    position: relative;
+
+    &.glimmr-timeline-horizontal {
+        justify-content: space-between;
+    }
+
+    &.glimmr-timeline-vertical {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.glimmr-timeline-track {
+    position: absolute;
+
+    .glimmr-timeline-horizontal & {
+        left: 16px;
+        right: 16px;
+        top: 36px;
+        height: 2px;
+        background: var(--glimmr-border);
+    }
+
+    .glimmr-timeline-vertical & {
+        left: 24px;
+        top: 16px;
+        bottom: 16px;
+        width: 2px;
+        background: var(--glimmr-border);
+    }
+}
+
+.glimmr-timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+
+    .glimmr-timeline-vertical & {
+        flex-direction: row;
+        text-align: left;
+    }
+}
+
+.glimmr-timeline-marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--glimmr-bg-light);
+    border: 2px solid var(--glimmr-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--glimmr-transition);
+
+    .is-complete & {
+        background: var(--glimmr-status-delivered);
+        border-color: var(--glimmr-status-delivered);
+        color: #FFF;
+    }
+
+    .is-active & {
+        background: var(--glimmr-primary);
+        border-color: var(--glimmr-primary);
+        color: #FFF;
+    }
+}
+
+.glimmr-timeline-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glimmr-timeline-content {
+    margin-top: 8px;
+
+    .glimmr-timeline-vertical & {
+        margin-top: 0;
+        margin-left: 12px;
+    }
+}
+
+.glimmr-timeline-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+    display: block;
+}
+
+.glimmr-timeline-date {
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+}
+
+// Order cancelled notice
+.glimmr-order-cancelled {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--glimmr-error) 10%, white);
+    color: var(--glimmr-error);
+    font-size: 13px;
+}
+
+// Order tracking
+.glimmr-order-tracking {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    border-top: 1px solid var(--glimmr-border);
+}
+
+.glimmr-tracking-label {
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-tracking-link {
+    color: var(--glimmr-primary);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.glimmr-tracking-carrier {
+    color: var(--glimmr-text-muted);
+}
+
+// Estimated delivery
+.glimmr-order-estimate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--glimmr-primary) 10%, white);
+    color: var(--glimmr-primary);
+    font-size: 13px;
+}
+
+// Order items
+.glimmr-order-items {
+    border-top: 1px solid var(--glimmr-border);
+}
+
+.glimmr-order-items-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: none;
+    background: var(--glimmr-bg-light);
+    color: var(--glimmr-text-dark);
+    font-size: 13px;
+    cursor: pointer;
+
+    svg {
+        transition: transform var(--glimmr-transition);
+
+        &.is-expanded {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.glimmr-order-items-list {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.glimmr-order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.glimmr-order-item-image {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.glimmr-order-item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.glimmr-order-item-name {
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+    display: block;
+}
+
+.glimmr-order-item-variation {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-order-item-qty {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-order-item-price {
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+}
+
+// Order total
+.glimmr-order-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid var(--glimmr-border);
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-order-total-amount {
+    font-size: 16px;
+}

@@ -1,0 +1,108 @@
+// ==========================================================================
+// Stock Status Badge
+// ==========================================================================
+
+.glimmr-stock-wrapper {
+    display: inline-block;
+}
+
+.glimmr-stock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.glimmr-stock-detailed {
+    padding: 12px;
+    background: var(--glimmr-bg-light);
+    border-radius: var(--glimmr-radius-sm);
+}
+
+.glimmr-stock-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.glimmr-stock-label {
+    font-weight: 500;
+}
+
+.glimmr-stock-bar-container {
+    height: 4px;
+    background: var(--glimmr-border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.glimmr-stock-bar {
+    height: 100%;
+    background: var(--glimmr-warning);
+    transition: width 0.3s ease;
+}
+
+.glimmr-stock-info {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+    margin: 8px 0 0;
+}
+
+.glimmr-stock-check {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+}
+
+.glimmr-stock-check-title {
+    margin: 0;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+    background: var(--glimmr-bg-light);
+}
+
+.glimmr-stock-check-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.glimmr-stock-check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--glimmr-border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.glimmr-stock-check-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.glimmr-stock-check-info {
+    flex: 1;
+}
+
+.glimmr-stock-check-name {
+    display: block;
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-stock-check-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}

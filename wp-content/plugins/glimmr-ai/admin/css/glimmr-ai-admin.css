@@ -1,0 +1,2370 @@
+/**
+ * Glimmr AI Admin Styles
+ *
+ * @package Glimmr_AI
+ * @since 1.0.0
+ */
+
+/* Main wrapper */
+.glimmr-ai-admin {
+    max-width: 1400px;
+    margin: 20px 20px 20px 0;
+}
+
+.glimmr-ai-admin h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1e1e1e;
+}
+
+/* Loading state */
+.glimmr-ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 40px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #666;
+}
+
+.glimmr-ai-loading .spinner {
+    float: none;
+    margin: 0;
+}
+
+/* Card styles */
+.glimmr-ai-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.glimmr-ai-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.glimmr-ai-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e1e1e;
+    margin: 0;
+}
+
+/* Grid layout */
+.glimmr-ai-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.glimmr-ai-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.glimmr-ai-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.glimmr-ai-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1200px) {
+    .glimmr-ai-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 782px) {
+    .glimmr-ai-grid-2,
+    .glimmr-ai-grid-3,
+    .glimmr-ai-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stats cards */
+.glimmr-ai-stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 24px;
+    color: #fff;
+}
+
+.glimmr-ai-stat-card.blue {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+}
+
+.glimmr-ai-stat-card.green {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.glimmr-ai-stat-card.orange {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.glimmr-ai-stat-card.red {
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+}
+
+.glimmr-ai-stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.glimmr-ai-stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Tabs */
+.glimmr-ai-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 24px;
+}
+
+.glimmr-ai-tab {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.glimmr-ai-tab:hover {
+    color: #4F46E5;
+}
+
+.glimmr-ai-tab.active {
+    color: #4F46E5;
+}
+
+.glimmr-ai-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #4F46E5;
+}
+
+.glimmr-ai-tab-content {
+    display: none;
+}
+
+.glimmr-ai-tab-content.active {
+    display: block;
+}
+
+/* Form styles */
+.glimmr-ai-form-group {
+    margin-bottom: 20px;
+}
+
+.glimmr-ai-form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #1e1e1e;
+}
+
+.glimmr-ai-form-group input[type="text"],
+.glimmr-ai-form-group input[type="number"],
+.glimmr-ai-form-group input[type="email"],
+.glimmr-ai-form-group input[type="password"],
+.glimmr-ai-form-group input[type="url"],
+.glimmr-ai-form-group textarea,
+.glimmr-ai-form-group select {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.glimmr-ai-form-group input:focus,
+.glimmr-ai-form-group textarea:focus,
+.glimmr-ai-form-group select:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    outline: none;
+}
+
+.glimmr-ai-form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.glimmr-ai-form-help {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+}
+
+/* Buttons */
+.glimmr-ai-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.glimmr-ai-btn-primary {
+    background: #4F46E5;
+    color: #fff;
+}
+
+.glimmr-ai-btn-primary:hover {
+    background: #4338CA;
+}
+
+.glimmr-ai-btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.glimmr-ai-btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+.glimmr-ai-btn-danger {
+    background: #EF4444;
+    color: #fff;
+}
+
+.glimmr-ai-btn-danger:hover {
+    background: #DC2626;
+}
+
+/* Toggle switch */
+.glimmr-ai-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.glimmr-ai-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.glimmr-ai-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.glimmr-ai-toggle-slider::before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.glimmr-ai-toggle input:checked + .glimmr-ai-toggle-slider {
+    background-color: #4F46E5;
+}
+
+.glimmr-ai-toggle input:checked + .glimmr-ai-toggle-slider::before {
+    transform: translateX(20px);
+}
+
+/* Color picker */
+.glimmr-ai-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.glimmr-ai-color-picker input[type="color"] {
+    width: 50px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.glimmr-ai-color-picker input[type="text"] {
+    width: 100px;
+}
+
+/* Table styles */
+.glimmr-ai-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.glimmr-ai-table th,
+.glimmr-ai-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.glimmr-ai-table th {
+    font-weight: 600;
+    color: #374151;
+    background: #f9fafb;
+}
+
+.glimmr-ai-table tr:hover td {
+    background: #f9fafb;
+}
+
+/* Conversation list */
+.glimmr-ai-conversation-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.glimmr-ai-conversation-item:hover {
+    background: #f9fafb;
+}
+
+.glimmr-ai-conversation-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #4F46E5;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.glimmr-ai-conversation-info {
+    flex: 1;
+}
+
+.glimmr-ai-conversation-name {
+    font-weight: 500;
+    color: #1e1e1e;
+}
+
+.glimmr-ai-conversation-preview {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 400px;
+}
+
+.glimmr-ai-conversation-meta {
+    text-align: right;
+    font-size: 12px;
+    color: #999;
+}
+
+/* Status badges */
+.glimmr-ai-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 9999px;
+}
+
+.glimmr-ai-badge-active {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.glimmr-ai-badge-expired {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+
+.glimmr-ai-badge-flagged {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.glimmr-ai-badge-new {
+    background: #DBEAFE;
+    color: #1D4ED8;
+}
+
+/* Empty state */
+.glimmr-ai-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.glimmr-ai-empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.glimmr-ai-empty-state-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e1e1e;
+    margin-bottom: 8px;
+}
+
+.glimmr-ai-empty-state-text {
+    font-size: 14px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Notice styles */
+.glimmr-ai-notice {
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.glimmr-ai-notice-success {
+    background: #DCFCE7;
+    border: 1px solid #86EFAC;
+}
+
+.glimmr-ai-notice-error {
+    background: #FEE2E2;
+    border: 1px solid #FCA5A5;
+}
+
+.glimmr-ai-notice-warning {
+    background: #FEF3C7;
+    border: 1px solid #FCD34D;
+}
+
+.glimmr-ai-notice-info {
+    background: #DBEAFE;
+    border: 1px solid #93C5FD;
+}
+
+/* Sync status */
+.glimmr-ai-sync-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.glimmr-ai-sync-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.glimmr-ai-sync-status-dot.synced {
+    background: #10B981;
+}
+
+.glimmr-ai-sync-status-dot.pending {
+    background: #F59E0B;
+}
+
+.glimmr-ai-sync-status-dot.error {
+    background: #EF4444;
+}
+
+/* Modal */
+.glimmr-ai-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+}
+
+.glimmr-ai-modal {
+    background: #fff;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.glimmr-ai-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.glimmr-ai-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.glimmr-ai-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.glimmr-ai-modal-body {
+    padding: 24px;
+}
+
+.glimmr-ai-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ========================================
+   Dashboard Component Styles
+   ======================================== */
+
+.glimmr-dashboard {
+    padding: 0;
+}
+
+.glimmr-dashboard-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+}
+
+.glimmr-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.glimmr-period-selector {
+    min-width: 180px;
+}
+
+.glimmr-quick-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.glimmr-quick-actions .button .dashicons {
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.glimmr-error-notice {
+    background: #FEE2E2;
+    border: 1px solid #FCA5A5;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #991B1B;
+}
+
+/* Stats Grid */
+.glimmr-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.glimmr-stat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: box-shadow 0.2s;
+}
+
+.glimmr-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.glimmr-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glimmr-stat-icon .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: #fff;
+}
+
+.glimmr-stat-blue .glimmr-stat-icon {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+}
+
+.glimmr-stat-green .glimmr-stat-icon {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.glimmr-stat-orange .glimmr-stat-icon {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.glimmr-stat-red .glimmr-stat-icon {
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+}
+
+.glimmr-stat-purple .glimmr-stat-icon {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+}
+
+.glimmr-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e1e1e;
+}
+
+.glimmr-stat-title {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Charts Row */
+.glimmr-charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.glimmr-chart-card {
+    border-radius: 12px;
+}
+
+.glimmr-chart-card .components-card__header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.glimmr-chart-empty {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.glimmr-chart-empty .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.3;
+    margin-bottom: 12px;
+}
+
+/* Simple Bar Chart */
+.glimmr-simple-chart h4 {
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.glimmr-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 200px;
+    padding: 10px 0;
+}
+
+.glimmr-chart-bar-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.glimmr-chart-bar {
+    width: 100%;
+    max-width: 40px;
+    background: linear-gradient(180deg, #4F46E5 0%, #7C3AED 100%);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 4px;
+}
+
+.glimmr-chart-bar-value {
+    position: absolute;
+    top: -20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #4F46E5;
+}
+
+.glimmr-chart-bar-label {
+    font-size: 10px;
+    color: #666;
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* Tool Usage */
+.glimmr-tool-usage {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.glimmr-tool-usage-empty {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.glimmr-tool-usage-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.glimmr-tool-usage-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.glimmr-tool-name {
+    color: #1e1e1e;
+}
+
+.glimmr-tool-count {
+    color: #666;
+}
+
+.glimmr-tool-usage-bar-bg {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.glimmr-tool-usage-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Recent Activity */
+.glimmr-recent-card .components-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.glimmr-view-all {
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.glimmr-recent-empty {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.glimmr-recent-empty .dashicons {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    opacity: 0.3;
+    margin-bottom: 12px;
+}
+
+.glimmr-recent-activity {
+    display: flex;
+    flex-direction: column;
+}
+
+.glimmr-recent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.glimmr-recent-item:last-child {
+    border-bottom: none;
+}
+
+.glimmr-recent-icon {
+    width: 36px;
+    height: 36px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+.glimmr-recent-content {
+    flex: 1;
+}
+
+.glimmr-recent-title {
+    font-weight: 500;
+    color: #1e1e1e;
+}
+
+.glimmr-recent-meta {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.glimmr-recent-time {
+    font-size: 12px;
+    color: #999;
+}
+
+.glimmr-status {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 9999px;
+    margin-left: 8px;
+}
+
+.glimmr-status-active {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.glimmr-status-expired {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+
+.glimmr-status-flagged {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+/* Getting Started */
+.glimmr-getting-started {
+    margin-top: 24px;
+    border: 2px dashed #e0e0e0;
+}
+
+.glimmr-getting-started-content {
+    display: flex;
+    gap: 20px;
+}
+
+.glimmr-getting-started-content .dashicons {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: #F59E0B;
+}
+
+.glimmr-getting-started-content h3 {
+    margin: 0 0 12px;
+}
+
+.glimmr-getting-started-content ol {
+    margin: 12px 0 0 20px;
+}
+
+.glimmr-getting-started-content li {
+    margin-bottom: 8px;
+}
+
+/* ========================================
+   Settings Component Styles
+   ======================================== */
+
+.glimmr-settings {
+    padding: 0;
+}
+
+.glimmr-settings-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px;
+    gap: 16px;
+}
+
+.glimmr-settings-tabs {
+    display: flex;
+    gap: 24px;
+}
+
+.glimmr-settings-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+}
+
+.glimmr-settings-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.glimmr-settings-tab:hover {
+    background: #f3f4f6;
+    color: #1e1e1e;
+}
+
+.glimmr-settings-tab.is-active {
+    background: #4F46E5;
+    color: #fff;
+}
+
+.glimmr-settings-tab .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.glimmr-settings-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.glimmr-settings-content .components-card {
+    border-radius: 12px;
+}
+
+.glimmr-settings-content .components-card__header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.glimmr-settings-section h3 {
+    font-size: 16px;
+    margin: 24px 0 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.glimmr-settings-section h3:first-child {
+    margin-top: 0;
+}
+
+.glimmr-settings-section .description {
+    color: #666;
+    margin-bottom: 16px;
+}
+
+/* Wide controls for range sliders */
+.glimmr-settings-wide-controls .components-range-control {
+    max-width: 700px;
+}
+
+.glimmr-settings-wide-controls .components-range-control__slider {
+    flex: 1;
+    min-width: 300px;
+}
+
+.glimmr-settings-wide-controls .components-range-control__wrapper {
+    flex: 1;
+}
+
+/* Token Limit Control styling */
+.glimmr-token-control {
+    margin-bottom: 24px;
+    max-width: 700px;
+}
+
+.glimmr-token-control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.glimmr-token-control-header label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #1e1e1e;
+}
+
+.glimmr-token-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4F46E5;
+    background: #EEF2FF;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.glimmr-token-warning {
+    color: #D97706;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.glimmr-token-control .components-range-control {
+    margin-bottom: 4px;
+}
+
+.glimmr-token-control .components-range-control__wrapper {
+    flex: 1;
+}
+
+.glimmr-token-range {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.glimmr-token-control .components-base-control__help {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #666;
+}
+
+.glimmr-settings-actions {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Sync Buttons */
+.glimmr-sync-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.glimmr-sync-buttons .button .dashicons {
+    margin-right: 6px;
+}
+
+/* Color Picker Row */
+.glimmr-color-picker-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.glimmr-color-picker-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 180px;
+}
+
+.glimmr-color-picker-item label {
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.glimmr-color-help {
+    font-size: 11px;
+    color: #6B7280;
+    margin-top: -4px;
+    line-height: 1.4;
+}
+
+/* Quick Replies Editor */
+.glimmr-quick-replies-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.glimmr-quick-reply-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.glimmr-quick-reply-item .components-text-control__input {
+    margin-bottom: 8px;
+}
+
+/* Category Select */
+.glimmr-category-select {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+/* ========================================
+   Knowledge Manager Styles
+   ======================================== */
+
+.glimmr-knowledge-manager {
+    padding: 0;
+}
+
+.glimmr-sync-overview {
+    margin-bottom: 24px;
+    border-radius: 12px;
+}
+
+.glimmr-sync-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.glimmr-sync-stat {
+    text-align: center;
+}
+
+.glimmr-sync-stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1e1e1e;
+}
+
+.glimmr-sync-stat-value.glimmr-stat-green {
+    color: #10B981;
+}
+
+.glimmr-sync-stat-value.glimmr-stat-orange {
+    color: #F59E0B;
+}
+
+.glimmr-sync-stat-value.glimmr-stat-red {
+    color: #EF4444;
+}
+
+.glimmr-sync-stat-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.glimmr-sync-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.glimmr-last-sync {
+    font-size: 13px;
+    color: #666;
+}
+
+.glimmr-knowledge-content {
+    border-radius: 12px;
+}
+
+.glimmr-knowledge-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.glimmr-tab-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.glimmr-tab-button:hover {
+    background: #e5e7eb;
+    color: #1e1e1e;
+}
+
+.glimmr-tab-button.is-active {
+    background: #4F46E5;
+    color: #fff;
+}
+
+.glimmr-content-tab {
+    padding: 0;
+}
+
+.glimmr-content-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.glimmr-search-input {
+    max-width: 250px;
+}
+
+.glimmr-content-stats {
+    flex: 1;
+    text-align: right;
+    color: #666;
+    font-size: 13px;
+}
+
+.glimmr-content-list {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.glimmr-content-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.glimmr-content-item:last-child {
+    border-bottom: none;
+}
+
+.glimmr-content-item:hover {
+    background: #f9fafb;
+}
+
+.glimmr-content-item.is-included {
+    background: #F0FDF4;
+}
+
+.glimmr-content-item-check {
+    flex-shrink: 0;
+}
+
+.glimmr-content-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.glimmr-content-item-title {
+    font-weight: 500;
+    color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.glimmr-content-type-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    color: #666;
+}
+
+.glimmr-content-item-excerpt {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.glimmr-content-item-status {
+    flex-shrink: 0;
+}
+
+.glimmr-content-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.glimmr-sync-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.glimmr-sync-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.glimmr-sync-synced {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.glimmr-sync-pending {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.glimmr-sync-error {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.glimmr-sync-time {
+    color: #999;
+}
+
+.glimmr-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.glimmr-empty-state .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.3;
+    margin-bottom: 12px;
+}
+
+.glimmr-loading-center {
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+}
+
+/* Custom Content Modal */
+.glimmr-custom-content-modal .components-modal__content {
+    min-width: 500px;
+}
+
+.glimmr-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* ========================================
+   Prompts & Tools Styles
+   ======================================== */
+
+.glimmr-prompts-tools {
+    padding: 0;
+}
+
+.glimmr-section-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.glimmr-section-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.glimmr-section-tab:hover {
+    background: #e5e7eb;
+}
+
+.glimmr-section-tab.is-active {
+    background: #4F46E5;
+    color: #fff;
+}
+
+.glimmr-prompt-card {
+    border-radius: 12px;
+}
+
+.glimmr-prompt-card .components-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.glimmr-prompt-card .components-card__header h3 {
+    margin: 0;
+}
+
+.glimmr-prompt-textarea .components-textarea-control__input {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.glimmr-prompt-variables {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.glimmr-prompt-variables h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+}
+
+.glimmr-variables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.glimmr-variable-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.glimmr-variable-item code {
+    font-size: 12px;
+    background: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.glimmr-variable-item span {
+    font-size: 11px;
+    color: #666;
+}
+
+.glimmr-prompt-preview {
+    margin-top: 24px;
+}
+
+.glimmr-prompt-preview h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+}
+
+.glimmr-prompt-preview-content {
+    background: #1e1e1e;
+    color: #e0e0e0;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Tools Section */
+.glimmr-tools-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.glimmr-tools-category {
+    border-radius: 12px;
+}
+
+.glimmr-tools-category .components-card__header {
+    background: #f9fafb;
+}
+
+.glimmr-tools-category .components-card__header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.glimmr-tools-category .components-card__header .description {
+    margin: 4px 0 0;
+    font-size: 13px;
+}
+
+.glimmr-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.glimmr-tool-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.2s;
+}
+
+.glimmr-tool-card.is-enabled {
+    border-color: #4F46E5;
+    background: #F5F3FF;
+}
+
+.glimmr-tool-card.is-required {
+    border-style: dashed;
+}
+
+.glimmr-tool-header {
+    display: flex;
+    gap: 12px;
+}
+
+.glimmr-tool-info {
+    flex: 1;
+}
+
+.glimmr-tool-name {
+    font-weight: 600;
+    color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.glimmr-required-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: #DBEAFE;
+    color: #1D4ED8;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.glimmr-tool-description {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.glimmr-tool-settings-link {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.glimmr-tool-settings-panel {
+    border-radius: 12px;
+    border: 2px solid #4F46E5;
+}
+
+.glimmr-tool-settings-panel .components-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.glimmr-coupon-settings h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+}
+
+.glimmr-prompts-actions {
+    margin-top: 24px;
+}
+
+/* ========================================
+   Conversations Styles
+   ======================================== */
+
+.glimmr-conversations {
+    padding: 0;
+}
+
+.glimmr-conversations-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.glimmr-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #EF4444;
+    color: #fff;
+    border-radius: 10px;
+    margin-left: 8px;
+}
+
+.glimmr-conversations-card {
+    border-radius: 12px;
+}
+
+.glimmr-conversations-filters {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.glimmr-conversations-filters .components-select-control__input,
+.glimmr-conversations-filters .components-text-control__input {
+    min-width: 120px;
+}
+
+.glimmr-conversations-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.glimmr-conversations-table th,
+.glimmr-conversations-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.glimmr-conversations-table th {
+    font-weight: 600;
+    color: #374151;
+    background: #f9fafb;
+    font-size: 13px;
+}
+
+.glimmr-conversations-table tr:hover td {
+    background: #f9fafb;
+}
+
+.glimmr-conversation-row.is-flagged td {
+    background: #FEF2F2;
+}
+
+.glimmr-conv-id-link {
+    background: none;
+    border: none;
+    color: #4F46E5;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0;
+}
+
+.glimmr-conv-id-link:hover {
+    text-decoration: underline;
+}
+
+.glimmr-guest {
+    color: #999;
+    font-style: italic;
+}
+
+.glimmr-status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 9999px;
+}
+
+.glimmr-status-green {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.glimmr-status-gray {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+
+.glimmr-status-red {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.glimmr-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.glimmr-pagination-info {
+    color: #666;
+    font-size: 13px;
+}
+
+/* Conversation Modal */
+.glimmr-conversation-modal .components-modal__content {
+    padding: 0;
+}
+
+.glimmr-conversation-detail {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.glimmr-conversation-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 20px 24px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.glimmr-meta-item {
+    font-size: 13px;
+}
+
+.glimmr-meta-item strong {
+    margin-right: 4px;
+}
+
+.glimmr-conversation-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.glimmr-message {
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 85%;
+}
+
+.glimmr-message-user {
+    background: #4F46E5;
+    color: #fff;
+    margin-left: auto;
+}
+
+.glimmr-message-assistant {
+    background: #f3f4f6;
+    color: #1e1e1e;
+}
+
+.glimmr-message-system {
+    background: #FEF3C7;
+    color: #92400E;
+    font-size: 12px;
+    max-width: 100%;
+}
+
+.glimmr-message-tool {
+    background: #E0E7FF;
+    color: #3730A3;
+    font-size: 12px;
+    max-width: 100%;
+}
+
+.glimmr-message-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.glimmr-message-role {
+    font-weight: 600;
+}
+
+.glimmr-message-time {
+    margin-left: auto;
+}
+
+.glimmr-message-content {
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.glimmr-message-tools {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    font-size: 12px;
+}
+
+.glimmr-message-tools pre {
+    background: rgba(0,0,0,0.1);
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-top: 4px;
+}
+
+.glimmr-message-tokens {
+    margin-top: 8px;
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+.glimmr-conversation-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Flag Modal */
+.glimmr-flag-modal .components-modal__content {
+    min-width: 400px;
+}
+
+.glimmr-flag-form p {
+    margin-bottom: 16px;
+}
+
+/* Flagged Issues */
+.glimmr-flagged-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.glimmr-flagged-card {
+    border-radius: 8px;
+    border-left: 4px solid #EF4444;
+}
+
+.glimmr-flagged-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.glimmr-issue-type {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #FEE2E2;
+    color: #991B1B;
+    border-radius: 4px;
+    text-transform: capitalize;
+}
+
+.glimmr-flagged-date {
+    font-size: 12px;
+    color: #999;
+    margin-left: 12px;
+}
+
+.glimmr-flagged-content {
+    font-size: 13px;
+    color: #666;
+}
+
+.glimmr-flagged-content p {
+    margin: 4px 0;
+}
+
+.glimmr-flagged-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* ========================================
+   Responsive Styles
+   ======================================== */
+
+@media (max-width: 1200px) {
+    .glimmr-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .glimmr-charts-row {
+        grid-template-columns: 1fr;
+    }
+
+    .glimmr-settings-tabs {
+        flex-direction: column;
+    }
+
+    .glimmr-settings-sidebar {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .glimmr-settings-tab {
+        flex: 1;
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 782px) {
+    .glimmr-ai-admin {
+        margin: 10px 10px 10px 0;
+    }
+
+    .glimmr-ai-tabs {
+        flex-wrap: wrap;
+    }
+
+    .glimmr-ai-tab {
+        padding: 10px 16px;
+    }
+
+    .glimmr-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glimmr-dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .glimmr-quick-actions {
+        justify-content: flex-start;
+    }
+
+    .glimmr-sync-stats {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .glimmr-sync-stat {
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .glimmr-conversations-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .glimmr-conversation-modal .components-modal__content {
+        width: 100%;
+    }
+
+    .glimmr-tools-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glimmr-color-picker-row {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Token control mobile adjustments */
+    .glimmr-token-control {
+        max-width: 100%;
+    }
+
+    .glimmr-token-control-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .glimmr-token-value {
+        font-size: 13px;
+        padding: 3px 10px;
+    }
+
+    /* Modal mobile adjustments */
+    .glimmr-flag-modal .components-modal__content,
+    .glimmr-custom-content-modal .components-modal__content {
+        min-width: auto;
+        width: 100%;
+        max-width: calc(100vw - 32px);
+    }
+
+    /* Sync buttons mobile */
+    .glimmr-sync-buttons {
+        flex-direction: column;
+    }
+
+    .glimmr-sync-buttons .button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Settings section controls full width */
+    .glimmr-settings-section .components-range-control,
+    .glimmr-settings-section .components-text-control,
+    .glimmr-settings-section .components-textarea-control,
+    .glimmr-settings-section .components-select-control {
+        max-width: 100%;
+    }
+
+    /* Conversations filters stack on mobile */
+    .glimmr-conversations-filters {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .glimmr-conversations-filters .components-select-control__input,
+    .glimmr-conversations-filters .components-text-control__input {
+        width: 100%;
+        min-width: auto;
+    }
+
+    /* Pagination mobile */
+    .glimmr-pagination {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Conversation modal mobile */
+    .glimmr-conversation-meta {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .glimmr-conversation-actions {
+        flex-direction: column;
+    }
+
+    .glimmr-conversation-actions .button {
+        width: 100%;
+    }
+
+    /* Message bubbles mobile */
+    .glimmr-message {
+        max-width: 95%;
+    }
+
+    /* Flagged card mobile */
+    .glimmr-flagged-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .glimmr-flagged-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .glimmr-flagged-actions .button {
+        width: 100%;
+    }
+
+    /* Quick replies editor mobile */
+    .glimmr-quick-reply-item {
+        padding: 12px;
+    }
+
+    /* Content toolbar mobile */
+    .glimmr-content-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .glimmr-search-input {
+        max-width: 100%;
+    }
+
+    .glimmr-content-stats {
+        text-align: left;
+    }
+
+    /* Knowledge tabs mobile */
+    .glimmr-knowledge-tabs {
+        flex-wrap: wrap;
+    }
+
+    .glimmr-tab-button {
+        flex: 1;
+        min-width: 100px;
+        justify-content: center;
+    }
+
+    /* Section tabs mobile */
+    .glimmr-section-tabs {
+        flex-wrap: wrap;
+    }
+
+    .glimmr-section-tab {
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    /* Prompts actions mobile */
+    .glimmr-prompts-actions {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .glimmr-prompts-actions .button {
+        width: 100%;
+    }
+
+    /* Tool card mobile */
+    .glimmr-tool-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Prompt preview mobile */
+    .glimmr-prompt-preview-content {
+        font-size: 12px;
+        padding: 12px;
+    }
+
+    /* Variables grid mobile */
+    .glimmr-variables-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 480px) {
+    .glimmr-ai-admin {
+        margin: 5px 5px 5px 0;
+    }
+
+    .glimmr-ai-admin h1 {
+        font-size: 20px;
+    }
+
+    /* Settings tabs become scrollable */
+    .glimmr-settings-sidebar {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .glimmr-settings-tab {
+        min-width: 130px;
+        flex-shrink: 0;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .glimmr-settings-tab .dashicons {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Card padding reduction */
+    .glimmr-ai-card,
+    .components-card__body {
+        padding: 12px;
+    }
+
+    /* Stat cards mobile */
+    .glimmr-stat-card {
+        padding: 16px;
+    }
+
+    .glimmr-stat-value {
+        font-size: 24px;
+    }
+
+    /* Token control extra small */
+    .glimmr-token-value {
+        font-size: 12px;
+        padding: 2px 8px;
+    }
+
+    .glimmr-token-range {
+        font-size: 10px;
+    }
+
+    /* Tables on very small screens */
+    .glimmr-conversations-table th,
+    .glimmr-conversations-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    /* Conversation detail mobile */
+    .glimmr-conversation-messages {
+        padding: 12px;
+    }
+
+    .glimmr-message {
+        max-width: 100%;
+    }
+
+    .glimmr-message-bubble {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    /* Content item mobile */
+    .glimmr-content-item {
+        padding: 10px 12px;
+    }
+
+    .glimmr-content-item-title {
+        font-size: 13px;
+    }
+
+    .glimmr-content-item-actions {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    /* Buttons smaller on mobile */
+    .button,
+    .glimmr-ai-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    /* Quick actions wrap */
+    .glimmr-quick-actions {
+        flex-direction: column;
+    }
+
+    .glimmr-quick-actions .button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Period selector full width */
+    .glimmr-period-selector {
+        width: 100%;
+    }
+
+    /* Chart adjustments */
+    .glimmr-chart-bars {
+        height: 150px;
+    }
+
+    .glimmr-chart-bar-value {
+        font-size: 10px;
+    }
+
+    .glimmr-chart-bar-label {
+        font-size: 9px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .glimmr-settings-tab,
+    .glimmr-tab-button,
+    .glimmr-section-tab {
+        min-height: 44px;
+    }
+
+    .glimmr-content-item {
+        min-height: 60px;
+    }
+
+    .glimmr-conv-id-link {
+        padding: 8px 0;
+    }
+
+    /* Remove hover effects on touch */
+    .glimmr-content-item:hover,
+    .glimmr-conversation-item:hover {
+        background: transparent;
+    }
+
+    .glimmr-content-item:active,
+    .glimmr-conversation-item:active {
+        background: #f9fafb;
+    }
+}

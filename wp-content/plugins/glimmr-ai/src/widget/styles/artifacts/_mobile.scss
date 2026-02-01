@@ -1,0 +1,268 @@
+// ==========================================================================
+// Mobile Responsive Artifact Styles
+// ==========================================================================
+
+@media (max-width: 480px) {
+    // Product grid
+    .glimmr-product-grid {
+        &-cols-3 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .glimmr-product-tile-info {
+        padding: 4px 6px;
+    }
+
+    .glimmr-product-tile-name {
+        font-size: 11px;
+    }
+
+    // Product modal
+    .glimmr-product-modal-details {
+        padding: 16px;
+    }
+
+    .glimmr-product-modal-title {
+        font-size: 16px;
+    }
+
+    .glimmr-product-modal-actions {
+        flex-direction: column;
+    }
+
+    // Comparison
+    .glimmr-comparison-modal {
+        padding: 0;
+    }
+
+    .glimmr-comparison-cards-container {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .glimmr-comparison-card {
+        min-width: 160px;
+    }
+
+    // Order status
+    .glimmr-order-timeline.glimmr-timeline-horizontal {
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .glimmr-timeline-step {
+        min-width: 70px;
+    }
+
+    // Carousel
+    .glimmr-carousel-card {
+        flex: 0 0 calc((100% - 12px) / 2);
+        min-width: 120px;
+    }
+
+    // Account
+    .glimmr-account-stats {
+        flex-wrap: wrap;
+    }
+
+    .glimmr-account-stat {
+        flex: 0 0 calc(50% - 8px);
+    }
+
+    // Cart preview enhancements
+    .glimmr-cart-quantity-editor {
+        gap: 4px;
+
+        button {
+            width: 28px;
+            height: 28px;
+        }
+
+        input {
+            width: 36px;
+            padding: 4px;
+        }
+    }
+
+    .glimmr-cart-coupon-form {
+        flex-direction: column;
+
+        input {
+            width: 100%;
+        }
+
+        button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .glimmr-cart-savings {
+        padding: 8px 10px;
+    }
+
+    // Coupon card
+    .glimmr-coupon-ticket {
+        padding: 12px 14px;
+    }
+
+    .glimmr-coupon-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .glimmr-coupon-details {
+        gap: 8px;
+    }
+
+    .glimmr-coupon-actions {
+        flex-direction: column;
+        gap: 6px;
+
+        button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    // Checkout CTA
+    .glimmr-checkout-cta {
+        padding: 12px;
+    }
+
+    .glimmr-checkout-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .glimmr-checkout-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+    }
+
+    .glimmr-checkout-savings {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .glimmr-checkout-payment-icons {
+        justify-content: center;
+    }
+
+    // Order history
+    .glimmr-order-history-item {
+        padding: 12px;
+    }
+
+    .glimmr-order-history-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .glimmr-order-history-items {
+        flex-direction: column;
+    }
+
+    .glimmr-order-history-product {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .glimmr-order-history-actions {
+        flex-direction: column;
+        gap: 6px;
+
+        a, button {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+    }
+
+    // Stock status
+    .glimmr-stock-check-item {
+        padding: 10px;
+    }
+
+    .glimmr-stock-check-image {
+        width: 40px;
+        height: 40px;
+    }
+
+    .glimmr-stock-check-name {
+        font-size: 13px;
+    }
+
+    // Image gallery
+    .glimmr-gallery-thumbnails {
+        gap: 6px;
+    }
+
+    .glimmr-gallery-thumb {
+        width: 50px;
+        height: 50px;
+    }
+
+    // Variation selector
+    .glimmr-variation-selector {
+        gap: 12px;
+    }
+
+    .glimmr-variation-options {
+        gap: 6px;
+    }
+
+    .glimmr-swatch {
+        width: 32px;
+        height: 32px;
+    }
+
+    .glimmr-size-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    // Knowledge response
+    .glimmr-knowledge-response {
+        padding: 12px;
+    }
+
+    .glimmr-knowledge-sources {
+        gap: 8px;
+    }
+
+    .glimmr-knowledge-source {
+        padding: 8px 10px;
+    }
+
+    // Account card mobile
+    .glimmr-account-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .glimmr-account-avatar {
+        margin: 0 auto;
+    }
+
+    .glimmr-account-tier {
+        justify-content: center;
+    }
+
+    .glimmr-account-links {
+        flex-direction: column;
+    }
+
+    .glimmr-account-link {
+        justify-content: center;
+    }
+
+    // Account progress
+    .glimmr-account-progress {
+        padding: 8px 12px;
+    }
+}

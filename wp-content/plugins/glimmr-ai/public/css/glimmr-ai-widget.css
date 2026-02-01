@@ -1,0 +1,15 @@
+/**
+ * Glimmr AI Widget Container Styles
+ *
+ * Minimal styles for the widget container.
+ * Main widget styles are in Shadow DOM.
+ *
+ * @package Glimmr_AI
+ * @since 1.0.0
+ */
+
+/* Widget container - positioned by JavaScript based on settings */
+.glimmr-ai-widget-container {
+    position: fixed;
+    z-index: 999999;
+}

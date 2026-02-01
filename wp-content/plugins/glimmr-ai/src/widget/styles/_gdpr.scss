@@ -1,0 +1,149 @@
+// ==========================================================================
+// GDPR Banner
+// ==========================================================================
+
+.glimmr-gdpr-banner {
+    padding: 20px 16px;
+    background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+    border-bottom: 1px solid #BAE6FD;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.glimmr-gdpr-icon {
+    display: flex;
+    justify-content: center;
+    color: #0284C7;
+
+    svg {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.glimmr-gdpr-content {
+    text-align: center;
+
+    h4 {
+        margin: 0 0 8px 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #0C4A6E;
+    }
+
+    p {
+        margin: 0;
+        color: #075985;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+}
+
+.glimmr-gdpr-link {
+    color: var(--glimmr-primary);
+    text-decoration: underline;
+    font-weight: 500;
+
+    &:hover {
+        color: var(--glimmr-primary-hover);
+    }
+}
+
+.glimmr-gdpr-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.glimmr-gdpr-decline {
+    flex: 1 !important;
+    padding: 10px 16px !important;
+    margin: 0 !important;
+    background: transparent !important;
+    color: #64748B !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: var(--glimmr-radius-sm) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    font-family: inherit !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+    cursor: pointer;
+    transition: all var(--glimmr-transition) !important;
+    box-shadow: none !important;
+
+    &:hover {
+        background: #F1F5F9 !important;
+        border-color: #94A3B8 !important;
+        color: #64748B !important;
+    }
+
+    &:focus {
+        outline: 2px solid var(--glimmr-primary) !important;
+        outline-offset: 2px !important;
+    }
+
+    &:focus:not(:focus-visible) {
+        outline: none !important;
+    }
+}
+
+.glimmr-gdpr-accept {
+    flex: 2 !important;
+    padding: 10px 16px !important;
+    margin: 0 !important;
+    background: var(--glimmr-primary) !important;
+    color: var(--glimmr-primary-text) !important;
+    border: none !important;
+    border-radius: var(--glimmr-radius-sm) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    font-family: inherit !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+    cursor: pointer;
+    transition: background var(--glimmr-transition) !important;
+    box-shadow: none !important;
+
+    &:hover {
+        background: var(--glimmr-primary-hover) !important;
+        color: var(--glimmr-primary-text) !important;
+    }
+
+    &:focus {
+        outline: 2px solid var(--glimmr-secondary) !important;
+        outline-offset: 2px !important;
+    }
+
+    &:focus:not(:focus-visible) {
+        outline: none !important;
+    }
+}
+
+.glimmr-consent-required {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: var(--glimmr-text-muted);
+    text-align: center;
+}
+
+// Menu divider and danger item
+.glimmr-menu-divider {
+    height: 1px;
+    background: var(--glimmr-border);
+    margin: 4px 0;
+}
+
+.glimmr-menu-item-danger {
+    color: var(--glimmr-error) !important;
+
+    &:hover {
+        background: color-mix(in srgb, var(--glimmr-error) 10%, white) !important;
+    }
+}

@@ -1,0 +1,127 @@
+// ==========================================================================
+// Image Gallery
+// ==========================================================================
+
+.glimmr-gallery {
+    position: relative;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.glimmr-gallery-main {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--glimmr-bg-light);
+}
+
+.glimmr-gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.glimmr-gallery-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--glimmr-text-dark);
+    box-shadow: var(--glimmr-shadow-sm);
+    transition: all var(--glimmr-transition);
+    z-index: 5;
+
+    &:hover {
+        background: #FFF;
+    }
+
+    &-left {
+        left: 8px;
+    }
+
+    &-right {
+        right: 8px;
+    }
+}
+
+.glimmr-gallery-counter {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #FFF;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+.glimmr-gallery-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+}
+
+.glimmr-gallery-dot {
+    width: 8px;
+    height: 8px;
+    border: none;
+    border-radius: 50%;
+    background: var(--glimmr-border);
+    cursor: pointer;
+    transition: all var(--glimmr-transition);
+    padding: 0;
+
+    &.is-active {
+        background: var(--glimmr-primary);
+    }
+}
+
+.glimmr-gallery-thumbnails {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    overflow-x: auto;
+}
+
+.glimmr-gallery-thumb {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    transition: border-color var(--glimmr-transition);
+
+    &.is-active {
+        border-color: var(--glimmr-primary);
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}

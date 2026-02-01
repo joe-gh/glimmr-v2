@@ -1,0 +1,233 @@
+// ==========================================================================
+// Site Knowledge Response
+// ==========================================================================
+
+.glimmr-knowledge-response {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+}
+
+.glimmr-knowledge-category {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--glimmr-bg-light);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--glimmr-primary);
+}
+
+.glimmr-knowledge-content {
+    padding: 16px;
+}
+
+.glimmr-knowledge-paragraph {
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--glimmr-text-dark);
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    strong {
+        font-weight: 600;
+    }
+
+    code {
+        padding: 2px 6px;
+        background: var(--glimmr-bg-light);
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 13px;
+    }
+}
+
+.glimmr-knowledge-list {
+    margin: 0 0 12px;
+    padding-left: 24px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    li {
+        margin-bottom: 6px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--glimmr-text-dark);
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.glimmr-knowledge-confidence {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+
+    &.glimmr-confidence-high {
+        background: color-mix(in srgb, var(--glimmr-success) 10%, white);
+        color: var(--glimmr-success);
+    }
+
+    &.glimmr-confidence-medium {
+        background: color-mix(in srgb, var(--glimmr-warning) 10%, white);
+        color: var(--glimmr-warning);
+    }
+
+    &.glimmr-confidence-low {
+        background: color-mix(in srgb, var(--glimmr-error) 10%, white);
+        color: var(--glimmr-error);
+    }
+}
+
+.glimmr-knowledge-sources-wrapper {
+    border-top: 1px solid var(--glimmr-border);
+}
+
+.glimmr-knowledge-sources-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border: none;
+    background: var(--glimmr-bg-light);
+    color: var(--glimmr-text-dark);
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--glimmr-border);
+    }
+}
+
+.glimmr-knowledge-chevron {
+    transition: transform var(--glimmr-transition);
+
+    &.is-expanded {
+        transform: rotate(180deg);
+    }
+}
+
+.glimmr-knowledge-sources {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.glimmr-knowledge-source {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: var(--glimmr-bg-light);
+    border-radius: var(--glimmr-radius-sm);
+}
+
+.glimmr-knowledge-source-number {
+    width: 20px;
+    height: 20px;
+    background: var(--glimmr-primary);
+    color: var(--glimmr-primary-text);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.glimmr-knowledge-source-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.glimmr-knowledge-source-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.glimmr-knowledge-source-type {
+    display: block;
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-knowledge-source-link {
+    color: var(--glimmr-primary);
+    padding: 4px;
+    border-radius: 4px;
+    transition: background var(--glimmr-transition);
+
+    &:hover {
+        background: var(--glimmr-border);
+    }
+}
+
+.glimmr-knowledge-more-sources {
+    text-align: center;
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+    padding-top: 4px;
+}
+
+// FAQ response style
+.glimmr-faq-response {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+}
+
+.glimmr-faq-question {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+    border: none;
+    background: var(--glimmr-bg-light);
+    text-align: left;
+    cursor: pointer;
+}
+
+.glimmr-faq-q,
+.glimmr-faq-a {
+    font-weight: 700;
+    color: var(--glimmr-primary);
+    flex-shrink: 0;
+}
+
+.glimmr-faq-text {
+    flex: 1;
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-faq-answer {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+
+    .glimmr-knowledge-response {
+        flex: 1;
+        border: none;
+    }
+}

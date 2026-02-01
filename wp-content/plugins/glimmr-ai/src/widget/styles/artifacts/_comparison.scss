@@ -1,0 +1,413 @@
+// ==========================================================================
+// Product Comparison Table - Modern Design
+// ==========================================================================
+
+.glimmr-comparison-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--glimmr-primary) 0%, var(--glimmr-primary-hover) 100%) !important;
+    border: none !important;
+    border-radius: var(--glimmr-radius);
+    color: #ffffff !important; // Force white text - var(--glimmr-text) can be overridden by themes
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    svg {
+        opacity: 0.9;
+        fill: #ffffff !important;
+        color: #ffffff !important;
+    }
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        color: #ffffff !important;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.glimmr-comparison-modal {
+    width: 900px;
+    max-width: 95vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--glimmr-bg) !important;
+    border-radius: var(--glimmr-radius) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    overflow: hidden;
+    padding: 8px; // Outer padding to prevent content clipping against edges
+}
+
+.glimmr-comparison-title {
+    padding: 28px 60px 24px 28px; // Increased top padding
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--glimmr-text-dark);
+    background: linear-gradient(to bottom, var(--glimmr-bg) 0%, var(--glimmr-bg-light) 100%);
+    border-bottom: 1px solid var(--glimmr-border);
+}
+
+.glimmr-comparison-table-wrapper {
+    overflow: auto;
+    flex: 1;
+    padding: 20px;
+    background: var(--glimmr-bg-light);
+}
+
+.glimmr-comparison-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--glimmr-bg);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    th, td {
+        padding: 16px 20px;
+        text-align: center;
+        border-bottom: 1px solid var(--glimmr-border);
+        vertical-align: middle;
+    }
+
+    th {
+        background: var(--glimmr-bg);
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--glimmr-text-dark);
+    }
+
+    tbody tr {
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        &:last-child td {
+            border-bottom: none;
+        }
+    }
+}
+
+.glimmr-comparison-corner {
+    width: 140px;
+    background: var(--glimmr-bg-light) !important;
+}
+
+.glimmr-comparison-header {
+    min-width: 180px;
+    padding: 20px !important;
+    background: var(--glimmr-bg) !important;
+    border-bottom: 2px solid var(--glimmr-border) !important;
+}
+
+.glimmr-comparison-product {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.glimmr-comparison-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: var(--glimmr-radius-sm);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: scale(1.05);
+    }
+}
+
+.glimmr-comparison-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--glimmr-primary);
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.4;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: var(--glimmr-primary-hover);
+        text-decoration: none !important;
+    }
+}
+
+.glimmr-comparison-sku {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+    font-weight: 500;
+    background: var(--glimmr-bg-light);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.glimmr-comparison-label {
+    text-align: left !important;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--glimmr-text-dark);
+    background: var(--glimmr-bg-light) !important;
+    white-space: nowrap;
+}
+
+.glimmr-comparison-value {
+    position: relative;
+    font-size: 14px;
+    color: var(--glimmr-text-dark);
+
+    &.is-best {
+        background: linear-gradient(135deg, rgba(5, 150, 105, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+    }
+}
+
+.glimmr-comparison-na {
+    color: var(--glimmr-text-muted);
+    font-style: italic;
+}
+
+.glimmr-best-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--glimmr-success);
+    background: rgba(5, 150, 105, 0.1);
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.glimmr-comparison-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+
+    .glimmr-star {
+        width: 16px;
+        height: 16px;
+    }
+
+    .glimmr-star-filled {
+        color: #F59E0B;
+    }
+
+    .glimmr-star-empty {
+        color: #D1D5DB;
+    }
+
+    span {
+        margin-left: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--glimmr-text-dark);
+    }
+}
+
+.glimmr-comparison-add-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--glimmr-radius-sm);
+}
+
+.glimmr-comparison-actions-row {
+    th, td {
+        padding: 20px !important;
+        border-bottom: none !important;
+        background: var(--glimmr-bg) !important;
+    }
+
+    th {
+        background: var(--glimmr-bg-light) !important;
+    }
+}
+
+// ==========================================================================
+// Comparison Cards Layout (Mobile-friendly)
+// ==========================================================================
+
+.glimmr-comparison-cards {
+    width: 100%;
+    max-width: 100%;
+}
+
+.glimmr-comparison-cards-container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow-x: auto;
+    background: var(--glimmr-bg-light);
+
+    // Hide scrollbar but allow scroll
+    scrollbar-width: thin;
+    &::-webkit-scrollbar {
+        height: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        background: var(--glimmr-border);
+        border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--glimmr-text-muted);
+        border-radius: 3px;
+    }
+}
+
+.glimmr-comparison-card {
+    min-width: 240px;
+    flex: 1;
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+}
+
+.glimmr-comparison-card-header {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(to bottom, var(--glimmr-bg) 0%, var(--glimmr-bg-light) 100%);
+    border-bottom: 1px solid var(--glimmr-border);
+}
+
+.glimmr-comparison-card-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: var(--glimmr-radius-sm);
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.glimmr-comparison-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--glimmr-primary);
+    cursor: pointer;
+    margin: 0;
+    line-height: 1.4;
+
+    &:hover {
+        color: var(--glimmr-primary-hover);
+    }
+}
+
+.glimmr-comparison-card-details {
+    padding: 16px 20px;
+    margin: 0;
+}
+
+.glimmr-comparison-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--glimmr-border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    dt {
+        color: var(--glimmr-text-muted);
+        font-weight: 500;
+        flex-shrink: 0;
+        margin-right: 12px;
+    }
+
+    dd {
+        font-weight: 600;
+        color: var(--glimmr-text-dark);
+        margin: 0;
+        text-align: right;
+    }
+}
+
+.glimmr-comparison-card-btn {
+    width: calc(100% - 40px);
+    margin: 0 20px 20px;
+    padding: 12px 16px;
+    font-weight: 600;
+}
+
+// ==========================================================================
+// Responsive Adjustments
+// ==========================================================================
+
+@media (max-width: 768px) {
+    .glimmr-comparison-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0 !important;
+    }
+
+    .glimmr-comparison-title {
+        padding: 16px 50px 16px 16px;
+        font-size: 18px;
+    }
+
+    .glimmr-comparison-table-wrapper {
+        padding: 12px;
+    }
+
+    .glimmr-comparison-table {
+        th, td {
+            padding: 12px;
+            font-size: 12px;
+        }
+    }
+
+    .glimmr-comparison-header {
+        min-width: 140px;
+    }
+
+    .glimmr-comparison-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    .glimmr-comparison-name {
+        font-size: 12px;
+    }
+
+    .glimmr-comparison-cards-container {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .glimmr-comparison-card {
+        min-width: 200px;
+    }
+}

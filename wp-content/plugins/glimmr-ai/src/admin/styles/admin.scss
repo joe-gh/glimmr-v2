@@ -1,0 +1,3292 @@
+/**
+ * Glimmr AI Admin Styles (SCSS)
+ *
+ * @package Glimmr_AI
+ * @since 1.0.0
+ */
+
+// Variables
+$primary-color: #4F46E5;
+$secondary-color: #818CF8;
+$success-color: #10B981;
+$warning-color: #F59E0B;
+$danger-color: #EF4444;
+$text-color: #1e1e1e;
+$text-muted: #666;
+$border-color: #e0e0e0;
+$background-light: #f9fafb;
+
+// =========================================================================
+// Network Settings Styles
+// =========================================================================
+
+// Network inheritance banner
+.glimmr-network-inheritance-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 8px;
+    border-left: 4px solid $primary-color;
+
+    .glimmr-banner-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+
+        .dashicons {
+            color: $primary-color;
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+            margin-top: 2px;
+        }
+
+        .glimmr-banner-text {
+            strong {
+                display: block;
+                margin-bottom: 4px;
+                color: $text-color;
+            }
+
+            p {
+                margin: 0;
+                color: $text-muted;
+                font-size: 13px;
+            }
+        }
+    }
+
+    .glimmr-inheritance-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        .glimmr-toggle-slider {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 12px;
+            transition: background 0.2s ease;
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 20px;
+                height: 20px;
+                background: white;
+                border-radius: 50%;
+                transition: transform 0.2s ease;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        input:checked + .glimmr-toggle-slider {
+            background: $primary-color;
+
+            &::after {
+                transform: translateX(20px);
+            }
+        }
+
+        .glimmr-toggle-label {
+            font-weight: 500;
+            color: $text-color;
+            white-space: nowrap;
+        }
+    }
+}
+
+// Locked settings notice
+.glimmr-locked-notice {
+    margin-bottom: 20px;
+
+    .dashicons-lock {
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+}
+
+// Setting inheritance indicator
+.glimmr-inheritance-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+
+    .dashicons {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    &.locked {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    &.inherited {
+        background: #f0f4ff;
+        color: $primary-color;
+        border: 1px solid #c7d2fe;
+    }
+
+    &.compact {
+        padding: 2px 4px;
+
+        .glimmr-indicator-text {
+            display: none;
+        }
+    }
+}
+
+// Setting wrapper with inheritance
+.glimmr-setting-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+
+    &.is-locked {
+        .glimmr-setting-control {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    }
+
+    .glimmr-locked-notice {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 4px;
+        font-size: 12px;
+        color: #dc2626;
+    }
+}
+
+// Network tools grid
+.glimmr-network-tools-grid {
+    display: grid;
+    gap: 0;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 16px;
+
+    .glimmr-tools-header {
+        display: grid;
+        grid-template-columns: 1fr 150px 150px;
+        gap: 16px;
+        padding: 12px 16px;
+        background: $background-light;
+        border-bottom: 1px solid $border-color;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: $text-muted;
+    }
+
+    .glimmr-network-tool-row {
+        display: grid;
+        grid-template-columns: 1fr 150px 150px;
+        gap: 16px;
+        padding: 12px 16px;
+        border-bottom: 1px solid $border-color;
+        align-items: center;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: $background-light;
+        }
+
+        .glimmr-tool-info {
+            display: flex;
+            flex-direction: column;
+
+            strong {
+                color: $text-color;
+            }
+
+            .description {
+                font-size: 12px;
+                color: $text-muted;
+            }
+        }
+
+        .components-toggle-control {
+            margin-bottom: 0;
+
+            .components-base-control__field {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+.glimmr-tools-note {
+    margin-top: 12px;
+    padding: 12px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #92400e;
+}
+
+// Lock groups
+.glimmr-lock-group {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: $background-light;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+
+    h4 {
+        margin: 0 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid $border-color;
+        color: $text-color;
+    }
+
+    .glimmr-lock-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid lighten($border-color, 5%);
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        .components-checkbox-control {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .glimmr-lock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #fef2f2;
+            color: #dc2626;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+
+            .dashicons {
+                font-size: 12px;
+                width: 12px;
+                height: 12px;
+            }
+        }
+    }
+}
+
+// Network sites list
+.glimmr-network-sites-list {
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 16px;
+
+    .glimmr-sites-header {
+        display: grid;
+        grid-template-columns: 1fr 100px 140px 120px;
+        gap: 16px;
+        padding: 12px 16px;
+        background: $background-light;
+        border-bottom: 1px solid $border-color;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: $text-muted;
+    }
+
+    .glimmr-site-row {
+        display: grid;
+        grid-template-columns: 1fr 100px 140px 120px;
+        gap: 16px;
+        padding: 12px 16px;
+        border-bottom: 1px solid $border-color;
+        align-items: center;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: $background-light;
+        }
+
+        .glimmr-site-info {
+            display: flex;
+            flex-direction: column;
+
+            strong {
+                color: $text-color;
+                margin-bottom: 2px;
+            }
+
+            a {
+                font-size: 12px;
+                color: $primary-color;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        .glimmr-site-status {
+            font-size: 12px;
+
+            .dashicons {
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
+                vertical-align: middle;
+                margin-right: 4px;
+            }
+
+            .glimmr-status-enabled {
+                color: $success-color;
+            }
+
+            .glimmr-status-disabled {
+                color: $text-muted;
+            }
+
+            .glimmr-status-inherited {
+                color: $primary-color;
+            }
+
+            .glimmr-status-custom {
+                color: $warning-color;
+            }
+        }
+    }
+
+    .glimmr-no-sites {
+        padding: 24px;
+        text-align: center;
+        color: $text-muted;
+    }
+}
+
+.glimmr-refresh-sites {
+    margin-bottom: 16px;
+
+    .dashicons {
+        margin-right: 4px;
+    }
+}
+
+// Network settings specific styles
+.glimmr-network-settings {
+    .glimmr-settings-section {
+        h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        p.description {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: $text-muted;
+        }
+    }
+}
+
+// =========================================================================
+// Progress Bar - Clean, minimal
+// =========================================================================
+
+.glimmr-progress {
+    &__label {
+        font-size: 12px;
+        color: $text-muted;
+        margin-bottom: 6px;
+    }
+
+    &__track {
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    &__bar {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.4s ease;
+
+        &--default {
+            background: linear-gradient(90deg, $primary-color 0%, $secondary-color 100%);
+        }
+
+        &--complete {
+            background: $success-color;
+        }
+
+        &--syncing {
+            background: linear-gradient(90deg, $primary-color 0%, $secondary-color 50%, $primary-color 100%);
+            background-size: 200% 100%;
+            animation: progress-shimmer 1.5s infinite;
+        }
+
+        &--error {
+            background: $danger-color;
+        }
+    }
+}
+
+@keyframes progress-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+// =========================================================================
+// Products Tab - Clean Grid Layout
+// =========================================================================
+
+.glimmr-products-tab {
+    padding: 0;
+}
+
+.glimmr-products-notice {
+    margin-bottom: 20px;
+}
+
+// Sync Banner (when syncing)
+.glimmr-sync-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, lighten($primary-color, 40%) 0%, lighten($primary-color, 35%) 100%);
+    border: 1px solid lighten($primary-color, 25%);
+    border-radius: 8px;
+
+    &__content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .components-spinner {
+            margin: 0;
+        }
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        strong {
+            font-size: 14px;
+            color: darken($primary-color, 10%);
+        }
+    }
+
+    &__progress {
+        font-size: 12px;
+        color: $text-muted;
+    }
+}
+
+// Main Grid Layout
+.glimmr-products-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.glimmr-products-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.glimmr-products-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+// Card Component
+.glimmr-card {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    overflow: hidden;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid $border-color;
+        background: $background-light;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-color;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .dashicons {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: $text-muted;
+        }
+    }
+
+    &__action {
+        .dashicons {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    &__body {
+        padding: 16px;
+    }
+
+    &--error {
+        border-color: lighten($danger-color, 25%);
+
+        .glimmr-card__header {
+            background: lighten($danger-color, 42%);
+            border-color: lighten($danger-color, 30%);
+        }
+
+        .glimmr-card__title {
+            color: $danger-color;
+
+            .dashicons {
+                color: $danger-color;
+            }
+        }
+    }
+
+    &--muted {
+        background: $background-light;
+
+        .glimmr-card__header {
+            background: darken($background-light, 2%);
+        }
+    }
+}
+
+// Stats Table
+.glimmr-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+
+    tr {
+        border-bottom: 1px solid $border-color;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    td {
+        padding: 10px 0;
+        font-size: 13px;
+    }
+
+    &__label {
+        color: $text-muted;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__value {
+        text-align: right;
+        font-weight: 600;
+        color: $text-color;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__row--success .glimmr-stats-table__value {
+        color: $success-color;
+    }
+
+    &__row--warning .glimmr-stats-table__value {
+        color: $warning-color;
+    }
+
+    &__row--error .glimmr-stats-table__value {
+        color: $danger-color;
+    }
+}
+
+// Status Dot
+.glimmr-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+
+    &--success {
+        background: $success-color;
+    }
+
+    &--warning {
+        background: $warning-color;
+    }
+
+    &--error {
+        background: $danger-color;
+    }
+}
+
+// Sync Progress Section
+.glimmr-sync-progress {
+    padding: 12px 0;
+    border-top: 1px solid $border-color;
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    &__label {
+        font-size: 12px;
+        font-weight: 500;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    &__percent {
+        font-size: 14px;
+        font-weight: 700;
+        color: $primary-color;
+    }
+}
+
+// Sync Meta
+.glimmr-sync-meta {
+    display: flex;
+    gap: 20px;
+    padding-top: 12px;
+    border-top: 1px solid $border-color;
+
+    &__item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__label {
+        font-size: 11px;
+        font-weight: 500;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    &__value {
+        font-size: 13px;
+        font-weight: 500;
+        color: $text-color;
+    }
+}
+
+// Action Stack
+.glimmr-action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    &__btn {
+        width: 100%;
+        justify-content: center;
+
+        .dashicons {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+        }
+
+        &--danger {
+            color: $danger-color;
+
+            &:hover {
+                color: darken($danger-color, 10%);
+            }
+        }
+    }
+}
+
+.glimmr-action-divider {
+    height: 1px;
+    background: $border-color;
+    margin: 6px 0;
+}
+
+// Error List
+.glimmr-error-list {
+    max-height: 200px;
+    overflow-y: auto;
+
+    &__item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 0;
+        border-bottom: 1px solid $border-color;
+        font-size: 12px;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        strong {
+            color: $text-color;
+        }
+
+        span {
+            color: $danger-color;
+        }
+    }
+}
+
+// Help Content
+.glimmr-help-content {
+    font-size: 13px;
+    color: $text-muted;
+
+    p {
+        margin: 0 0 12px;
+        line-height: 1.5;
+    }
+
+    dl {
+        margin: 0;
+    }
+
+    dt {
+        font-weight: 600;
+        color: $text-color;
+        margin-top: 10px;
+
+        &:first-child {
+            margin-top: 0;
+        }
+    }
+
+    dd {
+        margin: 2px 0 0 0;
+    }
+}
+
+// Modal
+.glimmr-modal {
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid $border-color;
+    }
+}
+
+// Loading Center
+.glimmr-loading-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px;
+    color: $text-muted;
+
+    p {
+        margin-top: 12px;
+    }
+}
+
+// Knowledge Auto-Sync Toggle
+.glimmr-knowledge-auto-sync {
+    margin-bottom: 20px;
+
+    .components-toggle-control {
+        margin-bottom: 0;
+
+        .components-base-control__field {
+            margin-bottom: 0;
+        }
+    }
+}
+
+// =========================================================================
+// Artifact Selector (Dropdown-based)
+// =========================================================================
+
+.glimmr-artifact-selector {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid $border-color;
+
+    .components-base-control {
+        margin-bottom: 0;
+    }
+
+    .components-select-control__input {
+        min-width: 280px;
+        font-weight: 500;
+    }
+}
+
+.glimmr-artifact-section {
+    h3 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: $primary-color;
+        font-size: 16px;
+    }
+
+    .description {
+        margin-bottom: 20px;
+    }
+}
+
+// =========================================================================
+// Translations Table
+// =========================================================================
+
+.glimmr-translations-table {
+    margin: 20px 0;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.glimmr-translations-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 48px;
+    gap: 12px;
+    padding: 12px 16px;
+    background: $background-light;
+    border-bottom: 1px solid $border-color;
+    font-weight: 600;
+    font-size: 13px;
+    color: $text-color;
+}
+
+.glimmr-translations-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 48px;
+    gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid $border-color;
+    align-items: center;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: rgba($primary-color, 0.02);
+    }
+
+    .components-text-control__input {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-family: monospace;
+    }
+}
+
+.glimmr-translations-col-key {
+    .components-text-control__input {
+        font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+        font-size: 12px;
+        background: rgba(0, 0, 0, 0.02);
+    }
+}
+
+.glimmr-translations-col-action {
+    display: flex;
+    justify-content: center;
+
+    .components-button {
+        color: $text-muted;
+        transition: color 0.15s ease;
+
+        &:hover {
+            color: $danger-color;
+        }
+
+        .dashicons {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+}
+
+.glimmr-translations-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+
+    .components-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .dashicons {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
+
+.glimmr-translations-help {
+    margin-top: 24px;
+    padding: 16px;
+    background: $background-light;
+    border-radius: 6px;
+    border-left: 4px solid $primary-color;
+
+    h4 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: $text-color;
+    }
+
+    .description {
+        margin: 0 0 8px 0;
+        font-size: 13px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.06);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+        }
+    }
+}
+
+// =========================================================================
+// Settings Page - Two-Tier Navigation Layout
+// =========================================================================
+
+// Main layout container with sidebar + content
+.glimmr-settings-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 24px;
+    min-height: 600px;
+    align-items: start; // Prevent grid items from stretching
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// Left sidebar navigation
+.glimmr-settings-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    height: fit-content;
+    position: sticky;
+    top: 46px; // WordPress admin bar + some padding
+    z-index: 10; // Ensure sidebar stays above content when sticky
+    overflow: hidden; // Contain background within border-radius
+    box-sizing: border-box; // Include border in width calculation
+
+    @media (max-width: 900px) {
+        position: static;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 12px;
+        gap: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+
+        &::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: $background-light;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: $border-color;
+            border-radius: 2px;
+        }
+    }
+}
+
+.glimmr-settings-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-color;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    white-space: nowrap;
+
+    .dashicons {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: $text-muted;
+        transition: color 0.15s ease;
+    }
+
+    &:hover {
+        background: rgba($primary-color, 0.06);
+        color: $primary-color;
+
+        .dashicons {
+            color: $primary-color;
+        }
+    }
+
+    &.is-active {
+        background: rgba($primary-color, 0.1);
+        color: $primary-color;
+
+        .dashicons {
+            color: $primary-color;
+        }
+    }
+
+    @media (max-width: 900px) {
+        width: auto;
+        flex-shrink: 0;
+        padding: 10px 14px;
+
+        .glimmr-sidebar-label {
+            display: none;
+        }
+
+        .dashicons {
+            margin: 0;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .glimmr-sidebar-label {
+            display: inline;
+        }
+    }
+}
+
+// Main content area
+.glimmr-settings-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0; // Allow content to shrink below grid column width
+    overflow: hidden; // Contain all content within grid cell
+}
+
+// Top sub-tabs navigation
+.glimmr-settings-subtabs {
+    display: flex;
+    gap: 0;
+    border: 1px solid $border-color;
+    border-bottom: 2px solid $border-color;
+    background: white;
+    border-radius: 8px 8px 0 0;
+    overflow-x: auto;
+    overflow-y: hidden; // Contain background within border-radius
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $border-color;
+        border-radius: 2px;
+    }
+}
+
+.glimmr-settings-subtab {
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-muted;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: $primary-color;
+    }
+
+    &.is-active {
+        color: $primary-color;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: $primary-color;
+        }
+    }
+
+    @media (max-width: 600px) {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+}
+
+// Settings card container
+.glimmr-settings-card {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 0 0 8px 8px;
+    border-top: none;
+    margin-top: -2px; // Overlap with sub-tabs border
+    overflow: hidden; // Contain background within border-radius
+
+    .components-card__body {
+        padding: 24px;
+
+        @media (max-width: 600px) {
+            padding: 16px;
+        }
+    }
+}
+
+// Settings section styling
+.glimmr-settings-section {
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-color;
+    }
+
+    h4 {
+        margin: 16px 0 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-color;
+    }
+
+    > .description {
+        margin: 0 0 16px;
+        font-size: 13px;
+        color: $text-muted;
+        line-height: 1.5;
+    }
+}
+
+// Settings subsection (nested within a section)
+.glimmr-settings-subsection {
+    margin-top: 20px;
+    padding: 16px;
+    background: $background-light;
+    border-radius: 6px;
+    border-left: 3px solid $primary-color;
+
+    h4 {
+        margin: 0 0 8px;
+    }
+
+    > .description {
+        margin: 0 0 12px;
+        font-size: 12px;
+        color: $text-muted;
+    }
+}
+
+// Proactive Engagement Tab Styles
+.glimmr-page-selector {
+    margin-bottom: 16px;
+
+    .components-base-control__label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+}
+
+.glimmr-page-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.glimmr-page-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 13px;
+
+    &:hover {
+        border-color: $primary-color;
+        background: rgba($primary-color, 0.02);
+    }
+
+    input[type="checkbox"] {
+        margin: 0;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    input[type="checkbox"]:checked + span {
+        color: $primary-color;
+        font-weight: 500;
+    }
+}
+
+.glimmr-tips-box {
+    padding: 16px;
+    background: linear-gradient(135deg, #FAFAFA 0%, #F5F5FF 100%);
+    border: 1px solid rgba($primary-color, 0.2);
+    border-radius: 8px;
+
+    h4 {
+        color: $primary-color;
+    }
+
+    ul li {
+        margin-bottom: 8px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        strong {
+            color: $text-color;
+        }
+    }
+}
+
+.glimmr-engagement-intro {
+    padding: 12px 16px;
+    background: #F0F9FF;
+    border-radius: 6px;
+    border-left: 3px solid #4F46E5;
+}
+
+// Color picker grid layout
+.glimmr-color-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+
+    @media (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+
+    &--single {
+        grid-template-columns: 1fr;
+        max-width: 320px;
+    }
+}
+
+.glimmr-color-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    > label {
+        font-size: 13px;
+        font-weight: 500;
+        color: $text-color;
+    }
+
+    .components-color-picker {
+        width: 100%;
+    }
+
+    .glimmr-color-help {
+        font-size: 12px;
+        color: $text-muted;
+        margin-top: 4px;
+    }
+}
+
+// Settings row (side-by-side controls)
+.glimmr-settings-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+
+    @media (max-width: 700px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// Settings actions bar
+.glimmr-settings-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    margin-top: 8px;
+
+    @media (max-width: 600px) {
+        padding: 12px 16px;
+    }
+}
+
+// Artifact selector dropdown
+.glimmr-artifact-selector {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid $border-color;
+
+    .components-select-control {
+        max-width: 400px;
+    }
+}
+
+.glimmr-artifact-section {
+    margin-top: 0;
+}
+
+// Log viewer styles
+.glimmr-log-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .glimmr-auto-refresh-toggle {
+        margin-left: auto;
+
+        .components-base-control__field {
+            margin-bottom: 0;
+        }
+    }
+
+    .components-select-control {
+        min-width: 120px;
+
+        .components-base-control__field {
+            margin-bottom: 0;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .glimmr-auto-refresh-toggle {
+            margin-left: 0;
+            width: 100%;
+        }
+    }
+}
+
+.glimmr-log-info {
+    font-size: 12px;
+    color: $text-muted;
+    margin-bottom: 10px;
+
+    strong {
+        color: $text-color;
+        margin-right: 4px;
+    }
+}
+
+.glimmr-log-viewer {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 12px;
+    padding: 15px;
+    border-radius: 6px;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.glimmr-log-loading,
+.glimmr-log-empty {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}
+
+.glimmr-log-entry {
+    margin-bottom: 4px;
+    border-left: 3px solid;
+    padding-left: 8px;
+}
+
+.glimmr-log-timestamp {
+    color: #888;
+}
+
+.glimmr-log-level {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.glimmr-log-context {
+    color: #9cdcfe;
+}
+
+// Settings loading state
+.glimmr-settings-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: $text-muted;
+
+    p {
+        margin-top: 12px;
+    }
+}
+
+// =========================================================================
+// Dashboard Styles
+// =========================================================================
+
+.glimmr-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.glimmr-dashboard-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: $text-muted;
+
+    p {
+        margin-top: 12px;
+    }
+}
+
+// Dashboard Header
+.glimmr-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+
+    .glimmr-period-selector {
+        .components-base-control__field {
+            margin-bottom: 0;
+        }
+
+        .components-select-control__input {
+            min-width: 150px;
+        }
+    }
+
+    .glimmr-view-site-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: white;
+        border: 1px solid $border-color;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: $text-color;
+        text-decoration: none;
+        transition: all 0.15s ease;
+
+        .dashicons {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+
+        &:hover {
+            border-color: $primary-color;
+            color: $primary-color;
+        }
+    }
+}
+
+// Error Notice
+.glimmr-error-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: lighten($danger-color, 42%);
+    border: 1px solid lighten($danger-color, 25%);
+    border-radius: 6px;
+    color: darken($danger-color, 10%);
+
+    .dashicons {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+// Stats Grid
+.glimmr-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+
+    @media (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.glimmr-stat-card {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+}
+
+.glimmr-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .dashicons {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: white;
+    }
+}
+
+.glimmr-stat-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.glimmr-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: $text-color;
+    letter-spacing: -0.02em;
+}
+
+.glimmr-stat-title {
+    font-size: 13px;
+    color: $text-muted;
+    margin-top: 4px;
+}
+
+// Stat color variants
+.glimmr-stat-blue .glimmr-stat-icon {
+    background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+}
+
+.glimmr-stat-green .glimmr-stat-icon {
+    background: linear-gradient(135deg, $success-color 0%, lighten($success-color, 10%) 100%);
+}
+
+.glimmr-stat-orange .glimmr-stat-icon {
+    background: linear-gradient(135deg, $warning-color 0%, lighten($warning-color, 10%) 100%);
+}
+
+.glimmr-stat-red .glimmr-stat-icon {
+    background: linear-gradient(135deg, $danger-color 0%, lighten($danger-color, 10%) 100%);
+}
+
+.glimmr-stat-purple .glimmr-stat-icon {
+    background: linear-gradient(135deg, #A855F7 0%, #C084FC 100%);
+}
+
+.glimmr-stat-teal .glimmr-stat-icon {
+    background: linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%);
+}
+
+// Revenue Stats Grid
+.glimmr-stats-revenue {
+    margin-bottom: 20px;
+
+    .glimmr-stat-card {
+        background: linear-gradient(135deg, #FAFAFA 0%, #FFFFFF 100%);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+}
+
+// Charts Row
+.glimmr-charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+
+    @media (max-width: 1100px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.glimmr-chart-card {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    overflow: hidden;
+
+    .components-card__header {
+        padding: 16px 20px;
+        border-bottom: 1px solid $border-color;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: $text-color;
+        }
+
+        .glimmr-chart-subtitle {
+            font-size: 13px;
+            color: $text-muted;
+            font-weight: 400;
+        }
+    }
+
+    .components-card__body {
+        padding: 20px;
+    }
+
+    &.glimmr-chart-wide {
+        grid-column: span 2;
+
+        @media (max-width: 1100px) {
+            grid-column: span 1;
+        }
+    }
+}
+
+// Legend Line (for revenue chart)
+.glimmr-legend-line {
+    display: inline-block;
+    width: 16px;
+    height: 3px;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+// Top Converting Conversations
+.glimmr-top-conversations {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.glimmr-top-conv-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #F9FAFB;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    width: 100%;
+
+    &:hover {
+        background: white;
+        border-color: $primary-color;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    }
+}
+
+.glimmr-top-conv-rank {
+    flex-shrink: 0;
+}
+
+.glimmr-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, $primary-color 0%, #818CF8 100%);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 50%;
+}
+
+.glimmr-top-conv-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.glimmr-top-conv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.glimmr-top-conv-id {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.glimmr-top-conv-revenue {
+    font-size: 14px;
+    font-weight: 700;
+    color: #10B981;
+    white-space: nowrap;
+}
+
+.glimmr-top-conv-meta {
+    font-size: 12px;
+    color: $text-muted;
+
+    .glimmr-meta-sep {
+        margin: 0 6px;
+        opacity: 0.5;
+    }
+}
+
+.glimmr-top-conv-arrow {
+    flex-shrink: 0;
+    color: $text-muted;
+    transition: transform 0.15s ease;
+
+    .glimmr-top-conv-item:hover & {
+        transform: translateX(2px);
+        color: $primary-color;
+    }
+}
+
+// Simple Chart (Bar Chart)
+.glimmr-simple-chart {
+    h4 {
+        margin: 0 0 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: $text-muted;
+    }
+}
+
+.glimmr-chart-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: $text-muted;
+
+    .dashicons {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        opacity: 0.3;
+        margin-bottom: 12px;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.glimmr-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 180px;
+    padding: 16px 0 8px;
+    border-bottom: 1px solid $border-color;
+}
+
+.glimmr-chart-bar-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; // FIX: Push bars to bottom
+    height: 100%;
+}
+
+.glimmr-chart-bar {
+    width: 100%;
+    max-width: 40px;
+    background: linear-gradient(180deg, #6366F1 0%, $primary-color 100%);
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 4px;
+
+    &:hover {
+        background: linear-gradient(180deg, #818CF8 0%, #6366F1 100%);
+
+        .glimmr-chart-bar-value {
+            opacity: 1;
+        }
+    }
+}
+
+.glimmr-chart-bar-value {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    color: $primary-color;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+}
+
+.glimmr-chart-bar-label {
+    font-size: 10px;
+    color: $text-muted;
+    margin-top: 8px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+// =========================================================================
+// Enhanced Chart (Bar + Line Combo with Activity Gradients)
+// =========================================================================
+
+.glimmr-enhanced-chart {
+    position: relative;
+    padding-bottom: 12px;
+
+    h4 {
+        margin: 0 0 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: $text-muted;
+    }
+}
+
+// SVG layer container (positioned behind bars)
+.glimmr-chart-svg-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 220px; // Match chart + padding
+    pointer-events: none;
+    z-index: 1;
+}
+
+.glimmr-chart-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.glimmr-chart-line {
+    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
+}
+
+.glimmr-chart-area {
+    opacity: 0.8;
+}
+
+.glimmr-chart-point {
+    transition: all 0.2s ease;
+
+    &:hover {
+        r: 2;
+        filter: drop-shadow(0 2px 6px rgba(79, 70, 229, 0.5));
+    }
+}
+
+// Enhanced bar layer
+.glimmr-enhanced-chart .glimmr-chart-bars {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 180px;
+    padding: 30px 0 8px; // Top padding for value labels
+    border-bottom: 1px solid $border-color;
+}
+
+.glimmr-enhanced-chart .glimmr-chart-bar-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.glimmr-chart-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    width: 100%;
+    position: relative;
+}
+
+.glimmr-enhanced-chart .glimmr-chart-bar-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: $primary-color;
+    margin-bottom: 4px;
+    opacity: 0.85;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    position: static;
+    transform: none;
+}
+
+.glimmr-enhanced-chart .glimmr-chart-bar {
+    width: 80%;
+    max-width: 32px;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 4px;
+    cursor: pointer;
+
+    // Activity-based gradients
+    &.glimmr-activity-low {
+        background: linear-gradient(180deg, #A5B4FC 0%, #C7D2FE 100%);
+
+        &:hover {
+            background: linear-gradient(180deg, #C7D2FE 0%, #E0E7FF 100%);
+            transform: scaleX(1.1);
+        }
+    }
+
+    &.glimmr-activity-medium {
+        background: linear-gradient(180deg, #818CF8 0%, #6366F1 100%);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+
+        &:hover {
+            background: linear-gradient(180deg, #A5B4FC 0%, #818CF8 100%);
+            transform: scaleX(1.1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+    }
+
+    &.glimmr-activity-high {
+        background: linear-gradient(180deg, #6366F1 0%, #4338CA 100%);
+        box-shadow: 0 2px 12px rgba(67, 56, 202, 0.3);
+
+        &:hover {
+            background: linear-gradient(180deg, #818CF8 0%, #4F46E5 100%);
+            transform: scaleX(1.1);
+            box-shadow: 0 4px 16px rgba(67, 56, 202, 0.4);
+        }
+    }
+}
+
+.glimmr-enhanced-chart .glimmr-chart-bar-container:hover {
+    .glimmr-chart-bar-value {
+        opacity: 1;
+        color: #4338CA;
+        font-weight: 700;
+    }
+}
+
+.glimmr-enhanced-chart .glimmr-chart-bar-label {
+    font-size: 10px;
+    color: $text-muted;
+    margin-top: 8px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+// Chart Legend
+.glimmr-chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 16px;
+    padding-top: 12px;
+}
+
+.glimmr-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: $text-muted;
+}
+
+.glimmr-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+
+    &.glimmr-activity-low {
+        background: linear-gradient(180deg, #A5B4FC 0%, #C7D2FE 100%);
+    }
+
+    &.glimmr-activity-medium {
+        background: linear-gradient(180deg, #818CF8 0%, #6366F1 100%);
+    }
+
+    &.glimmr-activity-high {
+        background: linear-gradient(180deg, #6366F1 0%, #4338CA 100%);
+    }
+}
+
+// Recharts Container & Tooltip
+.glimmr-recharts-container {
+    .recharts-wrapper {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .recharts-cartesian-grid-horizontal line {
+        stroke: #e5e7eb;
+    }
+
+    .recharts-bar-rectangle {
+        transition: opacity 0.2s ease;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+.glimmr-chart-tooltip {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    .glimmr-tooltip-label {
+        margin: 0 0 4px;
+        font-size: 12px;
+        color: $text-muted;
+    }
+
+    .glimmr-tooltip-value {
+        margin: 0;
+        font-size: 14px;
+        color: $text-color;
+
+        strong {
+            color: $primary-color;
+            font-size: 16px;
+        }
+    }
+}
+
+// Tool Usage Chart
+.glimmr-tool-usage {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.glimmr-tool-usage-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: $text-muted;
+}
+
+.glimmr-tool-usage-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.glimmr-tool-usage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.glimmr-tool-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: $text-color;
+    text-transform: capitalize;
+
+    // Format underscored tool names
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}
+
+.glimmr-tool-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: $primary-color;
+}
+
+.glimmr-tool-usage-bar-bg {
+    height: 6px;
+    background: $background-light;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.glimmr-tool-usage-bar {
+    height: 100%;
+    background: linear-gradient(90deg, $primary-color 0%, $secondary-color 100%);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+// Recent Conversations Card
+.glimmr-recent-card {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    overflow: hidden;
+
+    .components-card__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid $border-color;
+
+        h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: $text-color;
+        }
+    }
+
+    .glimmr-view-all {
+        font-size: 13px;
+        font-weight: 500;
+        color: $primary-color;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .components-card__body {
+        padding: 0;
+    }
+}
+
+// Recent Activity
+.glimmr-recent-activity {
+    display: flex;
+    flex-direction: column;
+}
+
+.glimmr-recent-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    color: $text-muted;
+
+    .dashicons {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        opacity: 0.3;
+        margin-bottom: 8px;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.glimmr-recent-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: rgba($primary-color, 0.04);
+
+        .glimmr-recent-arrow {
+            opacity: 1;
+            transform: translateX(4px);
+        }
+    }
+}
+
+.glimmr-recent-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba($primary-color, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .dashicons {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: $primary-color;
+    }
+}
+
+.glimmr-recent-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.glimmr-recent-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-color;
+    margin-bottom: 2px;
+}
+
+.glimmr-recent-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: $text-muted;
+}
+
+.glimmr-recent-time {
+    font-size: 12px;
+    color: $text-muted;
+    flex-shrink: 0;
+}
+
+.glimmr-recent-arrow {
+    opacity: 0;
+    color: $primary-color;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+
+    .dashicons {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+// Status badges in recent activity
+.glimmr-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.glimmr-status-active {
+    background: rgba($success-color, 0.15);
+    color: darken($success-color, 10%);
+}
+
+.glimmr-status-expired {
+    background: rgba($text-muted, 0.15);
+    color: $text-muted;
+}
+
+.glimmr-status-flagged {
+    background: rgba($danger-color, 0.15);
+    color: darken($danger-color, 5%);
+}
+
+// Getting Started Card
+.glimmr-getting-started {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    border-left: 4px solid $primary-color;
+
+    .components-card__body {
+        padding: 24px;
+    }
+}
+
+.glimmr-getting-started-content {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+
+    > .dashicons {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: $primary-color;
+        flex-shrink: 0;
+    }
+
+    h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        font-weight: 600;
+        color: $text-color;
+    }
+
+    p {
+        margin: 0 0 12px;
+        color: $text-muted;
+    }
+
+    ol {
+        margin: 0;
+        padding-left: 20px;
+
+        li {
+            margin-bottom: 8px;
+            color: $text-color;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            a {
+                color: $primary-color;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+}
+
+// Developer Tools Card
+.glimmr-dev-tools-card {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    border-left: 4px solid #ef4444;
+    margin-top: 20px;
+
+    .components-card__header {
+        padding: 16px 24px;
+        border-bottom: 1px solid $border-color;
+
+        h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: $text-color;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .dashicons {
+                color: #ef4444;
+            }
+        }
+
+        .glimmr-dev-tools-warning {
+            margin: 0;
+            font-size: 13px;
+            color: $text-muted;
+            font-weight: normal;
+        }
+    }
+
+    .components-card__body {
+        padding: 20px 24px;
+    }
+}
+
+.glimmr-dev-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.glimmr-dev-tool-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background: #fafafa;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+
+    .glimmr-dev-tool-info {
+        flex: 1;
+
+        strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: $text-color;
+            margin-bottom: 4px;
+        }
+
+        p {
+            margin: 0;
+            font-size: 13px;
+            color: $text-muted;
+            line-height: 1.5;
+        }
+    }
+
+    // WordPress destructive button styles
+    .components-button.is-destructive {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+
+        &:hover:not(:disabled) {
+            background: #b91c1c;
+            color: white;
+        }
+
+        &:focus:not(:disabled) {
+            box-shadow: 0 0 0 2px #dc2626;
+        }
+
+        &:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.glimmr-purge-confirm {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .glimmr-purge-warning {
+        font-size: 13px;
+        color: #991b1b;
+        font-weight: 500;
+    }
+
+    .components-button {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+
+        &.is-destructive {
+            background: #dc2626;
+            color: white;
+            border: none;
+
+            &:hover:not(:disabled) {
+                background: #b91c1c;
+                color: white;
+            }
+
+            &:disabled {
+                background: #9ca3af;
+                cursor: not-allowed;
+            }
+        }
+
+        &.is-secondary:not(.is-destructive) {
+            background: white;
+            color: $text-color;
+            border: 1px solid $border-color;
+
+            &:hover:not(:disabled) {
+                background: #f9fafb;
+                border-color: #d1d5db;
+            }
+        }
+    }
+}
+
+.glimmr-purge-result {
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+
+    &.glimmr-purge-success {
+        background: rgba($success-color, 0.1);
+        border: 1px solid rgba($success-color, 0.3);
+        color: darken($success-color, 10%);
+    }
+
+    &.glimmr-purge-error {
+        background: rgba($danger-color, 0.1);
+        border: 1px solid rgba($danger-color, 0.3);
+        color: darken($danger-color, 5%);
+    }
+}
+
+// =========================================================================
+// Guardrails styles
+// =========================================================================
+
+.glimmr-guardrails-textarea {
+    font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.glimmr-guardrails-help {
+    margin-top: 24px;
+    padding: 20px;
+    background: $background-light;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+
+    h4 {
+        margin: 0 0 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-color;
+    }
+
+    ul {
+        margin: 0 0 16px;
+        padding-left: 20px;
+
+        li {
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: $text-color;
+
+            strong {
+                color: $primary-color;
+            }
+        }
+    }
+
+    .note {
+        margin: 0;
+        padding: 12px;
+        background: rgba($primary-color, 0.05);
+        border: 1px solid rgba($primary-color, 0.15);
+        border-radius: 4px;
+        font-size: 12px;
+        color: $text-muted;
+    }
+}
+
+// =========================================================================
+// Export Modal Styles
+// =========================================================================
+
+.glimmr-export-modal {
+    .components-modal__content {
+        max-width: 400px;
+    }
+
+    .glimmr-export-form {
+        p {
+            margin-bottom: 20px;
+            color: $text-muted;
+        }
+
+        .components-base-control {
+            margin-bottom: 16px;
+        }
+
+        .glimmr-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid $border-color;
+        }
+    }
+}
+
+// =========================================================================
+// Health Status Panel Styles
+// =========================================================================
+
+.glimmr-health-panel {
+    padding: 8px 0;
+
+    .glimmr-health-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        font-size: 16px;
+
+        .dashicons {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+
+        &.glimmr-health-green {
+            background: rgba($success-color, 0.1);
+            color: darken($success-color, 10%);
+            border: 1px solid rgba($success-color, 0.3);
+        }
+
+        &.glimmr-health-orange {
+            background: rgba($warning-color, 0.1);
+            color: darken($warning-color, 15%);
+            border: 1px solid rgba($warning-color, 0.3);
+        }
+
+        &.glimmr-health-red {
+            background: rgba($danger-color, 0.1);
+            color: darken($danger-color, 5%);
+            border: 1px solid rgba($danger-color, 0.3);
+        }
+    }
+
+    .glimmr-health-checks {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+
+        .glimmr-health-check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: $background-light;
+            border-radius: 6px;
+            font-size: 13px;
+
+            .glimmr-check-indicator {
+                .dashicons {
+                    font-size: 16px;
+                    width: 16px;
+                    height: 16px;
+                }
+
+                &.passed .dashicons {
+                    color: $success-color;
+                }
+
+                &.failed .dashicons {
+                    color: $danger-color;
+                }
+            }
+
+            .glimmr-check-label {
+                color: $text-color;
+            }
+        }
+    }
+
+    .glimmr-health-errors,
+    .glimmr-recent-errors {
+        margin-top: 12px;
+
+        h4 {
+            margin: 0 0 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: $text-muted;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    .glimmr-error-list {
+        .glimmr-error-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: rgba($danger-color, 0.05);
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-size: 12px;
+
+            .glimmr-error-type {
+                color: $text-color;
+            }
+
+            .glimmr-error-count {
+                color: $danger-color;
+                font-weight: 600;
+            }
+        }
+    }
+
+    .glimmr-recent-errors {
+        .glimmr-recent-error {
+            padding: 8px 10px;
+            background: $background-light;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            border-left: 3px solid $danger-color;
+
+            .glimmr-error-message {
+                display: block;
+                font-size: 12px;
+                color: $text-color;
+                margin-bottom: 2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .glimmr-error-time {
+                font-size: 11px;
+                color: $text-muted;
+            }
+        }
+    }
+}
+
+// =========================================================================
+// Response Time Stats Styles
+// =========================================================================
+
+.glimmr-response-time-panel {
+    padding: 8px 0;
+
+    .glimmr-response-time-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+
+        .glimmr-response-stat {
+            padding: 12px;
+            background: $background-light;
+            border-radius: 8px;
+            text-align: center;
+
+            .glimmr-stat-label {
+                display: block;
+                font-size: 11px;
+                text-transform: uppercase;
+                color: $text-muted;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+            }
+
+            .glimmr-stat-value {
+                font-size: 18px;
+                font-weight: 700;
+                color: $primary-color;
+
+                &.glimmr-stat-success {
+                    color: $success-color;
+                }
+
+                &.glimmr-stat-warning {
+                    color: $warning-color;
+                }
+            }
+        }
+    }
+
+    .glimmr-response-time-chart {
+        margin-top: 12px;
+        border-top: 1px solid $border-color;
+        padding-top: 12px;
+    }
+}
+
+.glimmr-response-time-empty {
+    padding: 30px;
+    text-align: center;
+    color: $text-muted;
+    font-size: 14px;
+}
+
+// =========================================================================
+// Responsive adjustments
+// =========================================================================
+
+@media (max-width: 782px) {
+    .glimmr-chart-bars {
+        height: 150px;
+    }
+
+    .glimmr-chart-bar-value {
+        font-size: 10px;
+    }
+
+    .glimmr-chart-bar-label {
+        font-size: 9px;
+    }
+
+    .glimmr-stat-value {
+        font-size: 24px;
+    }
+}
+
+// =========================================================================
+// Skeleton Loader Styles
+// =========================================================================
+
+// Skeleton animation
+@keyframes glimmr-skeleton-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+// Base skeleton styles
+.glimmr-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: glimmr-skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+.glimmr-skeleton-line {
+    height: 14px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: glimmr-skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px;
+    margin-bottom: 8px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.glimmr-skeleton-title {
+    height: 16px;
+    width: 60%;
+}
+
+.glimmr-skeleton-value {
+    height: 28px;
+    width: 40%;
+    margin-top: 8px;
+}
+
+.glimmr-skeleton-short {
+    width: 40%;
+}
+
+.glimmr-skeleton-medium {
+    width: 75%;
+}
+
+.glimmr-skeleton-header {
+    width: 80%;
+    height: 12px;
+}
+
+.glimmr-skeleton-muted {
+    opacity: 0.6;
+}
+
+// Stat card skeleton
+.glimmr-skeleton-stat {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+}
+
+.glimmr-skeleton-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.glimmr-skeleton-stat .glimmr-skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+// Stats grid skeleton
+.glimmr-skeleton-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+
+    @media (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// Table row skeleton
+.glimmr-skeleton-row td {
+    padding: 14px 16px;
+
+    .glimmr-skeleton-line {
+        margin-bottom: 0;
+    }
+}
+
+.glimmr-skeleton-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    overflow: hidden;
+
+    thead th {
+        padding: 12px 16px;
+        background: $background-light;
+        border-bottom: 1px solid $border-color;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid $border-color;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+}
+
+// Chart skeleton
+.glimmr-skeleton-chart-container {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.glimmr-skeleton-chart {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.glimmr-skeleton-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex: 1;
+    padding-bottom: 20px;
+    border-bottom: 1px solid $border-color;
+}
+
+.glimmr-skeleton-bar {
+    flex: 1;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: glimmr-skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px 4px 0 0;
+    min-width: 20px;
+}
+
+.glimmr-skeleton-chart-legend {
+    margin-top: 12px;
+    height: 12px;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+// Card skeleton
+.glimmr-skeleton-card {
+    padding: 20px;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    margin-bottom: 16px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+// Text skeleton
+.glimmr-skeleton-text {
+    margin-bottom: 16px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+// Conversation skeleton
+.glimmr-skeleton-conversation {
+    display: flex;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.glimmr-skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: glimmr-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.glimmr-skeleton-conversation .glimmr-skeleton-content {
+    flex: 1;
+}
+
+.glimmr-skeleton-conversations-list {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+// =========================================================================
+// Contact Requests Styles (v1.8.0)
+// =========================================================================
+
+.glimmr-ai-contact-requests {
+    // Override default WordPress admin styles for cleaner look
+    .components-select-control {
+        margin-bottom: 0;
+    }
+
+    .components-text-control {
+        margin-bottom: 0;
+    }
+
+    // Table row hover effect
+    table tbody tr:hover {
+        background-color: $background-light;
+    }
+
+    // Better focus states for accessibility
+    table tbody tr:focus-within {
+        outline: 2px solid $primary-color;
+        outline-offset: -2px;
+    }
+}
+
+// Contact Detail Modal Styles
+.glimmr-ai-contact-detail-modal {
+    .components-modal__content {
+        padding: 20px 24px 24px;
+    }
+
+    .contact-detail-content {
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 8px;
+
+        // Custom scrollbar for the modal content
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+
+            &:hover {
+                background: #aaa;
+            }
+        }
+    }
+
+    // Conversation context collapsible
+    details {
+        summary {
+            user-select: none;
+
+            &:focus {
+                outline: 2px solid $primary-color;
+                outline-offset: 2px;
+            }
+        }
+    }
+}
+
+// Response Modal Styles
+.glimmr-ai-response-modal {
+    .components-modal__content {
+        padding: 20px 24px 24px;
+    }
+
+    textarea {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+
+        &:focus {
+            border-color: $primary-color;
+            box-shadow: 0 0 0 1px $primary-color;
+            outline: none;
+        }
+    }
+}
+
+// Status badge animation for new requests
+@keyframes pulse-attention {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.glimmr-ai-contact-requests table tbody tr[data-status="new"] td:nth-child(6) span {
+    animation: pulse-attention 2s ease-in-out infinite;
+}

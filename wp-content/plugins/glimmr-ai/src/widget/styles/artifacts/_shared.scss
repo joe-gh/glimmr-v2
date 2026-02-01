@@ -1,0 +1,339 @@
+// ==========================================================================
+// Artifact Styles
+// ==========================================================================
+
+// Common artifact wrapper
+.glimmr-message-artifacts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+// ==========================================================================
+// Shared Button Styles
+// ==========================================================================
+
+.glimmr-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 10px 16px !important;
+    margin: 0 !important;
+    border-radius: var(--glimmr-radius-sm) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    font-family: inherit !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    cursor: pointer;
+    transition: all var(--glimmr-transition) !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+
+    &:disabled {
+        opacity: 0.6 !important;
+        cursor: not-allowed !important;
+    }
+
+    &:focus {
+        outline: 2px solid var(--glimmr-primary) !important;
+        outline-offset: 2px !important;
+    }
+
+    &:focus:not(:focus-visible) {
+        outline: none !important;
+    }
+
+    &-primary {
+        background: var(--glimmr-primary) !important;
+        color: var(--glimmr-primary-text) !important;
+
+        &:hover:not(:disabled) {
+            background: var(--glimmr-primary-hover) !important;
+            color: var(--glimmr-primary-text) !important;
+        }
+    }
+
+    &-secondary {
+        background: var(--glimmr-bg) !important;
+        color: var(--glimmr-text-dark) !important;
+        border: 1px solid var(--glimmr-border) !important;
+
+        &:hover:not(:disabled) {
+            background: var(--glimmr-bg-light) !important;
+            color: var(--glimmr-text-dark) !important;
+        }
+    }
+}
+
+// Spinner
+.glimmr-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: glimmr-spin 0.8s linear infinite;
+}
+
+.glimmr-spinner-small {
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: glimmr-spin 0.8s linear infinite;
+}
+
+// ==========================================================================
+// Modal Overlay (Shared)
+// ==========================================================================
+
+.glimmr-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--glimmr-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000000;
+    padding: 20px;
+    animation: glimmr-fade-in 0.2s ease;
+    font-family: var(--glimmr-font);
+
+    // Reset button styles inside modals to prevent theme overrides.
+    button,
+    [type="button"],
+    [type="submit"] {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        outline: none;
+        font-family: inherit;
+
+        &:focus {
+            outline: 2px solid var(--glimmr-primary);
+            outline-offset: 2px;
+        }
+
+        &:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--glimmr-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    // Reset input styles.
+    input,
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        font-family: inherit;
+
+        &:focus {
+            outline: 2px solid var(--glimmr-primary);
+            outline-offset: 0;
+            border-color: var(--glimmr-primary);
+        }
+
+        &:focus:not(:focus-visible) {
+            outline: none;
+        }
+    }
+}
+
+.glimmr-modal {
+    background: var(--glimmr-bg);
+    border-radius: var(--glimmr-radius);
+    box-shadow: var(--glimmr-shadow);
+    max-height: calc(100vh - 40px);
+    max-width: calc(100vw - 40px);
+    overflow: hidden;
+    position: relative;
+    animation: glimmr-slide-up 0.3s ease;
+}
+
+.glimmr-modal-close {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    outline: none !important;
+    background: #F3F4F6 !important; // Light grey background.
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #1F2937 !important; // Dark text/icon color.
+    z-index: 10 !important;
+    transition: background 0.2s ease, color 0.2s ease !important;
+    box-shadow: none !important;
+    line-height: 1 !important;
+
+    &:hover,
+    &:hover:focus {
+        background: #E5E7EB !important; // Darker grey on hover.
+        color: #1F2937 !important;
+        outline: none !important;
+    }
+
+    &:focus,
+    &:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    svg {
+        width: 18px !important;
+        height: 18px !important;
+        color: inherit !important;
+        flex-shrink: 0 !important;
+    }
+}
+
+@keyframes glimmr-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+// ==========================================================================
+// Star Rating (Shared)
+// ==========================================================================
+
+.glimmr-stars,
+.glimmr-rating {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.glimmr-star {
+    width: 14px;
+    height: 14px;
+
+    &-filled {
+        color: var(--glimmr-star-filled);
+    }
+
+    &-empty {
+        color: var(--glimmr-star-empty);
+    }
+}
+
+.glimmr-review-count {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+    margin-left: 4px;
+}
+
+// ==========================================================================
+// SQL Results Table (sql_readonly tool)
+// ==========================================================================
+
+.glimmr-sql-results {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius);
+    overflow: hidden;
+
+    &.glimmr-sql-empty {
+        padding: 16px;
+        text-align: center;
+        color: var(--glimmr-text-muted);
+
+        p {
+            margin: 0;
+        }
+    }
+}
+
+.glimmr-sql-header {
+    padding: 10px 14px;
+    background: var(--glimmr-bg-light);
+    border-bottom: 1px solid var(--glimmr-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.glimmr-sql-count {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-sql-table-wrapper {
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.glimmr-sql-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th,
+    td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--glimmr-border);
+        white-space: nowrap;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    th {
+        background: var(--glimmr-bg-light);
+        font-weight: 600;
+        color: var(--glimmr-text-dark);
+        text-transform: capitalize;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    td {
+        color: var(--glimmr-text-dark);
+    }
+
+    tbody tr {
+        &:hover {
+            background: var(--glimmr-bg-light);
+        }
+
+        &:last-child td {
+            border-bottom: none;
+        }
+    }
+}
+
+.glimmr-sql-footer {
+    padding: 10px 14px;
+    background: var(--glimmr-bg-light);
+    border-top: 1px solid var(--glimmr-border);
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+    text-align: center;
+}

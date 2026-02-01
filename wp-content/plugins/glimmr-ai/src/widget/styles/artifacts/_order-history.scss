@@ -1,0 +1,321 @@
+// ==========================================================================
+// Order History List
+// ==========================================================================
+
+.glimmr-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.glimmr-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px 8px;
+}
+
+.glimmr-history-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-history-count {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-history-empty {
+    padding: 32px 24px;
+    text-align: center;
+    color: var(--glimmr-text-muted);
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+
+    svg {
+        margin-bottom: 12px;
+        opacity: 0.4;
+    }
+
+    p {
+        margin: 0;
+        font-size: 14px;
+    }
+}
+
+.glimmr-history-orders {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.glimmr-history-order {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+    transition: background var(--glimmr-transition);
+
+    &.is-expanded {
+        background: var(--glimmr-bg-light);
+    }
+}
+
+// Override theme button styles - must be very specific
+.glimmr-history-order-header,
+button.glimmr-history-order-header,
+.glimmr-chat-widget button.glimmr-history-order-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    margin: 0;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    text-align: left;
+    font-size: inherit;
+    font-weight: normal;
+    cursor: pointer;
+    transition: background var(--glimmr-transition);
+    white-space: normal;
+
+    &:hover,
+    &:focus {
+        background: var(--glimmr-bg-light) !important;
+        color: inherit !important;
+        text-decoration: none;
+        outline: none;
+    }
+}
+
+.glimmr-history-order-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--glimmr-bg-light);
+    border: 1px solid var(--glimmr-border);
+    border-radius: 8px;
+    color: var(--glimmr-text-muted);
+    flex-shrink: 0;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.glimmr-history-order-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.glimmr-history-order-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+    display: block;
+}
+
+.glimmr-history-order-date {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-history-order-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.glimmr-history-order-total {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-history-chevron {
+    transition: transform var(--glimmr-transition);
+    color: var(--glimmr-text-muted);
+    flex-shrink: 0;
+
+    &.is-expanded {
+        transform: rotate(180deg);
+    }
+}
+
+// Expanded Details
+.glimmr-history-order-details {
+    padding: 8px 8px 8px;
+    animation: glimmr-slide-down 0.2s ease-out;
+}
+
+@keyframes glimmr-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.glimmr-history-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    margin-bottom: 12px;
+}
+
+.glimmr-history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.glimmr-history-item-image {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--glimmr-border);
+    background: var(--glimmr-bg-light);
+}
+
+.glimmr-history-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.glimmr-history-item-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--glimmr-text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.glimmr-history-item-variation {
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-history-item-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.glimmr-history-item-qty {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-history-item-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-history-order-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+}
+
+.glimmr-history-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+
+    span:first-child {
+        color: var(--glimmr-text-muted);
+    }
+
+    span:last-child {
+        color: var(--glimmr-text-dark);
+        font-weight: 500;
+    }
+}
+
+.glimmr-history-tracking-link {
+    color: var(--glimmr-primary);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.glimmr-history-view-btn {
+    width: 100%;
+}
+
+// Override theme button styles for toggle
+.glimmr-history-toggle,
+button.glimmr-history-toggle,
+.glimmr-chat-widget button.glimmr-history-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 12px;
+    margin: 0;
+    border: 1px solid var(--glimmr-border) !important;
+    border-radius: var(--glimmr-radius-sm) !important;
+    background: var(--glimmr-bg) !important;
+    color: var(--glimmr-text-muted) !important;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--glimmr-transition);
+    white-space: normal;
+
+    &:hover,
+    &:focus {
+        background: var(--glimmr-bg-light) !important;
+        color: var(--glimmr-text-dark) !important;
+        text-decoration: none;
+        outline: none;
+    }
+
+    svg {
+        transition: transform var(--glimmr-transition);
+    }
+}
+
+.glimmr-history-reorder {
+    padding: 12px 16px;
+    border-top: 1px solid var(--glimmr-border);
+    background: var(--glimmr-bg-light);
+}

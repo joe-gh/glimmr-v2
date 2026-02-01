@@ -1,0 +1,44 @@
+// ==========================================================================
+// Quick Replies
+// ==========================================================================
+
+.glimmr-quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--glimmr-border);
+}
+
+.glimmr-quick-reply {
+    padding: 8px 16px !important;
+    margin: 0 !important;
+    background: var(--glimmr-bg) !important;
+    border: 1px solid var(--glimmr-border) !important;
+    border-radius: 20px !important;
+    color: var(--glimmr-primary) !important;
+    font-size: 13px !important;
+    font-weight: normal !important;
+    font-family: inherit !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+    cursor: pointer;
+    transition: all var(--glimmr-transition) !important;
+    box-shadow: none !important;
+
+    &:hover {
+        background: var(--glimmr-primary) !important;
+        border-color: var(--glimmr-primary) !important;
+        color: var(--glimmr-primary-text) !important;
+    }
+
+    &:focus {
+        outline: 2px solid var(--glimmr-secondary) !important;
+        outline-offset: 2px !important;
+    }
+
+    &:focus:not(:focus-visible) {
+        outline: none !important;
+    }
+}

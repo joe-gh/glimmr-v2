@@ -1,0 +1,249 @@
+// ==========================================================================
+// Mobile Enhancements
+// ==========================================================================
+
+// Tablet adjustments
+@media (max-width: 768px) {
+    .glimmr-widget {
+        bottom: 16px;
+
+        &.position-right {
+            right: 16px;
+        }
+
+        &.position-left {
+            left: 16px;
+        }
+    }
+
+    .glimmr-bubble {
+        width: 56px;
+        height: 56px;
+    }
+
+    .glimmr-window {
+        // Scale down if configured size is too large for tablet.
+        // Uses min() to pick the smaller of configured size or available space.
+        width: min(var(--glimmr-widget-width, 400px), calc(100vw - 32px));
+        height: min(var(--glimmr-widget-height, 650px), calc(100vh - 120px));
+    }
+}
+
+// Mobile fullscreen improvements
+@media (max-width: 480px) {
+    .glimmr-widget {
+        bottom: 12px;
+
+        &.position-right {
+            right: 12px;
+        }
+
+        &.position-left {
+            left: 12px;
+        }
+    }
+
+    .glimmr-bubble {
+        width: 52px;
+        height: 52px;
+
+        &-avatar {
+            width: 36px;
+            height: 36px;
+        }
+    }
+
+    // Header adjustments
+    .glimmr-window-header {
+        padding: 12px;
+    }
+
+    .glimmr-window-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .glimmr-window-title h3 {
+        font-size: 15px;
+    }
+
+    // Messages area
+    .glimmr-messages {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .glimmr-message {
+        max-width: 90%;
+    }
+
+    .glimmr-message-bubble {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    .glimmr-message-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    // Quick replies
+    .glimmr-quick-replies {
+        padding: 10px 12px;
+        gap: 6px;
+    }
+
+    .glimmr-quick-reply {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    // Input area
+    .glimmr-input-form {
+        padding: 10px 12px;
+    }
+
+    .glimmr-input-wrapper {
+        padding: 6px;
+    }
+
+    .glimmr-input {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+    .glimmr-send-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    // Product cards
+    .glimmr-product-card {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .glimmr-product-image img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .glimmr-product-name {
+        font-size: 13px;
+    }
+
+    .glimmr-product-add-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    // Cart preview
+    .glimmr-cart-header,
+    .glimmr-cart-items,
+    .glimmr-cart-totals,
+    .glimmr-cart-actions {
+        padding: 10px 12px;
+    }
+
+    .glimmr-cart-item-image {
+        width: 40px;
+        height: 40px;
+    }
+
+    .glimmr-cart-item-name {
+        font-size: 13px;
+    }
+
+    .glimmr-cart-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    // GDPR banner
+    .glimmr-gdpr-banner {
+        padding: 16px 12px;
+    }
+
+    .glimmr-gdpr-content h4 {
+        font-size: 14px;
+    }
+
+    .glimmr-gdpr-content p {
+        font-size: 12px;
+    }
+
+    .glimmr-gdpr-accept,
+    .glimmr-gdpr-decline {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+// Very small screens (iPhone SE, etc.)
+@media (max-width: 375px) {
+    .glimmr-message {
+        max-width: 95%;
+    }
+
+    .glimmr-product-image img {
+        width: 60px;
+        height: 60px;
+    }
+
+    .glimmr-quick-reply {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+}
+
+// Landscape mode on mobile
+@media (max-height: 500px) and (orientation: landscape) {
+    .glimmr-window {
+        height: 100vh;
+        max-height: 100vh;
+    }
+
+    .glimmr-messages {
+        max-height: calc(100vh - 180px);
+    }
+}
+
+// Touch device optimizations
+@media (hover: none) and (pointer: coarse) {
+    .glimmr-bubble {
+        // Slightly larger touch target
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    .glimmr-quick-reply {
+        // Minimum touch target size
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .glimmr-window-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .glimmr-menu-item {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .glimmr-product-add-btn {
+        min-height: 44px;
+    }
+
+    .glimmr-cart-btn {
+        min-height: 44px;
+    }
+
+    .glimmr-send-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}

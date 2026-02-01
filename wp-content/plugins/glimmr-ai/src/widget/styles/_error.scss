@@ -1,0 +1,11 @@
+// ==========================================================================
+// Error Banner
+// ==========================================================================
+
+.glimmr-error-banner {
+    padding: 10px 16px;
+    background: color-mix(in srgb, var(--glimmr-error) 10%, white);
+    color: var(--glimmr-error);
+    font-size: 13px;
+    text-align: center;
+}

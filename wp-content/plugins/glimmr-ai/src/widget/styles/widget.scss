@@ -1,0 +1,75 @@
+/**
+ * Glimmr AI Widget Styles
+ *
+ * Complete styling for the chat widget with CSS custom properties
+ * for theming. All styles are scoped to .glimmr-widget to prevent
+ * conflicts with site styles.
+ *
+ * @package Glimmr_AI
+ * @since 1.0.0
+ */
+
+// ==========================================================================
+// Core Styles
+// ==========================================================================
+
+// CSS custom properties (theme variables).
+@import 'variables';
+
+// Widget container and resets.
+@import 'container';
+
+// Chat bubble (floating button).
+@import 'bubble';
+
+// Chat window layout.
+@import 'window';
+
+// GDPR consent banner.
+@import 'gdpr';
+
+// ==========================================================================
+// Chat Components
+// ==========================================================================
+
+// Message display and flag menu.
+@import 'messages';
+
+// Typing indicator animation.
+@import 'typing';
+
+// Quick reply buttons.
+@import 'quick-replies';
+
+// Message input area.
+@import 'input';
+
+// Error banner.
+@import 'error';
+
+// ==========================================================================
+// Legacy Components
+// ==========================================================================
+
+// Product card (legacy, kept for compatibility).
+@import 'product-card';
+
+// Cart preview (legacy version).
+@import 'cart-preview';
+
+// ==========================================================================
+// Utilities
+// ==========================================================================
+
+// Accessibility helpers.
+@import 'accessibility';
+
+// Mobile enhancements (core widget).
+@import 'mobile';
+
+// ==========================================================================
+// Artifact Components
+// ==========================================================================
+
+// All artifact components (product grid, order status, etc.).
+@import 'artifacts/index';

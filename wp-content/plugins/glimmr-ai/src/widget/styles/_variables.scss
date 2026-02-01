@@ -1,0 +1,63 @@
+// ==========================================================================
+// CSS Custom Properties (set by JavaScript from WordPress settings)
+// ==========================================================================
+
+:root {
+    // Brand colors (overridden by JavaScript from settings).
+    --glimmr-primary: #4F46E5;
+    --glimmr-primary-hover: #4338CA;
+    --glimmr-secondary: #818CF8;
+
+    // Background & surface colors.
+    --glimmr-bg: #FFFFFF;
+    --glimmr-bg-light: #F3F4F6;
+    --glimmr-border: #E5E7EB;
+
+    // Text colors.
+    --glimmr-text: #FFFFFF;
+    --glimmr-text-dark: #1F2937;
+    --glimmr-text-muted: #6B7280;
+
+    // Primary button text (for contrast on primary backgrounds).
+    --glimmr-primary-text: #FFFFFF;
+
+    // Status colors.
+    --glimmr-success: #059669;
+    --glimmr-warning: #F59E0B;
+    --glimmr-error: #DC2626;
+
+    // Button style.
+    --glimmr-button-border: transparent;
+    --glimmr-button-border-width: 0px;
+
+    // Shadows & effects.
+    --glimmr-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    --glimmr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    // Layout.
+    --glimmr-radius: 16px;
+    --glimmr-radius-sm: 8px;
+    --glimmr-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    --glimmr-transition: 0.2s ease;
+
+    // Artifact-specific colors.
+    --glimmr-highlight: #FEF3C7;
+    --glimmr-highlight-text: #92400E;
+    --glimmr-modal-overlay: rgba(0, 0, 0, 0.5);
+
+    // Order status timeline colors.
+    --glimmr-status-pending: #9CA3AF;
+    --glimmr-status-processing: #F59E0B;
+    --glimmr-status-shipped: #3B82F6;
+    --glimmr-status-delivered: #10B981;
+    --glimmr-status-cancelled: #EF4444;
+
+    // Coupon styling.
+    --glimmr-coupon-bg: #FEF3C7;
+    --glimmr-coupon-border: #F59E0B;
+    --glimmr-coupon-text: #92400E;
+
+    // Rating stars.
+    --glimmr-star-filled: #FBBF24;
+    --glimmr-star-empty: #D1D5DB;
+}

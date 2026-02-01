@@ -1,0 +1,133 @@
+/**
+ * Cart Action Result Styles
+ *
+ * Styles for the cart action result component that displays
+ * pending, success, and error states for cart operations.
+ *
+ * @package Glimmr_AI
+ * @since 1.1.0
+ */
+
+// Cart Action Base
+.glimmr-cart-action {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--glimmr-radius-sm, 8px);
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 8px 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+
+    // Icon container
+    &__icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    // Spinner for pending state
+    &__spinner {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        color: var(--glimmr-primary, #4F46E5);
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    // Content area
+    &__content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    // Main message
+    &__message {
+        font-weight: 500;
+        color: var(--glimmr-text-dark, #1F2937);
+        word-break: break-word;
+    }
+
+    // Cart summary (items count, total)
+    &__summary {
+        font-size: 12px;
+        color: var(--glimmr-text-muted, #6B7280);
+    }
+
+    // Error message
+    &__error-message {
+        color: var(--glimmr-error, #DC2626);
+        font-weight: 500;
+    }
+
+    // Redirect notice
+    &__redirect {
+        font-size: 12px;
+        color: var(--glimmr-primary, #4F46E5);
+        font-style: italic;
+        margin-top: 4px;
+    }
+
+    // Pending state
+    &--pending {
+        background-color: rgba(79, 70, 229, 0.05);
+        border: 1px solid rgba(79, 70, 229, 0.15);
+
+        .glimmr-cart-action__message {
+            color: var(--glimmr-text-muted, #6B7280);
+        }
+    }
+
+    // Success state
+    &--success {
+        background-color: rgba(5, 150, 105, 0.08);
+        border: 1px solid rgba(5, 150, 105, 0.2);
+
+        .glimmr-cart-action__icon {
+            color: var(--glimmr-success, #059669);
+        }
+
+        .glimmr-cart-action__message {
+            color: var(--glimmr-success, #059669);
+        }
+    }
+
+    // Error state
+    &--error {
+        background-color: rgba(220, 38, 38, 0.08);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+
+        .glimmr-cart-action__icon {
+            color: var(--glimmr-error, #DC2626);
+        }
+    }
+}
+
+// Animation for spinner
+@keyframes glimmr-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

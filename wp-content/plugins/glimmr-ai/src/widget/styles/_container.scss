@@ -1,0 +1,198 @@
+// ==========================================================================
+// Widget Container
+// ==========================================================================
+
+.glimmr-widget {
+    position: fixed;
+    bottom: var(--glimmr-offset-y, 20px);
+    z-index: var(--glimmr-z-index, 999999);
+    font-family: var(--glimmr-font);
+    font-size: 14px;
+    line-height: 1.5;
+    box-sizing: border-box;
+
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    // ==========================================================================
+    // Theme Override Resets - Protect widget from aggressive WooCommerce themes
+    // ==========================================================================
+
+    // Global button resets
+    button,
+    [type="button"],
+    [type="submit"] {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        line-height: inherit !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        text-decoration: none !important;
+        box-shadow: none !important;
+        transition: all var(--glimmr-transition) !important;
+
+        &:focus {
+            outline: 2px solid var(--glimmr-primary) !important;
+            outline-offset: 2px !important;
+        }
+
+        &:focus:not(:focus-visible) {
+            outline: none !important;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--glimmr-primary) !important;
+            outline-offset: 2px !important;
+        }
+    }
+
+    // Global input resets
+    input,
+    textarea,
+    select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        line-height: inherit !important;
+        box-shadow: none !important;
+
+        &:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        &:focus:not(:focus-visible) {
+            outline: none !important;
+        }
+    }
+
+    // Links reset (exclude .glimmr-btn which has its own color rules)
+    a:not(.glimmr-btn) {
+        color: var(--glimmr-primary) !important;
+        text-decoration: none !important;
+
+        &:hover {
+            text-decoration: underline !important;
+        }
+
+        &:focus {
+            outline: 2px solid var(--glimmr-primary) !important;
+            outline-offset: 2px !important;
+        }
+
+        &:focus:not(:focus-visible) {
+            outline: none !important;
+        }
+    }
+
+    // Headings reset
+    h1, h2, h3, h4, h5, h6 {
+        font-family: inherit !important;
+        font-weight: 600 !important;
+        line-height: 1.3 !important;
+        color: var(--glimmr-text-dark) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+    }
+
+    // Paragraph reset
+    p {
+        font-family: inherit !important;
+        font-size: inherit !important;
+        line-height: inherit !important;
+        color: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    // List resets
+    ul, ol {
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+    }
+
+    li {
+        margin: 0 !important;
+        padding: 0 !important;
+
+        &::before {
+            content: none !important;
+        }
+
+        &::marker {
+            content: none !important;
+        }
+    }
+
+    // Table resets
+    table {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        width: 100% !important;
+    }
+
+    th, td {
+        font-family: inherit !important;
+        font-size: inherit !important;
+        text-align: left !important;
+        vertical-align: middle !important;
+    }
+
+    // Image resets
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+        border: none !important;
+        box-shadow: none !important;
+
+        // Exception for header logo - allow it to use its own sizing
+        &.glimmr-header-logo {
+            max-width: var(--glimmr-header-logo-max-width, 120px) !important;
+            max-height: var(--glimmr-header-logo-max-height, 32px) !important;
+            width: auto !important;
+            height: auto !important;
+        }
+    }
+
+    // SVG resets
+    svg {
+        display: inline-block !important;
+        vertical-align: middle !important;
+    }
+
+    // Form element resets
+    label {
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-weight: inherit !important;
+        color: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    // Span/div resets
+    span, div {
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+    }
+
+    // Right position (default)
+    &.position-right {
+        right: var(--glimmr-offset-x, 20px);
+    }
+
+    // Left position
+    &.position-left {
+        left: var(--glimmr-offset-x, 20px);
+    }
+}

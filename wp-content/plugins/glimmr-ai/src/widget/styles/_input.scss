@@ -1,0 +1,140 @@
+// ==========================================================================
+// Message Input
+// ==========================================================================
+
+.glimmr-input-form {
+    padding: 12px 16px;
+    border-top: 1px solid var(--glimmr-border);
+    background: var(--glimmr-bg);
+}
+
+.glimmr-input-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: var(--glimmr-bg-light);
+    border-radius: var(--glimmr-radius);
+    padding: 8px;
+}
+
+.glimmr-input {
+    flex: 1;
+    min-height: 24px;
+    max-height: 120px;
+    padding: 8px 12px !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--glimmr-text-dark) !important;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.4;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+
+    &::placeholder {
+        color: var(--glimmr-text-muted);
+    }
+
+    &:focus,
+    &:focus-visible {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.glimmr-send-btn {
+    width: 40px;
+    height: 40px;
+    border: none !important;
+    background: transparent !important;
+    color: var(--glimmr-secondary) !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--glimmr-transition);
+    flex-shrink: 0;
+    padding: 0 !important;
+    // Reset browser defaults and theme overrides.
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+
+    // Ensure SVG inherits color properly.
+    svg {
+        stroke: currentColor;
+        fill: none;
+    }
+
+    &:hover:not(:disabled) {
+        background: var(--glimmr-bg-light) !important;
+        color: var(--glimmr-primary) !important;
+    }
+
+    &.is-active {
+        background: var(--glimmr-primary) !important;
+        color: var(--glimmr-primary-text) !important;
+
+        &:hover:not(:disabled) {
+            background: var(--glimmr-primary-hover) !important;
+            color: var(--glimmr-primary-text) !important;
+        }
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &:focus,
+    &:focus-visible {
+        outline: 2px solid var(--glimmr-primary) !important;
+        outline-offset: 2px;
+        box-shadow: none !important;
+    }
+
+    &:focus:not(:focus-visible) {
+        outline: none !important;
+    }
+}
+
+.glimmr-send-loading {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--glimmr-primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: glimmr-spin 0.8s linear infinite;
+}
+
+// Style send button properly when loading.
+.glimmr-send-btn:has(.glimmr-send-loading) {
+    background: var(--glimmr-bg-light);
+    cursor: wait;
+
+    &:focus,
+    &:focus-visible {
+        outline: none !important;
+    }
+}
+
+@keyframes glimmr-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.glimmr-input-hint {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+    text-align: center;
+}

@@ -1,0 +1,185 @@
+// ==========================================================================
+// Account Summary Card
+// ==========================================================================
+
+.glimmr-account-card {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius-sm);
+    overflow: hidden;
+
+    &.glimmr-account-guest {
+        text-align: center;
+        padding: 24px;
+
+        svg {
+            margin-bottom: 12px;
+            color: var(--glimmr-text-muted);
+        }
+
+        p {
+            margin: 0 0 16px;
+            color: var(--glimmr-text-muted);
+        }
+    }
+}
+
+.glimmr-account-guest-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.glimmr-account-header {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: var(--glimmr-bg-light);
+}
+
+.glimmr-account-avatar {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+
+    img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    svg {
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+        background: var(--glimmr-border);
+        border-radius: 50%;
+        color: var(--glimmr-text-muted);
+    }
+}
+
+.glimmr-account-info {
+    flex: 1;
+}
+
+.glimmr-account-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-account-email {
+    display: block;
+    font-size: 13px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-account-member {
+    display: block;
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+    margin-top: 4px;
+}
+
+.glimmr-account-tier {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: color-mix(in srgb, var(--tier-color, #9CA3AF) 15%, white);
+    color: var(--tier-color, #9CA3AF);
+    font-weight: 500;
+    font-size: 13px;
+
+    svg {
+        color: var(--tier-color);
+    }
+}
+
+.glimmr-account-points {
+    margin-left: auto;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.glimmr-account-stats {
+    display: flex;
+    padding: 16px;
+    gap: 16px;
+}
+
+.glimmr-account-stat {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+}
+
+.glimmr-account-stat-icon {
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-account-stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.glimmr-account-stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-account-stat-label {
+    font-size: 11px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-account-progress {
+    padding: 0 16px 16px;
+}
+
+.glimmr-account-progress-header {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+    margin-bottom: 6px;
+}
+
+.glimmr-account-progress-bar {
+    height: 6px;
+    background: var(--glimmr-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.glimmr-account-progress-fill {
+    height: 100%;
+    background: var(--glimmr-primary);
+    transition: width 0.3s ease;
+}
+
+.glimmr-account-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--glimmr-border);
+}
+
+.glimmr-account-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: var(--glimmr-bg-light);
+    border-radius: var(--glimmr-radius-sm);
+    font-size: 12px;
+    color: var(--glimmr-primary);
+    text-decoration: none;
+    transition: background var(--glimmr-transition);
+
+    &:hover {
+        background: var(--glimmr-border);
+    }
+}

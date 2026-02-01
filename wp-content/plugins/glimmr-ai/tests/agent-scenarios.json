@@ -1,0 +1,344 @@
+{
+    "version": "1.0.0",
+    "description": "Agent behavior test scenarios for Glimmr AI",
+    "scenarios": [
+        {
+            "id": "pronoun_resolution_product",
+            "name": "Pronoun resolution after product search",
+            "description": "Tests that 'it' references work after showing products",
+            "turns": [
+                {
+                    "user": "Show me blue hoodies under $50",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "mode": "search" },
+                        "result_count": "> 0"
+                    }
+                },
+                {
+                    "user": "Does it come in medium?",
+                    "expect": {
+                        "tool": "resolve_variation",
+                        "params_contain": { "product_id": "@first_result.id" },
+                        "no_clarify": true,
+                        "comment": "Should use first focused product ID without asking"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "pronoun_resolution_single_product",
+            "name": "Pronoun resolution after single product details",
+            "description": "Tests that 'it' works after viewing one product",
+            "turns": [
+                {
+                    "user": "Tell me about the CloudSoft Premium Hoodie",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "mode": "search" }
+                    }
+                },
+                {
+                    "user": "Add it to my cart",
+                    "expect": {
+                        "tool": "add_to_cart",
+                        "params_contain": { "product_id": "@first_result.id" },
+                        "no_clarify": true
+                    }
+                }
+            ]
+        },
+        {
+            "id": "guest_order_verification_collect_all",
+            "name": "Guest order lookup collects all required info at once",
+            "description": "Tests that guest verification asks for all fields in ONE message",
+            "context": { "is_logged_in": false },
+            "turns": [
+                {
+                    "user": "Where's my order?",
+                    "expect": {
+                        "action": "clarify",
+                        "message_mentions": ["order number", "email", "zip"],
+                        "comment": "Should ask for ALL THREE in one message"
+                    }
+                },
+                {
+                    "user": "Order 12345, john@example.com, 90210",
+                    "expect": {
+                        "tool": "order_status",
+                        "params_contain": {
+                            "order_number": "12345",
+                            "email": "john@example.com",
+                            "zip": "90210"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "guest_order_partial_info",
+            "name": "Guest provides partial order info",
+            "description": "Tests that agent asks for missing fields",
+            "context": { "is_logged_in": false },
+            "turns": [
+                {
+                    "user": "Check order 12345",
+                    "expect": {
+                        "action": "clarify",
+                        "message_mentions": ["email", "zip"],
+                        "comment": "Has order number, should ask for email AND zip"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "capability_boundary_cancel_order",
+            "name": "Refuses to cancel orders",
+            "description": "Tests capability boundary enforcement",
+            "turns": [
+                {
+                    "user": "Cancel my order 12345",
+                    "expect": {
+                        "action": "final",
+                        "no_tool": true,
+                        "message_mentions": ["can't cancel", "support"],
+                        "comment": "Should refuse and point to support"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "capability_boundary_send_email",
+            "name": "Refuses to send emails",
+            "description": "Tests email capability boundary",
+            "turns": [
+                {
+                    "user": "Email me when my order ships",
+                    "expect": {
+                        "action": "final",
+                        "no_tool": true,
+                        "message_mentions": ["can't send", "email"],
+                        "comment": "Should refuse email-sending requests"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "capability_boundary_process_refund",
+            "name": "Refuses to process refunds",
+            "description": "Tests refund capability boundary",
+            "turns": [
+                {
+                    "user": "I want a refund for order 12345",
+                    "expect": {
+                        "action": "final",
+                        "no_tool": true,
+                        "message_mentions": ["refund", "support"],
+                        "comment": "Should explain refund process, not attempt it"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "multi_part_request_cart_and_policy",
+            "name": "Handles cart operation plus policy question",
+            "description": "Tests compound request handling",
+            "turns": [
+                {
+                    "user": "Add the blue hoodie to my cart and tell me about your return policy",
+                    "expect": {
+                        "tools": ["add_to_cart", "site_knowledge"],
+                        "message_mentions": ["added", "return"],
+                        "comment": "Should call BOTH tools and address both parts"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "multi_part_request_search_and_compare",
+            "name": "Search then compare in one request",
+            "description": "Tests compound search/compare handling",
+            "turns": [
+                {
+                    "user": "Find hoodies under $50 and compare the top 3",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "mode": "compare" },
+                        "comment": "Should use compare mode with search_params"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "nested_params_search_mode",
+            "name": "Handles search mode with nested params",
+            "description": "Tests parameter normalization for search",
+            "turns": [
+                {
+                    "user": "Show me red shoes",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "mode": "search" },
+                        "success": true
+                    }
+                }
+            ]
+        },
+        {
+            "id": "nested_params_details_mode",
+            "name": "Handles details mode for specific product",
+            "description": "Tests parameter normalization for details",
+            "turns": [
+                {
+                    "user": "Show me the Alpine Merino Crewneck",
+                    "expect": {
+                        "tool": "query_products",
+                        "success": true
+                    }
+                },
+                {
+                    "user": "Get full details",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "mode": "details" },
+                        "success": true
+                    }
+                }
+            ]
+        },
+        {
+            "id": "semantic_search_conceptual_query",
+            "name": "Uses semantic search for conceptual queries",
+            "description": "Tests search mode selection",
+            "turns": [
+                {
+                    "user": "Something cozy for winter evenings",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "semantic": true },
+                        "comment": "Conceptual query should use semantic search"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "structured_search_with_filters",
+            "name": "Uses structured search for filter-based queries",
+            "description": "Tests search mode selection for SQL queries",
+            "turns": [
+                {
+                    "user": "Blue jackets in size L under $100",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "semantic": false },
+                        "comment": "Filter-based query should use SQL search"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "action_first_has_category",
+            "name": "Action-first when user provides category",
+            "description": "Tests action-first vs clarify-first decision",
+            "turns": [
+                {
+                    "user": "Show me jackets",
+                    "expect": {
+                        "tool": "query_products",
+                        "no_clarify": true,
+                        "comment": "Has category, should search immediately"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "clarify_first_zero_attributes",
+            "name": "Clarify-first when no searchable attributes",
+            "description": "Tests clarification for vague requests",
+            "turns": [
+                {
+                    "user": "Show me products",
+                    "expect": {
+                        "action": "clarify",
+                        "no_tool": true,
+                        "comment": "Zero attributes, should clarify first"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "navigation_strong_signal",
+            "name": "Auto-navigate for strong navigation intent",
+            "description": "Tests navigation intent detection",
+            "turns": [
+                {
+                    "user": "Let's checkout now",
+                    "expect": {
+                        "tool": "checkout_link",
+                        "params_contain": { "auto_navigate": true },
+                        "comment": "Strong signal should trigger auto_navigate"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "navigation_weak_signal",
+            "name": "No auto-navigate for weak navigation signal",
+            "description": "Tests navigation intent for questions",
+            "turns": [
+                {
+                    "user": "How do I checkout?",
+                    "expect": {
+                        "tool_or_final": true,
+                        "params_not_contain": { "auto_navigate": true },
+                        "comment": "Question should not trigger auto_navigate"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "cart_view_vs_navigate",
+            "name": "View cart vs navigate to cart",
+            "description": "Tests cart display vs navigation distinction",
+            "turns": [
+                {
+                    "user": "What's in my cart?",
+                    "expect": {
+                        "tool": "view_cart",
+                        "comment": "'What's in' should display, not navigate"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "superlative_sort_mapping",
+            "name": "Maps superlatives to correct sort",
+            "description": "Tests superlative query handling",
+            "turns": [
+                {
+                    "user": "Show me your cheapest hoodies",
+                    "expect": {
+                        "tool": "query_products",
+                        "params_contain": { "sort": "price_asc" }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "logged_in_order_no_verification",
+            "name": "Logged-in user order lookup without verification",
+            "description": "Tests that logged-in users skip verification",
+            "context": { "is_logged_in": true },
+            "turns": [
+                {
+                    "user": "Where's my order 12345?",
+                    "expect": {
+                        "tool": "order_status",
+                        "params_not_contain": { "verify": true },
+                        "comment": "Logged-in user should not need verification"
+                    }
+                }
+            ]
+        }
+    ]
+}

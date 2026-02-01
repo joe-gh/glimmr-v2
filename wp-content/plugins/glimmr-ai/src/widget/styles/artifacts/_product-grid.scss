@@ -1,0 +1,204 @@
+// ==========================================================================
+// Product Search Grid
+// ==========================================================================
+
+.glimmr-product-grid-wrapper {
+    width: 100%;
+}
+
+.glimmr-product-grid-header {
+    margin-bottom: 8px;
+}
+
+.glimmr-product-grid-count {
+    font-size: 12px;
+    color: var(--glimmr-text-muted);
+}
+
+.glimmr-product-grid {
+    display: grid !important;
+    gap: 6px !important;
+    // Use minmax(0, 1fr) to prevent content from expanding columns.
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    // Make wrapper divs transparent to grid layout.
+    // This makes the buttons direct grid children.
+    > [role="listitem"],
+    > div {
+        display: contents !important;
+    }
+}
+
+.glimmr-product-grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.glimmr-product-grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.glimmr-product-grid-empty {
+    text-align: center;
+    padding: 24px;
+    color: var(--glimmr-text-muted);
+
+    svg {
+        margin-bottom: 8px;
+        opacity: 0.5;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.glimmr-product-tile {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    min-width: 0; // Prevent flexbox expansion.
+    max-width: 100%;
+    background: var(--glimmr-bg) !important;
+    border: 1px solid var(--glimmr-border) !important;
+    border-radius: var(--glimmr-radius-sm) !important;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all var(--glimmr-transition);
+    text-align: left;
+    padding: 0;
+    margin: 0;
+    box-shadow: none !important;
+    font-family: inherit;
+    color: inherit;
+
+    &:hover {
+        border-color: var(--glimmr-primary) !important;
+        box-shadow: var(--glimmr-shadow-sm) !important;
+    }
+
+    &:focus {
+        outline: 2px solid var(--glimmr-primary) !important;
+        outline-offset: 2px;
+        border-color: var(--glimmr-primary) !important;
+    }
+
+    &:focus:not(:focus-visible) {
+        outline: none !important;
+    }
+
+    &-image {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        flex-shrink: 0;
+        overflow: hidden;
+        background: var(--glimmr-bg-light);
+
+        img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    &-placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--glimmr-text-muted);
+
+        svg {
+            width: 40%;
+            height: 40%;
+        }
+    }
+
+    &-discount {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 2px 8px;
+        background: var(--glimmr-error);
+        color: #FFF;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 4px;
+    }
+
+    &-info {
+        padding: 4px 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0; // Prevent flex item from overflowing.
+    }
+
+    &-name {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--glimmr-text-dark);
+        line-height: 1.3;
+        margin: 0;
+        // Allow title to wrap fully - no truncation.
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+    }
+
+    &-price {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+    }
+}
+
+.glimmr-price-sale {
+    font-weight: 600;
+    color: var(--glimmr-error);
+}
+
+.glimmr-price-regular {
+    text-decoration: line-through;
+    color: var(--glimmr-text-muted);
+    font-size: 10px;
+}
+
+.glimmr-price-current {
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-stock-badge {
+    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    &.glimmr-stock-in-stock {
+        color: var(--glimmr-success);
+    }
+
+    &.glimmr-stock-low-stock {
+        color: var(--glimmr-warning);
+    }
+
+    &.glimmr-stock-out-of-stock {
+        color: var(--glimmr-error);
+    }
+
+    &.glimmr-stock-backorder {
+        color: var(--glimmr-primary);
+    }
+}

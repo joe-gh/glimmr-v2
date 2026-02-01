@@ -1,0 +1,385 @@
+/**
+ * Reviews Section Styles
+ *
+ * Styles for the product reviews section displayed in the
+ * product detail modal.
+ *
+ * @package Glimmr_AI
+ * @since 1.8.0
+ */
+
+// Reviews section container
+.glimmr-product-modal-reviews {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--glimmr-border);
+}
+
+.glimmr-reviews-title {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.glimmr-reviews-count {
+    font-weight: 400;
+    color: var(--glimmr-text-muted);
+    font-size: 0.85rem;
+}
+
+.glimmr-reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+// Individual review card
+.glimmr-review {
+    padding: 0.75rem;
+    background: var(--glimmr-bg-light);
+    border-radius: calc(var(--glimmr-radius) * 0.5);
+    border: 1px solid var(--glimmr-border);
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.glimmr-review-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.glimmr-review-author {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-verified-badge {
+    font-size: 0.65rem;
+    font-weight: 500;
+    background: var(--glimmr-success);
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.glimmr-review-stars {
+    display: flex;
+    gap: 1px;
+    margin-left: auto;
+
+    .glimmr-star {
+        width: 12px;
+        height: 12px;
+    }
+
+    .glimmr-star-filled {
+        color: #f59e0b; // Amber color for filled stars
+    }
+
+    .glimmr-star-empty {
+        color: var(--glimmr-border);
+    }
+}
+
+.glimmr-review-text {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-review-date {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--glimmr-text-muted);
+}
+
+// Mobile adjustments
+@media (max-width: 480px) {
+    .glimmr-review {
+        padding: 0.625rem;
+    }
+
+    .glimmr-review-header {
+        gap: 0.375rem;
+    }
+
+    .glimmr-review-stars {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0.25rem;
+    }
+
+    .glimmr-review-author {
+        font-size: 0.8rem;
+    }
+
+    .glimmr-review-text {
+        font-size: 0.8rem;
+    }
+}
+
+// ==========================================================================
+// Reviews Artifact (standalone display from get_reviews tool)
+// ==========================================================================
+
+.glimmr-reviews-artifact {
+    background: var(--glimmr-bg);
+    border: 1px solid var(--glimmr-border);
+    border-radius: var(--glimmr-radius);
+    overflow: hidden;
+    margin: 0.5rem 0;
+
+    &.glimmr-reviews-empty {
+        padding: 1rem;
+        text-align: center;
+        color: var(--glimmr-text-muted);
+
+        p {
+            margin: 0;
+        }
+    }
+}
+
+.glimmr-reviews-header {
+    padding: 0.75rem 1rem;
+    background: var(--glimmr-bg-light);
+    border-bottom: 1px solid var(--glimmr-border);
+}
+
+.glimmr-reviews-product-name {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-reviews-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.glimmr-reviews-avg-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 600;
+    font-size: 1rem;
+
+    .glimmr-star {
+        color: #f59e0b;
+        font-size: 1.1rem;
+    }
+}
+
+.glimmr-rating-value {
+    color: var(--glimmr-text-dark);
+}
+
+.glimmr-reviews-artifact .glimmr-reviews-count {
+    color: var(--glimmr-text-muted);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+// Rating breakdown bars
+.glimmr-rating-breakdown {
+    padding: 0.75rem 1rem;
+    background: var(--glimmr-bg);
+    border-bottom: 1px solid var(--glimmr-border);
+}
+
+.glimmr-rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.375rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.glimmr-rating-label {
+    width: 40px;
+    font-size: 0.75rem;
+    color: var(--glimmr-text-dark);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    .glimmr-star {
+        color: #f59e0b;
+        font-size: 0.7rem;
+    }
+}
+
+.glimmr-rating-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--glimmr-bg-light);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.glimmr-rating-bar-fill {
+    height: 100%;
+    background: #f59e0b;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.glimmr-rating-count {
+    width: 30px;
+    font-size: 0.75rem;
+    color: var(--glimmr-text-muted);
+    text-align: right;
+}
+
+// Reviews list (artifact version)
+.glimmr-reviews-artifact .glimmr-reviews-list {
+    padding: 0.75rem 1rem;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.glimmr-review-item {
+    padding: 0.75rem;
+    background: var(--glimmr-bg-light);
+    border-radius: calc(var(--glimmr-radius) * 0.5);
+    border: 1px solid var(--glimmr-border);
+    margin-bottom: 0.5rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    .glimmr-review-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0;
+        background: none;
+        border: none;
+        margin-bottom: 0.375rem;
+    }
+
+    .glimmr-review-author {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--glimmr-text-dark);
+    }
+
+    .glimmr-verified-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.65rem;
+        font-weight: 500;
+        background: var(--glimmr-success);
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+
+        svg {
+            flex-shrink: 0;
+        }
+    }
+
+    .glimmr-review-rating {
+        display: flex;
+        gap: 1px;
+        margin-bottom: 0.375rem;
+
+        .glimmr-star {
+            font-size: 0.85rem;
+            line-height: 1;
+
+            &.filled {
+                color: #f59e0b;
+            }
+
+            &.empty {
+                color: var(--glimmr-border);
+            }
+        }
+    }
+
+    .glimmr-review-content {
+        margin: 0 0 0.5rem;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: var(--glimmr-text-dark);
+    }
+
+    .glimmr-review-date {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--glimmr-text-muted);
+    }
+}
+
+// Star styles (shared)
+.glimmr-star {
+    &.filled {
+        color: #f59e0b;
+    }
+
+    &.empty {
+        color: var(--glimmr-border);
+    }
+}
+
+// Mobile adjustments for reviews artifact
+@media (max-width: 480px) {
+    .glimmr-reviews-artifact .glimmr-reviews-list {
+        padding: 0.625rem;
+        max-height: 280px;
+    }
+
+    .glimmr-review-item {
+        padding: 0.625rem;
+
+        .glimmr-review-header {
+            gap: 0.375rem;
+        }
+
+        .glimmr-review-author {
+            font-size: 0.8rem;
+        }
+
+        .glimmr-review-content {
+            font-size: 0.8rem;
+        }
+    }
+
+    .glimmr-rating-breakdown {
+        padding: 0.625rem;
+    }
+
+    .glimmr-rating-label {
+        width: 35px;
+        font-size: 0.7rem;
+    }
+
+    .glimmr-rating-count {
+        width: 25px;
+        font-size: 0.7rem;
+    }
+}
