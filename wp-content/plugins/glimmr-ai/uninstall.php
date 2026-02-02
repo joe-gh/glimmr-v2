@@ -25,9 +25,30 @@ function glimmr_ai_uninstall() {
         return;
     }
 
+    // Deactivate license on the server before cleanup.
+    $license_key  = get_option( 'glimmr_ai_license_key', '' );
+    $license_data = get_option( 'glimmr_ai_license_data', array() );
+    if ( ! empty( $license_key ) && ! empty( $license_data['activation_id'] ) ) {
+        $server_url = 'https://glimmr.us/wp-json/glimmr-licensing/v1/deactivate';
+        wp_remote_post( $server_url, array(
+            'timeout' => 10,
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
+            ),
+            'body'    => wp_json_encode( array(
+                'license_key'   => $license_key,
+                'activation_id' => $license_data['activation_id'],
+                'site_url'      => home_url(),
+            ) ),
+        ) );
+    }
+
     // Delete options.
     delete_option( 'glimmr_ai_settings' );
     delete_option( 'glimmr_ai_db_version' );
+    delete_option( 'glimmr_ai_license_key' );
+    delete_option( 'glimmr_ai_license_data' );
 
     // Delete network options for multisite.
     if ( is_multisite() ) {
@@ -37,8 +58,30 @@ function glimmr_ai_uninstall() {
         $sites = get_sites( array( 'number' => 0 ) );
         foreach ( $sites as $site ) {
             switch_to_blog( $site->blog_id );
+
+            // Deactivate license for this site.
+            $site_license_key  = get_option( 'glimmr_ai_license_key', '' );
+            $site_license_data = get_option( 'glimmr_ai_license_data', array() );
+            if ( ! empty( $site_license_key ) && ! empty( $site_license_data['activation_id'] ) ) {
+                $server_url = 'https://glimmr.us/wp-json/glimmr-licensing/v1/deactivate';
+                wp_remote_post( $server_url, array(
+                    'timeout' => 10,
+                    'headers' => array(
+                        'Content-Type' => 'application/json',
+                        'Accept'       => 'application/json',
+                    ),
+                    'body'    => wp_json_encode( array(
+                        'license_key'   => $site_license_key,
+                        'activation_id' => $site_license_data['activation_id'],
+                        'site_url'      => home_url(),
+                    ) ),
+                ) );
+            }
+
             delete_option( 'glimmr_ai_settings' );
             delete_option( 'glimmr_ai_db_version' );
+            delete_option( 'glimmr_ai_license_key' );
+            delete_option( 'glimmr_ai_license_data' );
             glimmr_ai_drop_tables();
             restore_current_blog();
         }
@@ -97,6 +140,7 @@ function glimmr_ai_drop_tables() {
         'rate_limits',
         'product_index',
         'sync_log',
+        'contact_requests',
         'conversations', // Drop last due to foreign key constraints.
     );
 

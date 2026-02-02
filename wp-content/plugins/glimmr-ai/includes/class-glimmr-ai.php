@@ -377,6 +377,10 @@ class Glimmr_AI {
         add_action( 'wp_ajax_glimmr_ai_flag_conversation', array( $admin, 'ajax_flag_conversation' ) );
         add_action( 'wp_ajax_glimmr_ai_resolve_issue', array( $admin, 'ajax_resolve_issue' ) );
 
+        // License management AJAX handlers (v1.9.0).
+        add_action( 'wp_ajax_glimmr_ai_activate_license', array( $admin, 'ajax_activate_license' ) );
+        add_action( 'wp_ajax_glimmr_ai_deactivate_license', array( $admin, 'ajax_deactivate_license' ) );
+
         // Activation redirect.
         add_action( 'admin_init', array( $admin, 'activation_redirect' ) );
 

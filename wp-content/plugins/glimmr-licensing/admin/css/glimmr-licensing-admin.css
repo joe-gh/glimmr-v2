@@ -1,0 +1,300 @@
+/**
+ * Glimmr Licensing Admin Styles
+ *
+ * @package Glimmr_Licensing
+ * @since   1.0.0
+ */
+
+/* Stats Cards */
+.glimmr-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.glimmr-stat-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 20px 24px;
+    min-width: 150px;
+    flex: 1;
+}
+
+.glimmr-stat-card .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1d2327;
+    line-height: 1.2;
+}
+
+.glimmr-stat-card .stat-label {
+    font-size: 13px;
+    color: #646970;
+    margin-top: 4px;
+}
+
+/* Badges */
+.glimmr-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.glimmr-badge-success {
+    background: #edfcf2;
+    color: #0e6027;
+}
+
+.glimmr-badge-warning {
+    background: #fef3cd;
+    color: #856404;
+}
+
+.glimmr-badge-danger {
+    background: #fcf0f0;
+    color: #8a1116;
+}
+
+.glimmr-badge-default {
+    background: #f0f0f1;
+    color: #50575e;
+}
+
+/* Tables */
+.glimmr-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.glimmr-table th {
+    background: #f6f7f7;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.glimmr-table td {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f1;
+    vertical-align: middle;
+}
+
+.glimmr-table tr:last-child td {
+    border-bottom: none;
+}
+
+.glimmr-table tr:hover td {
+    background: #f9f9f9;
+}
+
+.glimmr-table code {
+    font-size: 12px;
+    padding: 2px 6px;
+    background: #f0f0f1;
+    border-radius: 3px;
+}
+
+/* Cards */
+.glimmr-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.glimmr-card h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 15px;
+    color: #1d2327;
+}
+
+/* Create License Form */
+.glimmr-create-form {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.glimmr-create-form h3 {
+    margin-top: 0;
+}
+
+.glimmr-form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.glimmr-form-row label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: #1d2327;
+}
+
+.glimmr-form-row .glimmr-field {
+    flex: 1;
+    min-width: 180px;
+}
+
+.glimmr-form-row input[type="text"],
+.glimmr-form-row input[type="email"],
+.glimmr-form-row input[type="date"],
+.glimmr-form-row select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* Filters */
+.glimmr-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.glimmr-filters select,
+.glimmr-filters input[type="search"] {
+    padding: 4px 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* Pagination */
+.glimmr-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding: 10px 0;
+}
+
+.glimmr-pagination .page-numbers {
+    display: inline-flex;
+    gap: 4px;
+}
+
+.glimmr-pagination .page-numbers a,
+.glimmr-pagination .page-numbers span {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    font-size: 13px;
+    text-decoration: none;
+    color: #2271b1;
+}
+
+.glimmr-pagination .page-numbers .current {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+}
+
+/* License Detail */
+.glimmr-detail-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 8px 16px;
+    font-size: 13px;
+}
+
+.glimmr-detail-grid dt {
+    font-weight: 600;
+    color: #646970;
+}
+
+.glimmr-detail-grid dd {
+    margin: 0;
+    color: #1d2327;
+}
+
+/* Activity Log */
+.glimmr-log-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.glimmr-log-entry {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f1;
+    font-size: 13px;
+}
+
+.glimmr-log-entry:last-child {
+    border-bottom: none;
+}
+
+.glimmr-log-time {
+    color: #646970;
+    white-space: nowrap;
+    min-width: 140px;
+}
+
+.glimmr-log-action {
+    font-weight: 600;
+    min-width: 100px;
+}
+
+.glimmr-log-details {
+    color: #646970;
+}
+
+/* Actions */
+.glimmr-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.glimmr-actions .button-small {
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 2px 8px;
+}
+
+/* Settings Form */
+.glimmr-settings-form .form-table th {
+    width: 200px;
+}
+
+/* Copy button */
+.glimmr-copy-btn {
+    cursor: pointer;
+    background: none;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: #2271b1;
+    margin-left: 8px;
+}
+
+.glimmr-copy-btn:hover {
+    background: #f0f0f1;
+}

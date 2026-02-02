@@ -176,6 +176,22 @@ function glimmr_ai_init() {
         return;
     }
 
+    // Load license client (always needed for admin license page).
+    require_once GLIMMR_AI_PLUGIN_DIR . 'includes/class-glimmr-ai-license.php';
+
+    // Check license status.
+    $license = Glimmr_AI_License::get_instance();
+
+    if ( ! $license->is_licensed() ) {
+        // Only load admin for license entry screen.
+        if ( is_admin() ) {
+            require_once GLIMMR_AI_PLUGIN_DIR . 'admin/class-glimmr-ai-admin.php';
+            $admin = new Glimmr_AI_Admin();
+            $admin->init_license_only_mode();
+        }
+        return; // Don't load the rest of the plugin.
+    }
+
     // S17: Check for OpenSSL and warn if not available.
     if ( ! function_exists( 'openssl_encrypt' ) ) {
         add_action( 'admin_notices', 'glimmr_ai_openssl_missing_notice' );

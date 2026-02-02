@@ -305,6 +305,11 @@ class Glimmr_AI_REST_API {
      * @return WP_REST_Response|WP_Error
      */
     public function handle_chat_message( $request ) {
+        // License check — reject if not licensed.
+        if ( class_exists( 'Glimmr_AI_License' ) && ! Glimmr_AI_License::get_instance()->is_licensed() ) {
+            return new WP_Error( 'not_licensed', __( 'Plugin is not licensed.', 'glimmr-ai' ), array( 'status' => 403 ) );
+        }
+
         $start_time      = microtime( true );
         $conversation_id = $request->get_param( 'conversation_id' );
         $message         = $request->get_param( 'message' );
@@ -2123,6 +2128,11 @@ class Glimmr_AI_REST_API {
      * @return void Outputs SSE stream directly.
      */
     public function handle_chat_stream( $request ) {
+        // License check — reject if not licensed.
+        if ( class_exists( 'Glimmr_AI_License' ) && ! Glimmr_AI_License::get_instance()->is_licensed() ) {
+            return new WP_Error( 'not_licensed', __( 'Plugin is not licensed.', 'glimmr-ai' ), array( 'status' => 403 ) );
+        }
+
         $conversation_id = $request->get_param( 'conversation_id' );
         $message         = $request->get_param( 'message' );
         $context         = $this->sanitize_context( $request->get_param( 'context' ) ?: array() );

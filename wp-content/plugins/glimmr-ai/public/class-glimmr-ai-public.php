@@ -34,6 +34,11 @@ class Glimmr_AI_Public {
      * @return void
      */
     public function enqueue_styles() {
+        // Safety check — don't load widget if not licensed.
+        if ( class_exists( 'Glimmr_AI_License' ) && ! Glimmr_AI_License::get_instance()->is_licensed() ) {
+            return;
+        }
+
         // Only load if widget should be displayed.
         if ( ! Glimmr_AI_Settings::should_display_widget() ) {
             return;
@@ -59,6 +64,11 @@ class Glimmr_AI_Public {
      * @return void
      */
     public function enqueue_scripts() {
+        // Safety check — don't load widget if not licensed.
+        if ( class_exists( 'Glimmr_AI_License' ) && ! Glimmr_AI_License::get_instance()->is_licensed() ) {
+            return;
+        }
+
         // Only load if widget should be displayed.
         if ( ! Glimmr_AI_Settings::should_display_widget() ) {
             return;
@@ -249,6 +259,11 @@ class Glimmr_AI_Public {
      * @return void
      */
     public function render_chat_widget() {
+        // Safety check — don't render widget if not licensed.
+        if ( class_exists( 'Glimmr_AI_License' ) && ! Glimmr_AI_License::get_instance()->is_licensed() ) {
+            return;
+        }
+
         // Only render if widget should be displayed.
         if ( ! Glimmr_AI_Settings::should_display_widget() ) {
             return;

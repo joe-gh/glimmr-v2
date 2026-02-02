@@ -282,6 +282,16 @@ class Glimmr_AI_Admin {
             self::MENU_SLUG . '-contact-requests',
             array( $this, 'render_contact_requests_page' )
         );
+
+        // License.
+        add_submenu_page(
+            self::MENU_SLUG,
+            __( 'License', 'glimmr-ai' ),
+            __( 'License', 'glimmr-ai' ),
+            self::CAPABILITY,
+            self::MENU_SLUG . '-license',
+            array( $this, 'render_license_page' )
+        );
     }
 
     /**
@@ -689,6 +699,9 @@ class Glimmr_AI_Admin {
             }
         }
         $settings['_all_model_configs'] = $all_model_configs;
+
+        // Add license status for the License tab.
+        $settings['_license'] = $this->get_license_status_for_settings();
 
         return $settings;
     }
@@ -4245,5 +4258,113 @@ class Glimmr_AI_Admin {
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to resolve issue.', 'glimmr-ai' ) ) );
         }
+    }
+
+    /**
+     * Initialize license-only mode.
+     *
+     * Registers a minimal admin menu that only shows the license activation page.
+     * No settings, conversations, analytics, or other plugin features are loaded.
+     *
+     * @since 1.9.0
+     * @return void
+     */
+    public function init_license_only_mode() {
+        add_action( 'admin_menu', array( $this, 'add_license_only_menu' ) );
+        add_action( 'wp_ajax_glimmr_ai_activate_license', array( $this, 'ajax_activate_license' ) );
+        add_action( 'wp_ajax_glimmr_ai_deactivate_license', array( $this, 'ajax_deactivate_license' ) );
+    }
+
+    /**
+     * Add a minimal admin menu for license entry only.
+     *
+     * @since 1.9.0
+     * @return void
+     */
+    public function add_license_only_menu() {
+        add_menu_page(
+            __( 'Glimmr AI', 'glimmr-ai' ),
+            __( 'Glimmr AI', 'glimmr-ai' ),
+            self::CAPABILITY,
+            self::MENU_SLUG,
+            array( $this, 'render_license_page' ),
+            'dashicons-format-chat',
+            56
+        );
+    }
+
+    /**
+     * Render the license activation page.
+     *
+     * @since 1.9.0
+     * @return void
+     */
+    public function render_license_page() {
+        require_once GLIMMR_AI_PLUGIN_DIR . 'admin/partials/license-activation.php';
+    }
+
+    /**
+     * AJAX handler: Activate a license key.
+     *
+     * @since 1.9.0
+     * @return void
+     */
+    public function ajax_activate_license() {
+        check_ajax_referer( 'glimmr_ai_license_nonce', '_wpnonce' );
+
+        if ( ! current_user_can( self::CAPABILITY ) ) {
+            wp_send_json_error( array( 'message' => __( 'Unauthorized.', 'glimmr-ai' ) ) );
+        }
+
+        $license_key = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
+
+        $license = Glimmr_AI_License::get_instance();
+        $result  = $license->activate( $license_key );
+
+        if ( $result['success'] ) {
+            wp_send_json_success( $result );
+        } else {
+            wp_send_json_error( $result );
+        }
+    }
+
+    /**
+     * AJAX handler: Deactivate the current license.
+     *
+     * @since 1.9.0
+     * @return void
+     */
+    public function ajax_deactivate_license() {
+        check_ajax_referer( 'glimmr_ai_license_nonce', '_wpnonce' );
+
+        if ( ! current_user_can( self::CAPABILITY ) ) {
+            wp_send_json_error( array( 'message' => __( 'Unauthorized.', 'glimmr-ai' ) ) );
+        }
+
+        $license = Glimmr_AI_License::get_instance();
+        $result  = $license->deactivate();
+
+        if ( $result['success'] ) {
+            wp_send_json_success( $result );
+        } else {
+            wp_send_json_error( $result );
+        }
+    }
+
+    /**
+     * Get license status data for the admin settings page.
+     *
+     * Returns the current license status, plan, and usage info for display
+     * in the License tab of the settings page.
+     *
+     * @since 1.9.0
+     * @return array License status data.
+     */
+    public function get_license_status_for_settings() {
+        if ( ! class_exists( 'Glimmr_AI_License' ) ) {
+            require_once GLIMMR_AI_PLUGIN_DIR . 'includes/class-glimmr-ai-license.php';
+        }
+
+        return Glimmr_AI_License::get_instance()->get_status();
     }
 }

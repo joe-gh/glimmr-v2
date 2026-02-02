@@ -87,3 +87,6 @@ wp-content/plugins/woo-stripe-payment/
 wp-content/plugins/woocommerce-subscriptions/
 wp-content/plugins/woocommerce/
 wp-content/themes/
+
+wp-content/mu-plugins/
+wp-content/plugins/wp-migrate-db-pro/
