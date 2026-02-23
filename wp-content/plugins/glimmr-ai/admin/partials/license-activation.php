@@ -267,9 +267,9 @@ $nonce_field   = wp_nonce_field( 'glimmr_ai_license_nonce', 'glimmr_license_nonc
                         $site_limit = (int) ( $status_data['site_limit'] ?? 0 );
                         $used       = (int) ( $status_data['activations_used'] ?? 0 );
                         if ( 0 === $site_limit ) {
-                            echo esc_html( $used ) . ' / &#8734;';
+                            echo esc_html( (string) $used ) . ' / &#8734;';
                         } else {
-                            echo esc_html( $used ) . ' / ' . esc_html( $site_limit );
+                            echo esc_html( (string) $used ) . ' / ' . esc_html( (string) $site_limit );
                         }
                         ?>
                     </span>
@@ -283,7 +283,9 @@ $nonce_field   = wp_nonce_field( 'glimmr_ai_license_nonce', 'glimmr_license_nonc
                         if ( empty( $expiry ) ) {
                             esc_html_e( 'Lifetime', 'glimmr-ai' );
                         } else {
-                            echo esc_html( wp_date( 'F j, Y', strtotime( $expiry ) ) );
+                            $expiry_ts = strtotime( $expiry );
+                            $expiry_formatted = $expiry_ts !== false ? wp_date( 'F j, Y', $expiry_ts ) : false;
+                            echo esc_html( $expiry_formatted !== false ? $expiry_formatted : $expiry );
                         }
                         ?>
                     </span>
@@ -295,7 +297,10 @@ $nonce_field   = wp_nonce_field( 'glimmr_ai_license_nonce', 'glimmr_license_nonc
                 ?>
                 <div class="glimmr-status-row">
                     <span class="glimmr-status-label"><?php esc_html_e( 'Last Validated', 'glimmr-ai' ); ?></span>
-                    <span class="glimmr-status-value text"><?php echo esc_html( wp_date( 'F j, Y g:i A', $last_validated ) ); ?></span>
+                    <span class="glimmr-status-value text"><?php
+                        $validated_formatted = wp_date( 'F j, Y g:i A', $last_validated );
+                        echo esc_html( $validated_formatted !== false ? $validated_formatted : (string) $last_validated );
+                    ?></span>
                 </div>
                 <?php endif; ?>
             </div>

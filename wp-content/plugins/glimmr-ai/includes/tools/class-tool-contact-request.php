@@ -566,7 +566,8 @@ class Glimmr_AI_Tool_Contact_Request extends Glimmr_AI_Tool_Base {
         </body>
         </html>
         <?php
-        return ob_get_clean();
+        $body = ob_get_clean();
+        return false !== $body ? $body : '';
     }
 
     /**

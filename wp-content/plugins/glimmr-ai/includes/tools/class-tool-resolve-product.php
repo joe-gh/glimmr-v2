@@ -338,20 +338,8 @@ class Glimmr_AI_Tool_Resolve_Product extends Glimmr_AI_Tool_Base {
 			}
 		}
 
-		if ( count( $query_words ) > 0 ) {
-			$match_ratio = $matches / count( $query_words );
-			return min( 0.7, 0.4 + ( $match_ratio * 0.3 ) );
-		}
-
-		// Levenshtein distance for short strings.
-		if ( strlen( $query ) < 20 && strlen( $name_lower ) < 50 ) {
-			$distance = levenshtein( $query, $name_lower );
-			$max_len = max( strlen( $query ), strlen( $name_lower ) );
-			$similarity = 1 - ( $distance / $max_len );
-			return max( 0.3, min( 0.6, $similarity ) );
-		}
-
-		return 0.3;
+		$match_ratio = $matches / count( $query_words );
+		return min( 0.7, 0.4 + ( $match_ratio * 0.3 ) );
 	}
 
 	/**

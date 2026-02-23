@@ -217,7 +217,7 @@ class Glimmr_AI_PII_Masker {
      * @return array Masked address with only safe fields.
      */
     public static function mask_address_components( $address ) {
-        if ( empty( $address ) || ! is_array( $address ) ) {
+        if ( empty( $address ) ) {
             return array();
         }
 
@@ -237,7 +237,7 @@ class Glimmr_AI_PII_Masker {
         }
 
         // Build formatted string.
-        $parts = array_filter( array_values( $masked ) );
+        $parts = array_values( $masked );
         if ( ! empty( $parts ) ) {
             $masked['formatted'] = implode( ', ', $parts );
         }

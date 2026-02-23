@@ -159,6 +159,11 @@ class Glimmr_AI_Cron {
         $now = new DateTime( 'now', $timezone );
         $target = DateTime::createFromFormat( 'Y-m-d H:i', $now->format( 'Y-m-d' ) . ' ' . $time, $timezone );
 
+        if ( $target === false ) {
+            // Fallback: schedule 24 hours from now if time parsing fails.
+            return $now->getTimestamp() + DAY_IN_SECONDS;
+        }
+
         // If time has passed today, schedule for tomorrow.
         if ( $target <= $now ) {
             $target->modify( '+1 day' );
@@ -173,12 +178,13 @@ class Glimmr_AI_Cron {
     public function maybe_update_schedules() {
         $last_schedule_hash = get_option( 'glimmr_ai_schedule_hash', '' );
 
-        $current_hash = md5( wp_json_encode( array(
+        $schedule_json = wp_json_encode( array(
             'product_auto_sync_enabled'   => $this->settings->get( 'product_auto_sync_enabled', false ),
             'product_sync_schedule'       => $this->settings->get( 'product_sync_schedule' ),
             'knowledge_auto_sync_enabled' => $this->settings->get( 'knowledge_auto_sync_enabled', false ),
             'knowledge_sync_schedule'     => $this->settings->get( 'knowledge_sync_schedule' ),
-        ) ) );
+        ) );
+        $current_hash = md5( $schedule_json !== false ? $schedule_json : '' );
 
         if ( $last_schedule_hash !== $current_hash ) {
             $this->unschedule_events();
@@ -208,15 +214,6 @@ class Glimmr_AI_Cron {
             // Run incremental sync.
             $result = $indexer->incremental_sync();
 
-            // Check for errors in result.
-            if ( is_wp_error( $result ) ) {
-                Glimmr_AI_Logger::error(
-                    'Product sync failed',
-                    array( 'error' => $result->get_error_message() ),
-                    'cron'
-                );
-            }
-
             // Log result.
             $this->log_cron_run( 'product_sync', $result );
 
@@ -227,15 +224,6 @@ class Glimmr_AI_Cron {
                 $vector_store = new Glimmr_AI_Vector_Store( $openai, $database, $this->settings );
 
                 $vector_result = $vector_store->sync_products();
-
-                // Check for errors in vector sync.
-                if ( is_wp_error( $vector_result ) ) {
-                    Glimmr_AI_Logger::error(
-                        'Vector store product sync failed',
-                        array( 'error' => $vector_result->get_error_message() ),
-                        'cron'
-                    );
-                }
 
                 $this->log_cron_run( 'product_vector_sync', $vector_result );
             }
@@ -269,15 +257,6 @@ class Glimmr_AI_Cron {
             $vector_store = new Glimmr_AI_Vector_Store( $openai, $database, $this->settings );
 
             $result = $vector_store->sync_knowledge();
-
-            // Check for errors in result.
-            if ( is_wp_error( $result ) ) {
-                Glimmr_AI_Logger::error(
-                    'Knowledge sync failed',
-                    array( 'error' => $result->get_error_message() ),
-                    'cron'
-                );
-            }
 
             $this->log_cron_run( 'knowledge_sync', $result );
         } catch ( Exception $e ) {

@@ -375,7 +375,7 @@ class Glimmr_AI_Tool_Resolve_Variation extends Glimmr_AI_Tool_Base {
 			foreach ( $variation['attributes'] as $key => $value ) {
 				$clean_key = str_replace( 'attribute_', '', $key );
 				$clean_key = str_replace( 'pa_', '', $clean_key );
-				$attrs[ $clean_key ] = $value;
+				$attrs[ is_array( $clean_key ) ? implode( '-', $clean_key ) : $clean_key ] = is_array( $value ) ? implode( ', ', $value ) : $value;
 			}
 
 			$var_product = wc_get_product( $variation['variation_id'] );
@@ -430,6 +430,9 @@ class Glimmr_AI_Tool_Resolve_Variation extends Glimmr_AI_Tool_Base {
 		foreach ( $missing as $attr_name ) {
 			$clean_name = str_replace( 'pa_', '', $attr_name );
 			$clean_name = str_replace( '_', ' ', $clean_name );
+			if ( is_array( $clean_name ) ) {
+				$clean_name = implode( ', ', $clean_name );
+			}
 			$clean_name = ucfirst( $clean_name );
 
 			if ( isset( $options[ $attr_name ] ) && ! empty( $options[ $attr_name ] ) ) {

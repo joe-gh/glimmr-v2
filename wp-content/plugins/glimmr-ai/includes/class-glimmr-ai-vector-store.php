@@ -32,13 +32,6 @@ class Glimmr_AI_Vector_Store {
     private $openai;
 
     /**
-     * Database instance.
-     *
-     * @var Glimmr_AI_Database
-     */
-    private $database;
-
-    /**
      * Settings instance.
      *
      * @var Glimmr_AI_Settings
@@ -55,13 +48,14 @@ class Glimmr_AI_Vector_Store {
     /**
      * Constructor.
      *
-     * @param Glimmr_AI_OpenAI   $openai   OpenAI client.
-     * @param Glimmr_AI_Database $database Database instance.
-     * @param Glimmr_AI_Settings $settings Settings instance.
+     * @param Glimmr_AI_OpenAI   $openai    OpenAI client.
+     * @param Glimmr_AI_Database $_database Database instance (unused, kept for backward compatibility).
+     * @param Glimmr_AI_Settings $settings  Settings instance.
+     *
+     * @phpstan-ignore constructor.unusedParameter
      */
-    public function __construct( $openai, $database, $settings ) {
+    public function __construct( $openai, $_database, $settings ) {
         $this->openai   = $openai;
-        $this->database = $database;
         $this->settings = $settings;
     }
 
@@ -178,7 +172,7 @@ class Glimmr_AI_Vector_Store {
         }
 
         // Process in batches.
-        $batches = array_chunk( $products, $this->batch_size );
+        $batches = array_chunk( $products, max( 1, $this->batch_size ) );
 
         foreach ( $batches as $batch ) {
             $batch_result = $this->sync_product_batch( $batch );
@@ -506,7 +500,9 @@ class Glimmr_AI_Vector_Store {
 
         $data['searchable_text'] = implode( '. ', array_filter( $search_parts ) );
 
-        return wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE );
+        $json = wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE );
+
+        return $json !== false ? $json : '';
     }
 
     /**

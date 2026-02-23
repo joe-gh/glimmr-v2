@@ -82,11 +82,6 @@ class Glimmr_AI_Tool_Summarizer {
      * @return array Summarized tool result.
      */
     public static function summarize( $tool_name, $tool_result ) {
-        // Skip if not an array or already summarized.
-        if ( ! is_array( $tool_result ) ) {
-            return $tool_result;
-        }
-
         if ( ! empty( $tool_result['_summarized'] ) ) {
             return $tool_result;
         }
@@ -725,10 +720,6 @@ class Glimmr_AI_Tool_Summarizer {
      * @return array Summarized result.
      */
     private static function summarize_generic( $result ) {
-        if ( ! is_array( $result ) ) {
-            return $result;
-        }
-
         // Fields to always strip.
         $strip_fields = array(
             'image_url',
@@ -767,10 +758,6 @@ class Glimmr_AI_Tool_Summarizer {
      * @return string Cleaned and truncated text.
      */
     private static function clean_text( $text, $max_length = self::MAX_TEXT_LENGTH ) {
-        if ( ! is_string( $text ) ) {
-            return '';
-        }
-
         // Strip HTML tags.
         $text = wp_strip_all_tags( $text );
 
@@ -794,10 +781,6 @@ class Glimmr_AI_Tool_Summarizer {
      * @return array Summarized products array.
      */
     private static function summarize_products_array( $products, $keep_match_reason = false ) {
-        if ( ! is_array( $products ) ) {
-            return array();
-        }
-
         $summarized = array();
 
         foreach ( array_slice( $products, 0, self::MAX_PRODUCTS ) as $product ) {
@@ -805,7 +788,7 @@ class Glimmr_AI_Tool_Summarizer {
                 'id'       => $product['id'] ?? 0,
                 'name'     => $product['name'] ?? '',
                 'price'    => $product['price_display'] ?? $product['price'] ?? '',
-                'in_stock' => $product['in_stock'] ?? $product['stock_status'] === 'instock' ?? true,
+                'in_stock' => $product['in_stock'] ?? $product['stock_status'] === 'instock',
             );
 
             // Keep match reason for recommendations.
@@ -826,10 +809,6 @@ class Glimmr_AI_Tool_Summarizer {
      * @return array Summarized cart items.
      */
     private static function summarize_cart_items( $items ) {
-        if ( ! is_array( $items ) ) {
-            return array();
-        }
-
         $summarized = array();
 
         foreach ( array_slice( $items, 0, self::MAX_CART_ITEMS ) as $item ) {
@@ -851,9 +830,7 @@ class Glimmr_AI_Tool_Summarizer {
      * @return array Result with _summarized flag.
      */
     private static function mark_summarized( $result ) {
-        if ( is_array( $result ) ) {
-            $result['_summarized'] = true;
-        }
+        $result['_summarized'] = true;
         return $result;
     }
 

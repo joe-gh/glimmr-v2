@@ -106,12 +106,17 @@ class Glimmr_AI_SEO {
      * @param WPSEO_Schema_Context $context Schema context.
      * @return array Modified pieces.
      */
-    public function add_yoast_faq_piece( $pieces, $context ) {
+    public function add_yoast_faq_piece( $pieces, $context ) { // @phpstan-ignore class.notFound
         if ( ! is_singular( 'product' ) ) {
             return $pieces;
         }
 
-        $faqs = $this->get_product_faqs( get_the_ID() );
+        $product_id = get_the_ID();
+        if ( $product_id === false ) {
+            return $pieces;
+        }
+
+        $faqs = $this->get_product_faqs( $product_id );
         if ( empty( $faqs ) ) {
             return $pieces;
         }
@@ -132,7 +137,12 @@ class Glimmr_AI_SEO {
             return $data;
         }
 
-        $faqs = $this->get_product_faqs( get_the_ID() );
+        $product_id = get_the_ID();
+        if ( $product_id === false ) {
+            return $data;
+        }
+
+        $faqs = $this->get_product_faqs( $product_id );
         if ( empty( $faqs ) ) {
             return $data;
         }
@@ -196,7 +206,12 @@ class Glimmr_AI_SEO {
             return;
         }
 
-        $faqs = $this->get_product_faqs( get_the_ID() );
+        $product_id = get_the_ID();
+        if ( $product_id === false ) {
+            return;
+        }
+
+        $faqs = $this->get_product_faqs( $product_id );
         if ( empty( $faqs ) ) {
             return;
         }
@@ -306,7 +321,7 @@ if ( class_exists( 'Yoast\WP\SEO\Generators\Schema\Abstract_Schema_Piece' ) ) {
          */
         public function __construct( $faqs, $context ) {
             $this->faqs    = $faqs;
-            $this->context = $context;
+            $this->context = $context; // @phpstan-ignore property.notFound
         }
 
         /**
@@ -339,7 +354,7 @@ if ( class_exists( 'Yoast\WP\SEO\Generators\Schema\Abstract_Schema_Piece' ) ) {
 
             return array(
                 '@type'      => 'FAQPage',
-                '@id'        => $this->context->canonical . '#faq',
+                '@id'        => $this->context->canonical . '#faq', // @phpstan-ignore property.notFound
                 'mainEntity' => $main_entity,
             );
         }
@@ -353,12 +368,20 @@ if ( class_exists( 'Yoast\WP\SEO\Generators\Schema\Abstract_Schema_Piece' ) ) {
      */
     // phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound
     class Glimmr_AI_Yoast_FAQ_Piece {
+        /** @var array @phpstan-ignore property.onlyWritten */
+        private $faqs;
+        /** @var mixed @phpstan-ignore property.onlyWritten */
+        private $context;
+
         /**
          * Constructor stub.
          *
          * @param array $faqs    FAQ data.
          * @param mixed $context Schema context.
          */
-        public function __construct( $faqs, $context ) {}
+        public function __construct( $faqs, $context ) {
+            $this->faqs    = $faqs;
+            $this->context = $context;
+        }
     }
 }

@@ -222,14 +222,15 @@ class Glimmr_AI_HTTP_Client {
                 $last_error = $response;
                 $error_code = $response->get_error_code();
 
+                $error_code_str = (string) $error_code;
                 $this->retry_history[ $attempt - 1 ]['error']     = $error_code;
                 $this->retry_history[ $attempt - 1 ]['message']   = $response->get_error_message();
-                $this->retry_history[ $attempt - 1 ]['retryable'] = $this->is_retryable_wp_error( $error_code, $config );
+                $this->retry_history[ $attempt - 1 ]['retryable'] = $this->is_retryable_wp_error( $error_code_str, $config );
 
                 $this->log_attempt( $attempt, $config['max_attempts'], $error_code, $response->get_error_message() );
 
                 // Check if we should retry.
-                if ( $this->is_retryable_wp_error( $error_code, $config ) && $attempt < $config['max_attempts'] ) {
+                if ( $this->is_retryable_wp_error( $error_code_str, $config ) && $attempt < $config['max_attempts'] ) {
                     $this->sleep_with_backoff( $current_delay );
                     $current_delay = min( $current_delay * $config['backoff_multiplier'], $config['max_delay'] );
                     continue;
@@ -247,7 +248,7 @@ class Glimmr_AI_HTTP_Client {
             }
 
             // Parse response.
-            $status_code   = wp_remote_retrieve_response_code( $response );
+            $status_code   = (int) wp_remote_retrieve_response_code( $response );
             $response_body = wp_remote_retrieve_body( $response );
             $response_data = json_decode( $response_body, true );
 

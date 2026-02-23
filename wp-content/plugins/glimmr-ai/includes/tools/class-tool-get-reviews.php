@@ -208,8 +208,13 @@ class Glimmr_AI_Tool_Get_Reviews extends Glimmr_AI_Tool_Base {
 
         // Format reviews.
         $reviews = array();
-        foreach ( $comments as $comment ) {
-            $reviews[] = $this->format_review( $comment );
+        if ( is_array( $comments ) ) {
+            foreach ( $comments as $comment ) {
+                if ( ! $comment instanceof \WP_Comment ) {
+                    continue;
+                }
+                $reviews[] = $this->format_review( $comment );
+            }
         }
 
         // Get rating breakdown (all ratings, not filtered).
@@ -228,11 +233,12 @@ class Glimmr_AI_Tool_Get_Reviews extends Glimmr_AI_Tool_Base {
      * @return array Formatted review data.
      */
     private function format_review( $comment ) {
-        $rating = (int) get_comment_meta( $comment->comment_ID, 'rating', true );
-        $verified = (bool) get_comment_meta( $comment->comment_ID, 'verified', true );
+        $comment_id = (int) $comment->comment_ID;
+        $rating = (int) get_comment_meta( $comment_id, 'rating', true );
+        $verified = (bool) get_comment_meta( $comment_id, 'verified', true );
 
         return array(
-            'id'            => (int) $comment->comment_ID,
+            'id'            => $comment_id,
             'author'        => $comment->comment_author,
             'rating'        => $rating,
             'stars'         => $this->format_stars( $rating ),
@@ -240,8 +246,22 @@ class Glimmr_AI_Tool_Get_Reviews extends Glimmr_AI_Tool_Base {
             'verified_text' => $verified ? __( 'Verified Purchase', 'glimmr-ai' ) : '',
             'content'       => wp_strip_all_tags( $comment->comment_content ),
             'date'          => $comment->comment_date,
-            'date_relative' => human_time_diff( strtotime( $comment->comment_date ), time() ) . ' ' . __( 'ago', 'glimmr-ai' ),
+            'date_relative' => $this->get_relative_date( $comment->comment_date ),
         );
+    }
+
+    /**
+     * Get relative date string from a date string.
+     *
+     * @param string $date_string The date string.
+     * @return string Relative date (e.g., "3 days ago").
+     */
+    private function get_relative_date( $date_string ) {
+        $timestamp = strtotime( $date_string );
+        if ( false === $timestamp ) {
+            return '';
+        }
+        return human_time_diff( $timestamp, time() ) . ' ' . __( 'ago', 'glimmr-ai' );
     }
 
     /**

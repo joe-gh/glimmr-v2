@@ -26,13 +26,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Glimmr_AI_Conversation {
 
     /**
-     * Database instance.
-     *
-     * @var Glimmr_AI_Database
-     */
-    private $database;
-
-    /**
      * Settings instance.
      *
      * @var Glimmr_AI_Settings
@@ -75,21 +68,15 @@ class Glimmr_AI_Conversation {
     private $tool_config;
 
     /**
-     * Cached messages during tool execution.
-     *
-     * @var array
-     */
-    private $cached_messages = array();
-
-    /**
      * Constructor.
      *
-     * @param Glimmr_AI_Database $database Database instance.
-     * @param Glimmr_AI_Settings $settings Settings instance.
-     * @param Glimmr_AI_OpenAI   $openai   OpenAI client.
+     * @param Glimmr_AI_Database $_database Database instance (unused, kept for backward compatibility).
+     * @param Glimmr_AI_Settings $settings  Settings instance.
+     * @param Glimmr_AI_OpenAI   $openai    OpenAI client.
+     *
+     * @phpstan-ignore constructor.unusedParameter
      */
-    public function __construct( $database, $settings, $openai ) {
-        $this->database     = $database;
+    public function __construct( $_database, $settings, $openai ) {
         $this->settings     = $settings;
         $this->openai       = $openai;
         $this->max_messages = (int) $settings->get( 'max_messages_per_conversation', 50 );
@@ -110,7 +97,7 @@ class Glimmr_AI_Conversation {
      * @param int|null    $user_id    User ID (null for guests).
      * @param string|null $session_id WC session ID for guests.
      * @param array       $metadata   Additional metadata.
-     * @return array Conversation data.
+     * @return array|WP_Error Conversation data or error.
      */
     public function create( $user_id = null, $session_id = null, $metadata = array() ) {
         global $wpdb;
@@ -125,7 +112,7 @@ class Glimmr_AI_Conversation {
             'status'          => 'active',
             'message_count'   => 0,
             'created_at'      => current_time( 'mysql' ),
-            'expires_at'      => date( 'Y-m-d H:i:s', strtotime( "+{$expiry_days} days" ) ),
+            'expires_at'      => date( 'Y-m-d H:i:s', strtotime( "+{$expiry_days} days" ) ?: time() ),
             'metadata'        => wp_json_encode( $this->sanitize_metadata( $metadata ) ),
         );
 
@@ -266,7 +253,7 @@ class Glimmr_AI_Conversation {
             $wpdb->prefix . 'glimmr_ai_conversations',
             array(
                 'last_message_at' => current_time( 'mysql' ),
-                'expires_at'      => date( 'Y-m-d H:i:s', strtotime( "+{$expiry_days} days" ) ),
+                'expires_at'      => date( 'Y-m-d H:i:s', strtotime( "+{$expiry_days} days" ) ?: time() ),
             ),
             array( 'conversation_id' => $conversation_id )
         );
@@ -506,7 +493,7 @@ class Glimmr_AI_Conversation {
 
         for ( $i = count( $messages ) - 1; $i >= 0; $i-- ) {
             $msg = $messages[ $i ];
-            $content = is_string( $msg['content'] ) ? $msg['content'] : wp_json_encode( $msg['content'] );
+            $content = is_string( $msg['content'] ) ? $msg['content'] : ( wp_json_encode( $msg['content'] ) ?: '' );
             $msg_tokens = $this->openai->estimate_tokens( $content ) + 4;
 
             if ( $current_tokens + $msg_tokens > $available_tokens ) {
@@ -519,7 +506,7 @@ class Glimmr_AI_Conversation {
 
         // Ensure we have at least the minimum recent messages.
         if ( count( $selected ) < $minimum_messages && count( $messages ) >= $minimum_messages ) {
-            $selected = array_slice( $messages, -$minimum_messages );
+            $selected = array_slice( $messages, -( (int) $minimum_messages ) );
         }
 
         // If we truncated, add a context note.
@@ -868,168 +855,6 @@ class Glimmr_AI_Conversation {
     // Intent Classification (Tool Routing)
     // =========================================================================
 
-    /**
-     * Classify user message intent using a lightweight LLM call.
-     *
-     * Uses GPT-5 Nano for fast, cheap intent classification to determine
-     * whether to enable file_search or gate it for product/cart queries.
-     *
-     * @param string $message      Current user message.
-     * @param array  $api_messages Recent conversation messages for context.
-     * @return array Intent classification with 'intent', 'confidence', and 'use_file_search'.
-     */
-    private function classify_intent_with_llm( $message, $api_messages ) {
-        // Build context from recent messages (last 2 turns max for efficiency).
-        $context_snippet = $this->build_classifier_context( $message, $api_messages );
-
-        // System prompt - compact but handles reference resolution.
-        $system_prompt = "Classify the user's CURRENT message into one intent: product|cart|order|policy|general. Use recent messages only to resolve references (e.g., 'those', 'subscription ones'). If user is asking to show/list/find/browse products, intent=product. Output JSON only.";
-
-        // Build input for classifier.
-        $classifier_input = array(
-            array(
-                'role'    => 'user',
-                'content' => $context_snippet,
-            ),
-        );
-
-        // Call GPT-5 Nano with structured output.
-        $classifier_response = $this->openai->create_response(
-            $classifier_input,
-            array(), // No tools for classifier.
-            $system_prompt,
-            array(
-                'model'              => 'gpt-4o-mini', // Fast, cheap model for classification.
-                'max_tokens'         => 50,
-                'temperature'        => 0,
-                'use_file_search'    => false, // Never use file_search for classifier.
-            )
-        );
-
-        // Parse the classification result.
-        if ( is_wp_error( $classifier_response ) ) {
-            // Fall back to allowing file_search on error.
-            if ( class_exists( 'Glimmr_AI_Logger' ) ) {
-                Glimmr_AI_Logger::debug(
-                    'Intent classifier error, using fallback',
-                    array( 'error' => $classifier_response->get_error_message() ),
-                    'conversation'
-                );
-            }
-            return array(
-                'intent'          => 'general',
-                'confidence'      => 0.0,
-                'use_file_search' => true,
-            );
-        }
-
-        // Extract JSON from response.
-        $content = $classifier_response['content'] ?? '';
-        $classification = $this->parse_intent_json( $content );
-
-        // Determine file_search gating based on intent.
-        $disable_file_search_intents = array( 'product', 'cart', 'order' );
-        $use_file_search = ! in_array( $classification['intent'], $disable_file_search_intents, true );
-
-        return array(
-            'intent'          => $classification['intent'],
-            'confidence'      => $classification['confidence'],
-            'use_file_search' => $use_file_search,
-        );
-    }
-
-    /**
-     * Build compact context snippet for intent classifier.
-     *
-     * Includes only the last 2 turns + current message to minimize tokens.
-     *
-     * @param string $current_message Current user message.
-     * @param array  $api_messages    Full conversation messages.
-     * @return string Formatted context snippet.
-     */
-    private function build_classifier_context( $current_message, $api_messages ) {
-        $context_lines = array();
-
-        // Get last few messages (excluding system).
-        $recent = array_filter( $api_messages, function( $msg ) {
-            return ( $msg['role'] ?? '' ) !== 'system';
-        } );
-        $recent = array_slice( $recent, -4 ); // Last 4 messages max (2 turns).
-
-        foreach ( $recent as $msg ) {
-            $role    = $msg['role'] ?? 'user';
-            $content = $msg['content'] ?? '';
-
-            // Truncate long messages.
-            if ( strlen( $content ) > 200 ) {
-                $content = substr( $content, 0, 200 ) . '...';
-            }
-
-            $prefix = ( $role === 'user' ) ? 'U' : 'A';
-            $context_lines[] = $prefix . ': ' . $content;
-        }
-
-        // Add current message.
-        $context_lines[] = 'U_now: ' . $current_message;
-
-        return "Context (most recent last):\n" . implode( "\n", $context_lines );
-    }
-
-    /**
-     * Parse intent classification JSON from model response.
-     *
-     * @param string $content Model response content.
-     * @return array Parsed classification with 'intent' and 'confidence'.
-     */
-    private function parse_intent_json( $content ) {
-        // Default fallback.
-        $default = array(
-            'intent'     => 'general',
-            'confidence' => 0.5,
-        );
-
-        if ( empty( $content ) ) {
-            return $default;
-        }
-
-        // Try to extract JSON from response.
-        $content = trim( $content );
-
-        // Remove markdown code blocks if present.
-        if ( preg_match( '/```(?:json)?\s*(.*?)\s*```/s', $content, $matches ) ) {
-            $content = $matches[1];
-        }
-
-        // Parse JSON.
-        $data = json_decode( $content, true );
-
-        if ( ! is_array( $data ) || ! isset( $data['intent'] ) ) {
-            // Try to find intent in plain text.
-            $valid_intents = array( 'product', 'cart', 'order', 'policy', 'general' );
-            foreach ( $valid_intents as $intent ) {
-                if ( stripos( $content, $intent ) !== false ) {
-                    return array(
-                        'intent'     => $intent,
-                        'confidence' => 0.7,
-                    );
-                }
-            }
-            return $default;
-        }
-
-        // Validate intent.
-        $valid_intents = array( 'product', 'cart', 'order', 'policy', 'general' );
-        $intent = strtolower( $data['intent'] ?? 'general' );
-        if ( ! in_array( $intent, $valid_intents, true ) ) {
-            $intent = 'general';
-        }
-
-        return array(
-            'intent'     => $intent,
-            'confidence' => (float) ( $data['confidence'] ?? 0.8 ),
-        );
-    }
-
     // =========================================================================
     // Message Processing (AI Orchestration)
     // =========================================================================
@@ -1272,17 +1097,7 @@ class Glimmr_AI_Conversation {
             }
 
             // Validate controller response.
-            $validation = Glimmr_AI_Controller_Schema::validate( $controller );
-            if ( is_wp_error( $validation ) ) {
-                Glimmr_AI_Logger::warning(
-                    'Controller validation failed',
-                    array( 'error' => $validation->get_error_message(), 'controller' => $controller ),
-                    'conversation'
-                );
-                $controller = Glimmr_AI_Controller_Schema::create_clarify_response(
-                    "I need a bit more information. What are you looking for?"
-                );
-            }
+            Glimmr_AI_Controller_Schema::validate( $controller );
 
             // Log the controller response.
             Glimmr_AI_Logger::info(
@@ -1436,13 +1251,11 @@ class Glimmr_AI_Conversation {
                     $tool_result = $tool_registry->execute( $tool_name, $tool_args );
 
                     // Log tool result.
-                    $result_summary = is_array( $tool_result )
-                        ? array(
-                            'success' => $tool_result['success'] ?? false,
-                            'data_keys' => isset( $tool_result['data'] ) ? array_keys( $tool_result['data'] ) : null,
-                            'error' => $tool_result['error'] ?? null,
-                        )
-                        : array( 'raw' => substr( (string) $tool_result, 0, 200 ) );
+                    $result_summary = array(
+                        'success' => $tool_result['success'] ?? false,
+                        'data_keys' => isset( $tool_result['data'] ) ? array_keys( $tool_result['data'] ) : null,
+                        'error' => $tool_result['error'] ?? null,
+                    );
 
                     Glimmr_AI_Logger::info(
                         sprintf( 'Tool result: %s', $tool_result['success'] ?? false ? 'SUCCESS' : 'FAILED' ),
@@ -1452,7 +1265,7 @@ class Glimmr_AI_Conversation {
 
                     // Track tool call analytics.
                     if ( class_exists( 'Glimmr_AI_Analytics' ) ) {
-                        $success = is_array( $tool_result ) ? ( $tool_result['success'] ?? true ) : true;
+                        $success = $tool_result['success'] ?? true;
                         Glimmr_AI_Analytics::track_tool_call( $conversation_id, $tool_name, $success, $tool_args );
                     }
 
@@ -1493,10 +1306,11 @@ class Glimmr_AI_Conversation {
                     );
 
                     // Store tool result.
+                    $tool_result_json = wp_json_encode( $tool_result );
                     $this->add_message(
                         $conversation_id,
                         'tool',
-                        is_string( $tool_result ) ? $tool_result : wp_json_encode( $tool_result ),
+                        false !== $tool_result_json ? $tool_result_json : '{}',
                         null,
                         array( 'tool_call_id' => $call_id )
                     );
@@ -1699,16 +1513,6 @@ class Glimmr_AI_Conversation {
     private function execute_function_calls( $function_calls, $tool_registry, $conversation_id = null ) {
         $results = array();
 
-        // Type validation - ensure $function_calls is an array.
-        if ( ! is_array( $function_calls ) ) {
-            Glimmr_AI_Logger::warning(
-                'execute_function_calls received non-array input',
-                array( 'type' => gettype( $function_calls ) ),
-                'conversation'
-            );
-            return $results;
-        }
-
         foreach ( $function_calls as $call ) {
             $function_name = $call['name'] ?? '';
             $arguments     = $call['arguments'] ?? array();
@@ -1727,18 +1531,17 @@ class Glimmr_AI_Conversation {
 
             // Execute via registry.
             $result = $tool_registry->execute( $function_name, $arguments );
-            $result_json = is_string( $result ) ? $result : wp_json_encode( $result );
+            $result_json = wp_json_encode( $result );
+            if ( false === $result_json ) {
+                $result_json = '{}';
+            }
 
             // Log tool result after execution.
             $result_summary = array( 'tool' => $function_name, 'call_id' => $call_id );
-            if ( is_array( $result ) ) {
-                $result_summary['success']      = $result['success'] ?? null;
-                $result_summary['status']       = $result['status'] ?? null;
-                $result_summary['product_count'] = isset( $result['data']['count'] ) ? $result['data']['count'] : null;
-                $result_summary['result_length'] = strlen( $result_json );
-            } else {
-                $result_summary['result_length'] = strlen( $result_json );
-            }
+            $result_summary['success']      = $result['success'] ?? null;
+            $result_summary['status']       = $result['status'] ?? null;
+            $result_summary['product_count'] = isset( $result['data']['count'] ) ? $result['data']['count'] : null;
+            $result_summary['result_length'] = strlen( $result_json );
             Glimmr_AI_Logger::info(
                 'Tool call result',
                 array_filter( $result_summary, function( $v ) { return $v !== null; } ),
@@ -1747,7 +1550,7 @@ class Glimmr_AI_Conversation {
 
             // Track tool call analytics.
             if ( $conversation_id && class_exists( 'Glimmr_AI_Analytics' ) ) {
-                $success = is_array( $result ) ? ( $result['success'] ?? true ) : true;
+                $success = $result['success'] ?? true;
                 Glimmr_AI_Analytics::track_tool_call( $conversation_id, $function_name, $success, $arguments );
             }
 
@@ -1797,7 +1600,7 @@ class Glimmr_AI_Conversation {
             // Log but don't break the chat.
             Glimmr_AI_Logger::debug(
                 'Analytics tracking failed',
-                array( 'error' => $e->getMessage(), 'conversation_id' => $conversation_id ?? 'unknown' ),
+                array( 'error' => $e->getMessage(), 'conversation_id' => $conversation_id ),
                 'analytics'
             );
         }

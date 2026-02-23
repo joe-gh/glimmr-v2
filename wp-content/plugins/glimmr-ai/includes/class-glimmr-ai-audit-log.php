@@ -510,6 +510,9 @@ class Glimmr_AI_Audit_Log {
     private static function truncate_value( $value, $max = 200 ) {
         if ( is_array( $value ) ) {
             $encoded = wp_json_encode( $value );
+            if ( $encoded === false ) {
+                $encoded = '{}';
+            }
             if ( strlen( $encoded ) > $max ) {
                 return substr( $encoded, 0, $max ) . '...[truncated]';
             }

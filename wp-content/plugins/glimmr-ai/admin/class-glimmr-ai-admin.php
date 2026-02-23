@@ -1271,6 +1271,10 @@ class Glimmr_AI_Admin {
 
         $pages = array();
         foreach ( $pages_query->posts as $page ) {
+            if ( ! $page instanceof WP_Post ) {
+                continue;
+            }
+
             // Check if page is in knowledge table.
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $knowledge = $wpdb->get_row(
@@ -1305,6 +1309,10 @@ class Glimmr_AI_Admin {
 
         $posts = array();
         foreach ( $posts_query->posts as $post ) {
+            if ( ! $post instanceof WP_Post ) {
+                continue;
+            }
+
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $knowledge = $wpdb->get_row(
                 $wpdb->prepare(
@@ -1412,6 +1420,10 @@ class Glimmr_AI_Admin {
 
         $posts = array();
         foreach ( $posts_query->posts as $post ) {
+            if ( ! $post instanceof WP_Post ) {
+                continue;
+            }
+
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $knowledge = $wpdb->get_row(
                 $wpdb->prepare(
@@ -1839,10 +1851,6 @@ class Glimmr_AI_Admin {
         }
 
         // Validate and sanitize enabled_tools (already validated as array above).
-        if ( ! is_array( $enabled_tools ) ) {
-            $enabled_tools = array();
-        }
-
         $sanitized_tools = array();
         foreach ( $enabled_tools as $tool => $enabled ) {
             $sanitized_tools[ sanitize_key( $tool ) ] = (bool) $enabled;
@@ -1859,13 +1867,11 @@ class Glimmr_AI_Admin {
         );
 
         // Add tool-specific settings.
-        if ( is_array( $tool_settings ) ) {
-            if ( isset( $tool_settings['coupon_visibility'] ) ) {
-                $update_data['coupon_visibility'] = sanitize_text_field( $tool_settings['coupon_visibility'] );
-            }
-            if ( isset( $tool_settings['visible_coupons'] ) && is_array( $tool_settings['visible_coupons'] ) ) {
-                $update_data['visible_coupons'] = array_map( 'sanitize_text_field', $tool_settings['visible_coupons'] );
-            }
+        if ( isset( $tool_settings['coupon_visibility'] ) ) {
+            $update_data['coupon_visibility'] = sanitize_text_field( $tool_settings['coupon_visibility'] );
+        }
+        if ( isset( $tool_settings['visible_coupons'] ) && is_array( $tool_settings['visible_coupons'] ) ) {
+            $update_data['visible_coupons'] = array_map( 'sanitize_text_field', $tool_settings['visible_coupons'] );
         }
 
         $result = Glimmr_AI_Settings::update( $update_data );
@@ -1931,7 +1937,8 @@ class Glimmr_AI_Admin {
         if ( $log_file && file_exists( $log_file ) ) {
             $logs['file_size'] = filesize( $log_file );
             $logs['file_name'] = basename( $log_file );
-            $logs['file_date'] = gmdate( 'Y-m-d H:i:s', filemtime( $log_file ) );
+            $file_mtime        = filemtime( $log_file );
+            $logs['file_date'] = false !== $file_mtime ? gmdate( 'Y-m-d H:i:s', $file_mtime ) : '';
 
             // Read last N lines efficiently.
             $logs['entries'] = $this->tail_log_file( $log_file, $lines );
@@ -2019,7 +2026,7 @@ class Glimmr_AI_Admin {
             return array(
                 'timestamp' => $matches[1],
                 'level'     => strtolower( $matches[2] ),
-                'context'   => $matches[3] ?? '',
+                'context'   => $matches[3],
                 'message'   => $matches[4],
             );
         }
@@ -2387,7 +2394,7 @@ class Glimmr_AI_Admin {
         $processed  = 0;
         $errors     = 0;
         $error_list = array();
-        $batch_size = (int) Glimmr_AI_Settings::get( 'product_sync_batch_size', 50 );
+        $batch_size = max( 1, (int) Glimmr_AI_Settings::get( 'product_sync_batch_size', 50 ) );
 
         // Update progress with total.
         $progress['total']   = $total;
@@ -2421,7 +2428,6 @@ class Glimmr_AI_Admin {
                         'cancelled' => true,
                     )
                 );
-                return;
             }
 
             // Process batch.
@@ -2899,6 +2905,10 @@ class Glimmr_AI_Admin {
     private function generate_csv_export( $messages ) {
         $output = fopen( 'php://temp', 'r+' );
 
+        if ( false === $output ) {
+            return '';
+        }
+
         // CSV headers.
         fputcsv( $output, array(
             'Conversation ID',
@@ -2936,7 +2946,7 @@ class Glimmr_AI_Admin {
         $csv = stream_get_contents( $output );
         fclose( $output );
 
-        return $csv;
+        return is_string( $csv ) ? $csv : '';
     }
 
     // =========================================================================
@@ -3751,6 +3761,8 @@ class Glimmr_AI_Admin {
 
         // Enrich requests with additional info.
         foreach ( $requests as &$request ) {
+            /** @var stdClass $request */
+
             // Add assigned user name.
             if ( ! empty( $request->assigned_to ) ) {
                 $user = get_userdata( $request->assigned_to );
@@ -3760,7 +3772,10 @@ class Glimmr_AI_Admin {
             }
 
             // Format dates.
-            $request->created_at_formatted = human_time_diff( strtotime( $request->created_at ), current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'glimmr-ai' );
+            $created_ts = strtotime( $request->created_at );
+            $request->created_at_formatted = false !== $created_ts
+                ? human_time_diff( $created_ts, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'glimmr-ai' )
+                : '';
         }
 
         wp_send_json_success( array(
@@ -3804,25 +3819,28 @@ class Glimmr_AI_Admin {
         // Get responses.
         $responses = Glimmr_AI_Database::get_contact_responses( $request_id );
 
+        // Convert DB object to array for safe dynamic property enrichment.
+        $request_data = (array) $request;
+
         // Get conversation messages if conversation_id exists.
         $conversation_messages = array();
-        if ( ! empty( $request->conversation_id ) ) {
-            $messages = Glimmr_AI_Database::get_messages( $request->conversation_id, 50 );
+        if ( ! empty( $request_data['conversation_id'] ) ) {
+            $messages = Glimmr_AI_Database::get_messages( $request_data['conversation_id'], 50 );
             $conversation_messages = $messages ?: array();
         }
 
         // Enrich request with additional info.
-        if ( ! empty( $request->assigned_to ) ) {
-            $user = get_userdata( $request->assigned_to );
-            $request->assigned_to_name = $user ? $user->display_name : '';
+        if ( ! empty( $request_data['assigned_to'] ) ) {
+            $user = get_userdata( $request_data['assigned_to'] );
+            $request_data['assigned_to_name'] = $user ? $user->display_name : '';
         } else {
-            $request->assigned_to_name = '';
+            $request_data['assigned_to_name'] = '';
         }
 
         // Get customer info if user_id exists.
         $customer_info = null;
-        if ( ! empty( $request->user_id ) ) {
-            $user = get_userdata( $request->user_id );
+        if ( ! empty( $request_data['user_id'] ) ) {
+            $user = get_userdata( $request_data['user_id'] );
             if ( $user ) {
                 $customer_info = array(
                     'id'           => $user->ID,
@@ -3834,8 +3852,8 @@ class Glimmr_AI_Admin {
 
         // Get order info if order_id exists.
         $order_info = null;
-        if ( ! empty( $request->order_id ) && function_exists( 'wc_get_order' ) ) {
-            $order = wc_get_order( $request->order_id );
+        if ( ! empty( $request_data['order_id'] ) && function_exists( 'wc_get_order' ) ) {
+            $order = wc_get_order( $request_data['order_id'] );
             if ( $order ) {
                 $order_info = array(
                     'id'     => $order->get_id(),
@@ -3850,8 +3868,8 @@ class Glimmr_AI_Admin {
 
         // Get product info if product_id exists.
         $product_info = null;
-        if ( ! empty( $request->product_id ) && function_exists( 'wc_get_product' ) ) {
-            $product = wc_get_product( $request->product_id );
+        if ( ! empty( $request_data['product_id'] ) && function_exists( 'wc_get_product' ) ) {
+            $product = wc_get_product( $request_data['product_id'] );
             if ( $product ) {
                 $product_info = array(
                     'id'    => $product->get_id(),
@@ -3864,9 +3882,12 @@ class Glimmr_AI_Admin {
         }
 
         // Format category and priority.
-        $request->category_display = Glimmr_AI_Contact_Response::get_category_name( $request->category );
-        $request->priority_info    = Glimmr_AI_Contact_Response::get_priority_info( $request->priority );
-        $request->status_info      = Glimmr_AI_Contact_Response::get_status_info( $request->status );
+        $category = $request_data['category'] ?? '';
+        $priority = $request_data['priority'] ?? '';
+        $status   = $request_data['status'] ?? '';
+        $request_data['category_display'] = Glimmr_AI_Contact_Response::get_category_name( $category );
+        $request_data['priority_info']    = Glimmr_AI_Contact_Response::get_priority_info( $priority );
+        $request_data['status_info']      = Glimmr_AI_Contact_Response::get_status_info( $status );
 
         // Get admin users for assignment dropdown.
         $admins = get_users( array(
@@ -3875,7 +3896,7 @@ class Glimmr_AI_Admin {
         ) );
 
         wp_send_json_success( array(
-            'request'               => $request,
+            'request'               => $request_data,
             'responses'             => $responses,
             'conversation_messages' => $conversation_messages,
             'customer_info'         => $customer_info,
@@ -3949,7 +3970,7 @@ class Glimmr_AI_Admin {
 
         // Log audit event.
         if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
-            Glimmr_AI_Audit_Log::log_analytics_access( 'contact_request_update', array(
+            Glimmr_AI_Audit_Log::log( 'contact_request_update', array(
                 'request_id' => $request_id,
                 'changes'    => $data,
             ) );
@@ -4015,7 +4036,7 @@ class Glimmr_AI_Admin {
 
         // Log audit event.
         if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
-            Glimmr_AI_Audit_Log::log_analytics_access( 'contact_response_sent', array(
+            Glimmr_AI_Audit_Log::log( 'contact_response_sent', array(
                 'request_id' => $request_id,
                 'email_sent' => $result['email_sent'],
             ) );
@@ -4104,6 +4125,10 @@ class Glimmr_AI_Admin {
      */
     private function format_contact_requests_csv( $requests ) {
         $output = fopen( 'php://temp', 'r+' );
+
+        if ( false === $output ) {
+            return '';
+        }
 
         // Header row.
         fputcsv( $output, array(
@@ -4194,21 +4219,29 @@ class Glimmr_AI_Admin {
         $total      = Glimmr_AI_Database::count_flagged_issues( $count_args );
 
         // Enrich issues with conversation info.
-        foreach ( $issues as &$issue ) {
+        $enriched_issues = array();
+        foreach ( $issues as $issue ) {
+            $issue_data = (array) $issue;
+
             // Add reviewer name if reviewed.
-            if ( ! empty( $issue->reviewed_by ) ) {
-                $user = get_userdata( $issue->reviewed_by );
-                $issue->reviewed_by_name = $user ? $user->display_name : '';
+            if ( ! empty( $issue_data['reviewed_by'] ) ) {
+                $user = get_userdata( $issue_data['reviewed_by'] );
+                $issue_data['reviewed_by_name'] = $user ? $user->display_name : '';
             } else {
-                $issue->reviewed_by_name = '';
+                $issue_data['reviewed_by_name'] = '';
             }
 
             // Format dates.
-            $issue->created_at_formatted = human_time_diff( strtotime( $issue->created_at ), current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'glimmr-ai' );
+            $created_ts = strtotime( $issue_data['created_at'] ?? '' );
+            $issue_data['created_at_formatted'] = false !== $created_ts
+                ? human_time_diff( $created_ts, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'glimmr-ai' )
+                : '';
+
+            $enriched_issues[] = $issue_data;
         }
 
         wp_send_json_success( array(
-            'issues'      => $issues,
+            'issues'      => $enriched_issues,
             'total'       => (int) $total,
             'page'        => $page,
             'per_page'    => $per_page,
@@ -4255,7 +4288,7 @@ class Glimmr_AI_Admin {
         if ( $result ) {
             // Log audit event.
             if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
-                Glimmr_AI_Audit_Log::log_event( 'conversation_flagged', array(
+                Glimmr_AI_Audit_Log::log( 'conversation_flagged', array(
                     'conversation_id' => $conversation_id,
                     'issue_type'      => $issue_type,
                 ) );
@@ -4305,7 +4338,7 @@ class Glimmr_AI_Admin {
         if ( $result ) {
             // Log audit event.
             if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
-                Glimmr_AI_Audit_Log::log_event( 'flagged_issue_resolved', array(
+                Glimmr_AI_Audit_Log::log( 'flagged_issue_resolved', array(
                     'issue_id' => $issue_id,
                     'status'   => $status,
                 ) );

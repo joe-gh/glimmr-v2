@@ -304,7 +304,7 @@ class Glimmr_AI_Tool_Order_Status extends Glimmr_AI_Tool_Base {
 
             // Check if logged-in user's email matches order email.
             $user = wp_get_current_user();
-            if ( $user && hash_equals( strtolower( $user->user_email ), strtolower( $order->get_billing_email() ) ) ) {
+            if ( hash_equals( strtolower( $user->user_email ), strtolower( $order->get_billing_email() ) ) ) {
                 return array(
                     'status'   => 'verified',
                     'method'   => 'logged_in_email_match',
@@ -587,8 +587,8 @@ class Glimmr_AI_Tool_Order_Status extends Glimmr_AI_Tool_Base {
         $custom_keys = $this->get_tracking_meta_keys( $settings );
 
         // Get default carrier/URL settings for when meta fields aren't available.
-        $default_carrier = $settings ? $settings->get( 'tracking_default_carrier', '' ) : '';
-        $default_url_template = $settings ? $settings->get( 'tracking_default_url_template', '' ) : '';
+        $default_carrier = $settings->get( 'tracking_default_carrier', '' );
+        $default_url_template = $settings->get( 'tracking_default_url_template', '' );
 
         // Check custom/configured keys first.
         foreach ( $custom_keys['tracking_number'] as $key ) {
@@ -673,9 +673,9 @@ class Glimmr_AI_Tool_Order_Status extends Glimmr_AI_Tool_Base {
         );
 
         // Get custom keys from settings (comma-separated strings).
-        $custom_number_keys = $settings ? $settings->get( 'tracking_meta_number', '' ) : '';
-        $custom_url_keys = $settings ? $settings->get( 'tracking_meta_url', '' ) : '';
-        $custom_carrier_keys = $settings ? $settings->get( 'tracking_meta_carrier', '' ) : '';
+        $custom_number_keys = $settings->get( 'tracking_meta_number', '' );
+        $custom_url_keys = $settings->get( 'tracking_meta_url', '' );
+        $custom_carrier_keys = $settings->get( 'tracking_meta_carrier', '' );
 
         // Parse custom keys and prepend to defaults (custom keys take priority).
         $result = $defaults;

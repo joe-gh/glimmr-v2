@@ -392,7 +392,7 @@ class Glimmr_AI_Tool_Navigate extends Glimmr_AI_Tool_Base {
         // Try to find a WooCommerce category.
         if ( $this->is_wc_active() ) {
             $term = get_term_by( 'slug', $page_slug, 'product_cat' );
-            if ( $term && ! is_wp_error( $term ) ) {
+            if ( $term ) {
                 $url = get_term_link( $term );
                 // get_term_link() can return WP_Error.
                 if ( is_wp_error( $url ) ) {
@@ -470,6 +470,9 @@ class Glimmr_AI_Tool_Navigate extends Glimmr_AI_Tool_Base {
 
         // Compare against site URL.
         $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
+        if ( ! is_string( $site_host ) ) {
+            return false;
+        }
 
         // Allow exact match or www variant.
         $url_host = strtolower( $parsed['host'] );
@@ -507,7 +510,7 @@ class Glimmr_AI_Tool_Navigate extends Glimmr_AI_Tool_Base {
         // Check if logged-in user's email matches order email.
         if ( $this->user_id > 0 ) {
             $user = wp_get_current_user();
-            if ( $user && hash_equals( strtolower( $user->user_email ), strtolower( $order->get_billing_email() ) ) ) {
+            if ( hash_equals( strtolower( $user->user_email ), strtolower( $order->get_billing_email() ) ) ) {
                 return true;
             }
         }

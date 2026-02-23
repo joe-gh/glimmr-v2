@@ -84,22 +84,16 @@ class Glimmr_AI_Tool_Text_Answer extends Glimmr_AI_Tool_Base {
     );
 
     /**
-     * OpenAI client.
-     *
-     * @var Glimmr_AI_OpenAI
-     */
-    private $openai;
-
-    /**
      * Constructor.
      *
-     * @param Glimmr_AI_Settings $settings Settings instance.
-     * @param Glimmr_AI_Database $database Database instance.
-     * @param Glimmr_AI_OpenAI   $openai   OpenAI client.
+     * @param Glimmr_AI_Settings $settings  Settings instance.
+     * @param Glimmr_AI_Database $database  Database instance.
+     * @param Glimmr_AI_OpenAI   $_openai   OpenAI client (unused, kept for backward compatibility).
+     *
+     * @phpstan-ignore constructor.unusedParameter
      */
-    public function __construct( $settings = null, $database = null, $openai = null ) {
+    public function __construct( $settings = null, $database = null, $_openai = null ) {
         parent::__construct( $settings, $database );
-        $this->openai = $openai;
     }
 
     /**
@@ -108,7 +102,6 @@ class Glimmr_AI_Tool_Text_Answer extends Glimmr_AI_Tool_Base {
      * @param Glimmr_AI_OpenAI $openai OpenAI client.
      */
     public function set_openai( $openai ) {
-        $this->openai = $openai;
     }
 
     /**
@@ -330,8 +323,7 @@ class Glimmr_AI_Tool_Text_Answer extends Glimmr_AI_Tool_Base {
                     'confidence'   => 0,
                     'missing_info' => $context['topics'] ?: array( 'general' ),
                 ),
-                __( 'No matching information found in the knowledge base.', 'glimmr-ai' ),
-                $this->build_follow_up_suggestion( $context )
+                __( 'No matching information found in the knowledge base.', 'glimmr-ai' )
             );
         }
 
@@ -369,8 +361,7 @@ class Glimmr_AI_Tool_Text_Answer extends Glimmr_AI_Tool_Base {
                 'missing_info'        => $missing_info,
                 'context'             => $context,
             ),
-            sprintf( __( 'Found %d relevant results.', 'glimmr-ai' ), count( $results ) ),
-            $confidence < 0.7 ? $this->build_follow_up_suggestion( $context ) : null
+            sprintf( __( 'Found %d relevant results.', 'glimmr-ai' ), count( $results ) )
         );
     }
 
@@ -435,33 +426,6 @@ class Glimmr_AI_Tool_Text_Answer extends Glimmr_AI_Tool_Base {
 
         $found_topics = array_unique( array_column( $results, 'type' ) );
         return array_diff( $context['topics'], $found_topics );
-    }
-
-    /**
-     * Build follow-up suggestion based on context.
-     *
-     * @param array $context Context with topics.
-     * @return string|null Follow-up suggestion.
-     */
-    private function build_follow_up_suggestion( $context ) {
-        if ( empty( $context['topics'] ) ) {
-            return __( 'Would you like me to search for something more specific?', 'glimmr-ai' );
-        }
-
-        $suggestions = array(
-            'shipping' => __( 'Would you like to know about specific shipping destinations or methods?', 'glimmr-ai' ),
-            'returns'  => __( 'What product are you asking about? Return policies may vary.', 'glimmr-ai' ),
-            'policies' => __( 'Which policy would you like more details about?', 'glimmr-ai' ),
-            'products' => __( 'What specific product are you interested in?', 'glimmr-ai' ),
-        );
-
-        foreach ( $context['topics'] as $topic ) {
-            if ( isset( $suggestions[ $topic ] ) ) {
-                return $suggestions[ $topic ];
-            }
-        }
-
-        return null;
     }
 
     /**

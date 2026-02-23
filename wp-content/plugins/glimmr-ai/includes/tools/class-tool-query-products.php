@@ -509,20 +509,7 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 
 		// Get OpenAI instance for vector store search.
 		$glimmr_ai = Glimmr_AI::get_instance();
-		if ( ! $glimmr_ai ) {
-			if ( class_exists( 'Glimmr_AI_Logger' ) ) {
-				Glimmr_AI_Logger::warning( 'Semantic search: Glimmr_AI instance not available', array(), 'tools' );
-			}
-			return null;
-		}
-
 		$openai = $glimmr_ai->get_openai();
-		if ( ! $openai ) {
-			if ( class_exists( 'Glimmr_AI_Logger' ) ) {
-				Glimmr_AI_Logger::warning( 'Semantic search: OpenAI client not available', array(), 'tools' );
-			}
-			return null;
-		}
 
 		if ( ! $openai->has_vector_store() ) {
 			if ( class_exists( 'Glimmr_AI_Logger' ) ) {
@@ -565,36 +552,20 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 		// Search vector store for semantically similar products with metadata filtering.
 		$semantic_results = $openai->search_vector_store( $query, $search_options );
 
-		// Check for WP_Error from vector store search.
-		if ( is_wp_error( $semantic_results ) ) {
-			if ( class_exists( 'Glimmr_AI_Logger' ) ) {
-				Glimmr_AI_Logger::warning(
-					'Semantic search returned error',
-					array(
-						'error' => $semantic_results->get_error_message(),
-						'code'  => $semantic_results->get_error_code(),
-						'query' => $query,
-					),
-					'tools'
-				);
-			}
-			return null;
-		}
-
 		if ( class_exists( 'Glimmr_AI_Logger' ) ) {
-			$result_count = is_array( $semantic_results ) ? count( $semantic_results ) : 0;
+			$result_count = count( $semantic_results );
 			Glimmr_AI_Logger::debug(
 				'OpenAI search_vector_store returned',
 				array(
 					'result_count' => $result_count,
-					'results'      => is_array( $semantic_results ) ? array_slice( $semantic_results, 0, 3 ) : $semantic_results,
+					'results'      => array_slice( $semantic_results, 0, 3 ),
 				),
 				'tools'
 			);
 		}
 
-		// Check for empty or non-array results.
-		if ( empty( $semantic_results ) || ! is_array( $semantic_results ) ) {
+		// Check for empty results.
+		if ( empty( $semantic_results ) ) {
 			return null;
 		}
 
@@ -619,9 +590,7 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 		// Compute lexical signals using the product indexer.
 		$lexical_signals = array();
 		$product_indexer = $glimmr_ai->get_product_indexer();
-		if ( $product_indexer && method_exists( $product_indexer, 'compute_lexical_signals' ) ) {
-			$lexical_signals = $product_indexer->compute_lexical_signals( $product_ids, $query );
-		}
+		$lexical_signals = $product_indexer->compute_lexical_signals( $product_ids, $query );
 
 		if ( class_exists( 'Glimmr_AI_Logger' ) ) {
 			Glimmr_AI_Logger::debug(
@@ -656,7 +625,7 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 	 * @param array  $lexical_signals Product ID => lexical signals mapping.
 	 * @param string $query           Original search query.
 	 * @param array  $search_params   Search parameters.
-	 * @return array Formatted candidates response.
+	 * @return array|null Formatted candidates response or null if no candidates.
 	 */
 	private function format_candidates_response( $product_ids, $product_scores, $lexical_signals, $query, $search_params ) {
 		$candidates = array();
@@ -726,350 +695,6 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 				__( 'Found %d candidate products for "%s". Review the signals and select the most relevant ones.', 'glimmr-ai' ),
 				count( $candidates ),
 				$query
-			)
-		);
-	}
-
-	/**
-	 * Load and optionally filter semantic search results.
-	 *
-	 * Semantic search already found relevant products - we just need to:
-	 * 1. Verify they exist and are published
-	 * 2. Apply explicit user constraints (price, stock, on_sale)
-	 * 3. Format for output
-	 *
-	 * Category is NOT filtered here - semantic search already handled relevance.
-	 *
-	 * @param array $product_ids   Product IDs from semantic search.
-	 * @param array $search_params Search parameters with filters.
-	 * @param int   $limit         Maximum results.
-	 * @return array Filtered product data.
-	 */
-	private function filter_semantic_results( $product_ids, $search_params, $limit ) {
-		if ( empty( $product_ids ) ) {
-			return array();
-		}
-
-		// Build WP_Query - just load by ID, preserve semantic order.
-		$query_args = array(
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'post__in'       => $product_ids,
-			'posts_per_page' => $limit,
-			'orderby'        => 'post__in', // Preserve semantic ranking order.
-		);
-
-		// Only apply explicit user-requested filters (NOT category - semantic search handled that).
-		$meta_query = array();
-
-		// Price filters - only apply if value is meaningful (> 0).
-		// 0 means "no filter" - applying <= 0 would filter out all products!
-		$min_price = floatval( $search_params['min_price'] ?? 0 );
-		$max_price = floatval( $search_params['max_price'] ?? 0 );
-
-		if ( $min_price > 0 ) {
-			$meta_query[] = array(
-				'key'     => '_price',
-				'value'   => $min_price,
-				'compare' => '>=',
-				'type'    => 'DECIMAL',
-			);
-		}
-
-		if ( $max_price > 0 ) {
-			$meta_query[] = array(
-				'key'     => '_price',
-				'value'   => $max_price,
-				'compare' => '<=',
-				'type'    => 'DECIMAL',
-			);
-		}
-
-		// Stock filter - default true unless explicitly set false.
-		$in_stock = $search_params['in_stock'] ?? true;
-		if ( $in_stock ) {
-			$meta_query[] = array(
-				'key'     => '_stock_status',
-				'value'   => 'instock',
-				'compare' => '=',
-			);
-		}
-
-		if ( ! empty( $meta_query ) ) {
-			$query_args['meta_query'] = $meta_query;
-		}
-
-		// On sale filter.
-		if ( ! empty( $search_params['on_sale'] ) ) {
-			$sale_ids = wc_get_product_ids_on_sale();
-			$query_args['post__in'] = array_intersect( $product_ids, $sale_ids );
-			if ( empty( $query_args['post__in'] ) ) {
-				return array();
-			}
-		}
-
-		// Execute query.
-		$query = new WP_Query( $query_args );
-		$products = array();
-
-		// Debug: Log the query args and results.
-		if ( class_exists( 'Glimmr_AI_Logger' ) ) {
-			Glimmr_AI_Logger::debug(
-				'filter_semantic_results WP_Query',
-				array(
-					'query_args'   => $query_args,
-					'found_posts'  => $query->found_posts,
-					'post_count'   => $query->post_count,
-					'request'      => $query->request,
-				),
-				'tools'
-			);
-		}
-
-		if ( $query->have_posts() ) {
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$product = wc_get_product( get_the_ID() );
-				if ( $product ) {
-					$products[] = $this->format_product( $product );
-				}
-			}
-			wp_reset_postdata();
-		}
-
-		// Apply sort if not 'relevance' (which preserves semantic order).
-		$sort = $search_params['sort'] ?? 'relevance';
-		if ( $sort !== 'relevance' && ! empty( $products ) ) {
-			$products = $this->sort_products( $products, $sort );
-		}
-
-		return $products;
-	}
-
-	/**
-	 * Sort products array by specified criteria.
-	 *
-	 * @param array  $products Array of formatted products.
-	 * @param string $sort     Sort order.
-	 * @return array Sorted products.
-	 */
-	private function sort_products( $products, $sort ) {
-		switch ( $sort ) {
-			case 'price_asc':
-				usort( $products, function( $a, $b ) {
-					return floatval( $a['price'] ?? 0 ) <=> floatval( $b['price'] ?? 0 );
-				} );
-				break;
-			case 'price_desc':
-				usort( $products, function( $a, $b ) {
-					return floatval( $b['price'] ?? 0 ) <=> floatval( $a['price'] ?? 0 );
-				} );
-				break;
-			case 'rating':
-				usort( $products, function( $a, $b ) {
-					return floatval( $b['average_rating'] ?? 0 ) <=> floatval( $a['average_rating'] ?? 0 );
-				} );
-				break;
-			case 'popularity':
-				usort( $products, function( $a, $b ) {
-					return intval( $b['total_sales'] ?? 0 ) <=> intval( $a['total_sales'] ?? 0 );
-				} );
-				break;
-			case 'newest':
-				usort( $products, function( $a, $b ) {
-					return strtotime( $b['date_created'] ?? '1970-01-01' ) <=> strtotime( $a['date_created'] ?? '1970-01-01' );
-				} );
-				break;
-		}
-		return $products;
-	}
-
-	/**
-	 * Execute SQL-based search.
-	 *
-	 * @deprecated 1.9.0 SQL fallback removed in favor of semantic + metadata filtering.
-	 *             Kept for potential rollback. No longer called from execute_search().
-	 *
-	 * Standard WP_Query search — previously used as fallback when semantic search
-	 * was disabled or returned no results.
-	 *
-	 * @param array $search_params Search parameters.
-	 * @param int   $limit         Result limit.
-	 * @param bool  $in_stock      Stock filter.
-	 * @param string $sort         Sort order.
-	 * @return array Search results.
-	 */
-	private function execute_sql_search( $search_params, $limit, $in_stock, $sort ) {
-		// Build query arguments.
-		$query_args = array(
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => $limit,
-		);
-
-		// Text search.
-		if ( ! empty( $search_params['query'] ) ) {
-			$query_args['s'] = sanitize_text_field( $search_params['query'] );
-		}
-
-		// Category filter - try both slug and name matching for better UX.
-		if ( ! empty( $search_params['category'] ) ) {
-			$category_term = get_term_by( 'slug', sanitize_title( $search_params['category'] ), 'product_cat' );
-			if ( ! $category_term ) {
-				$category_term = get_term_by( 'name', $search_params['category'], 'product_cat' );
-			}
-			if ( $category_term ) {
-				$query_args['tax_query'][] = array(
-					'taxonomy' => 'product_cat',
-					'field'    => 'term_id',
-					'terms'    => $category_term->term_id,
-				);
-				Glimmr_AI_Logger::debug(
-					'Category filter matched',
-					array(
-						'requested' => $search_params['category'],
-						'matched'   => $category_term->name,
-						'term_id'   => $category_term->term_id,
-						'slug'      => $category_term->slug,
-					),
-					'tools'
-				);
-			} else {
-				Glimmr_AI_Logger::debug(
-					'Category filter NOT matched — no term found',
-					array( 'requested' => $search_params['category'] ),
-					'tools'
-				);
-			}
-		}
-
-		// Price filters - only apply if value is meaningful (> 0).
-		// 0 means "no filter" - applying <= 0 would filter out all products!
-		$meta_query = array();
-		$min_price = floatval( $search_params['min_price'] ?? 0 );
-		$max_price = floatval( $search_params['max_price'] ?? 0 );
-
-		if ( $min_price > 0 ) {
-			$meta_query[] = array(
-				'key'     => '_price',
-				'value'   => $min_price,
-				'compare' => '>=',
-				'type'    => 'DECIMAL',
-			);
-		}
-		if ( $max_price > 0 ) {
-			$meta_query[] = array(
-				'key'     => '_price',
-				'value'   => $max_price,
-				'compare' => '<=',
-				'type'    => 'DECIMAL',
-			);
-		}
-
-		// Stock filter.
-		if ( $in_stock ) {
-			$meta_query[] = array(
-				'key'     => '_stock_status',
-				'value'   => 'instock',
-				'compare' => '=',
-			);
-		}
-
-		// On sale filter.
-		if ( ! empty( $search_params['on_sale'] ) ) {
-			$query_args['post__in'] = wc_get_product_ids_on_sale();
-		}
-
-		if ( ! empty( $meta_query ) ) {
-			$query_args['meta_query'] = $meta_query;
-		}
-
-		// Sort order.
-		switch ( $sort ) {
-			case 'price_asc':
-				$query_args['orderby']  = 'meta_value_num';
-				$query_args['meta_key'] = '_price';
-				$query_args['order']    = 'ASC';
-				break;
-			case 'price_desc':
-				$query_args['orderby']  = 'meta_value_num';
-				$query_args['meta_key'] = '_price';
-				$query_args['order']    = 'DESC';
-				break;
-			case 'rating':
-				$query_args['orderby']  = 'meta_value_num';
-				$query_args['meta_key'] = '_wc_average_rating';
-				$query_args['order']    = 'DESC';
-				break;
-			case 'popularity':
-				$query_args['orderby']  = 'meta_value_num';
-				$query_args['meta_key'] = 'total_sales';
-				$query_args['order']    = 'DESC';
-				break;
-			case 'newest':
-				$query_args['orderby'] = 'date';
-				$query_args['order']   = 'DESC';
-				break;
-			default:
-				// relevance (default WordPress search relevance).
-				break;
-		}
-
-		// Execute query.
-		Glimmr_AI_Logger::debug(
-			'SQL search query_args',
-			array(
-				's'          => $query_args['s'] ?? '(none)',
-				'tax_query'  => ! empty( $query_args['tax_query'] ) ? $query_args['tax_query'] : '(none)',
-				'meta_query' => ! empty( $query_args['meta_query'] ) ? count( $query_args['meta_query'] ) . ' conditions' : '(none)',
-				'limit'      => $query_args['posts_per_page'],
-			),
-			'tools'
-		);
-
-		$query    = new WP_Query( $query_args );
-		$products = array();
-
-		if ( $query->have_posts() ) {
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$product = wc_get_product( get_the_ID() );
-				if ( $product ) {
-					$products[] = $this->format_product( $product );
-				}
-			}
-			wp_reset_postdata();
-		}
-
-		$product_names = array_map( function( $p ) { return $p['name'] ?? $p['id'] ?? '?'; }, $products );
-		Glimmr_AI_Logger::info(
-			'SQL search results',
-			array(
-				'found_posts' => $query->found_posts,
-				'returned'    => count( $products ),
-				'products'    => array_slice( $product_names, 0, 10 ),
-				'sql_query'   => $query->request,
-			),
-			'tools'
-		);
-
-		return $this->format_outcome(
-			'success',
-			array(
-				'mode'            => 'search',
-				'products'        => $products,
-				'count'           => count( $products ),
-				'total_found'     => $query->found_posts,
-				'search_method'   => 'sql',
-				'applied_filters' => array_filter( array(
-					'query'     => $search_params['query'] ?? null,
-					'category'  => $search_params['category'] ?? null,
-					'min_price' => $search_params['min_price'] ?? null,
-					'max_price' => $search_params['max_price'] ?? null,
-					'in_stock'  => $in_stock,
-					'on_sale'   => $search_params['on_sale'] ?? null,
-					'sort'      => $sort,
-				) ),
 			)
 		);
 	}
@@ -1601,7 +1226,7 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 						$swatch_image  = null;
 						if ( '' !== $attr_value && taxonomy_exists( $taxonomy ) ) {
 							$term = get_term_by( 'slug', $attr_value, $taxonomy );
-							if ( $term && ! is_wp_error( $term ) ) {
+							if ( $term ) {
 								$display_value = $term->name;
 								// Get swatch image from term meta (cfvsw_image from Color Filter Variation Swatches plugin).
 								$swatch_image = get_term_meta( $term->term_id, 'cfvsw_image', true );
@@ -1691,15 +1316,20 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 			$reviews      = get_comments( $review_args );
 			$data['reviews'] = array();
 
-			foreach ( $reviews as $review ) {
-				$rating = get_comment_meta( $review->comment_ID, 'rating', true );
-				$data['reviews'][] = array(
-					'author'   => $review->comment_author,
-					'rating'   => (int) $rating,
-					'text'     => wp_trim_words( $review->comment_content, 30 ),
-					'date'     => $review->comment_date,
-					'verified' => wc_review_is_from_verified_owner( $review->comment_ID ),
-				);
+			if ( is_array( $reviews ) ) {
+				foreach ( $reviews as $review ) {
+					if ( ! $review instanceof \WP_Comment ) {
+						continue;
+					}
+					$rating = get_comment_meta( (int) $review->comment_ID, 'rating', true );
+					$data['reviews'][] = array(
+						'author'   => $review->comment_author,
+						'rating'   => (int) $rating,
+						'text'     => wp_trim_words( $review->comment_content, 30 ),
+						'date'     => $review->comment_date,
+						'verified' => wc_review_is_from_verified_owner( $review->comment_ID ),
+					);
+				}
 			}
 
 			// Rating distribution for modal.
@@ -1981,7 +1611,10 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 		switch ( $group_by ) {
 			case 'category':
 				$cats = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'names' ) );
-				return ! empty( $cats ) ? $cats[0] : 'Uncategorized';
+				if ( is_wp_error( $cats ) || empty( $cats ) ) {
+					return 'Uncategorized';
+				}
+				return $cats[0];
 
 			case 'type':
 				return $product->get_type();
@@ -2021,7 +1654,7 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 			}
 
 			$value = $this->get_column_value( $product, $column );
-			if ( is_numeric( $value ) && $value !== null ) {
+			if ( is_numeric( $value ) ) {
 				$values[] = floatval( $value );
 			}
 		}

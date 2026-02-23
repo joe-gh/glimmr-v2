@@ -90,13 +90,6 @@ class Glimmr_AI {
     private $tool_registry;
 
     /**
-     * Conversion tracker instance.
-     *
-     * @var Glimmr_AI_Conversion_Tracker
-     */
-    private $conversion_tracker;
-
-    /**
      * Define the core functionality of the plugin.
      *
      * @since 1.0.0
@@ -216,7 +209,7 @@ class Glimmr_AI {
         );
 
         // Initialize conversion tracker for WooCommerce hooks.
-        $this->conversion_tracker = new Glimmr_AI_Conversion_Tracker();
+        new Glimmr_AI_Conversion_Tracker();
 
         // Initialize SEO integration (v1.8.0).
         Glimmr_AI_SEO::get_instance();

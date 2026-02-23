@@ -107,7 +107,7 @@ class Glimmr_AI_Focus_Frame {
 	 * @param array  $result    Tool result data.
 	 */
 	public function update_from_tool_result( $tool_name, $result ) {
-		if ( ! is_array( $result ) || empty( $result['success'] ) ) {
+		if ( empty( $result['success'] ) ) {
 			return;
 		}
 
@@ -679,10 +679,6 @@ class Glimmr_AI_Focus_Frame {
 	 */
 	public static function from_array( $data ) {
 		$frame = new self();
-
-		if ( ! is_array( $data ) ) {
-			return $frame;
-		}
 
 		$frame->primary_product   = isset( $data['primary_product'] ) ? (int) $data['primary_product'] : null;
 		$frame->product_list      = isset( $data['product_list'] ) && is_array( $data['product_list'] )

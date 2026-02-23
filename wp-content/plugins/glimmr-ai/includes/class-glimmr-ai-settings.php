@@ -222,10 +222,7 @@ class Glimmr_AI_Settings {
             $site_value_empty = ! isset( $site_settings[ $key ] ) || '' === $site_settings[ $key ];
 
             if ( ( $inherit_enabled || $site_value_empty ) && isset( $network_settings[ $key ] ) && '' !== $network_settings[ $key ] ) {
-                // Only override if site hasn't explicitly set a value (or is inheriting).
-                if ( $site_value_empty || $inherit_enabled ) {
-                    $site_settings[ $key ] = $network_settings[ $key ];
-                }
+                $site_settings[ $key ] = $network_settings[ $key ];
             }
         }
 
@@ -402,7 +399,7 @@ class Glimmr_AI_Settings {
                 $result = ( $saved === $merged );
             }
         } else {
-            $result = add_option( self::SITE_OPTION, $merged, '', 'yes' );
+            $result = add_option( self::SITE_OPTION, $merged, '', true );
         }
 
         // Clear cache.
@@ -604,12 +601,11 @@ class Glimmr_AI_Settings {
         // OpenSSL decryption.
         if ( function_exists( 'openssl_decrypt' ) ) {
             $data = base64_decode( $encrypted_value );
-            if ( $data === false || strlen( $data ) < 17 ) {
-                // Log this as it indicates corrupted data.
+            if ( strlen( $data ) < 17 ) {
                 if ( class_exists( 'Glimmr_AI_Logger' ) ) {
                     Glimmr_AI_Logger::warning(
                         'API key decryption failed: invalid base64 or data too short',
-                        array( 'data_length' => $data === false ? 0 : strlen( $data ) ),
+                        array( 'data_length' => strlen( $data ) ),
                         'settings'
                     );
                 }
@@ -669,6 +665,9 @@ class Glimmr_AI_Settings {
 
         // Get current URL path.
         $current_path = wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH );
+        if ( ! is_string( $current_path ) ) {
+            $current_path = '';
+        }
 
         // Check exclude pages.
         $exclude_pages = self::get( 'widget_exclude_pages', array() );
@@ -1248,7 +1247,9 @@ class Glimmr_AI_Settings {
             'note'             => 'API keys excluded for security. Re-enter after import.',
         );
 
-        return wp_json_encode( $data, JSON_PRETTY_PRINT );
+        $json = wp_json_encode( $data, JSON_PRETTY_PRINT );
+
+        return $json !== false ? $json : '{}';
     }
 
     /**

@@ -493,7 +493,7 @@ class Glimmr_AI_Logger {
 
         if ( is_array( $response ) ) {
             $json = wp_json_encode( $response );
-            if ( strlen( $json ) > $max_length ) {
+            if ( $json !== false && strlen( $json ) > $max_length ) {
                 return array( '_truncated' => true, '_length' => strlen( $json ) );
             }
         }
@@ -519,13 +519,21 @@ class Glimmr_AI_Logger {
 
         $log_files = glob( self::$log_dir . 'glimmr-ai-*.log' );
 
+        if ( ! is_array( $log_files ) ) {
+            return $files;
+        }
+
         foreach ( $log_files as $file ) {
+            $mtime = filemtime( $file );
+            if ( $mtime === false ) {
+                $mtime = 0;
+            }
             $files[] = array(
                 'name'     => basename( $file ),
                 'path'     => $file,
                 'size'     => filesize( $file ),
-                'modified' => filemtime( $file ),
-                'date'     => gmdate( 'Y-m-d', filemtime( $file ) ),
+                'modified' => $mtime,
+                'date'     => gmdate( 'Y-m-d', $mtime ),
             );
         }
 
@@ -575,8 +583,13 @@ class Glimmr_AI_Logger {
 
         $log_files = glob( self::$log_dir . 'glimmr-ai-*.log' );
 
+        if ( ! is_array( $log_files ) ) {
+            return $deleted;
+        }
+
         foreach ( $log_files as $file ) {
-            if ( filemtime( $file ) < $cutoff ) {
+            $mtime = filemtime( $file );
+            if ( $mtime !== false && $mtime < $cutoff ) {
                 if ( unlink( $file ) ) {
                     $deleted++;
                 }
@@ -596,8 +609,15 @@ class Glimmr_AI_Logger {
 
         $log_files = glob( self::$log_dir . 'glimmr-ai-*.log' );
 
+        if ( ! is_array( $log_files ) ) {
+            return $total;
+        }
+
         foreach ( $log_files as $file ) {
-            $total += filesize( $file );
+            $size = filesize( $file );
+            if ( $size !== false ) {
+                $total += $size;
+            }
         }
 
         return $total;
@@ -631,7 +651,7 @@ class Glimmr_AI_Logger {
      * @return string The masked string.
      */
     private static function mask_pii_string( $string ) {
-        if ( ! is_string( $string ) || empty( $string ) ) {
+        if ( empty( $string ) ) {
             return $string;
         }
 
@@ -649,10 +669,6 @@ class Glimmr_AI_Logger {
      * @return array The masked context array.
      */
     private static function mask_pii_context( $context ) {
-        if ( ! is_array( $context ) ) {
-            return $context;
-        }
-
         foreach ( $context as $key => $value ) {
             // Check if this key is sensitive.
             $key_lower = strtolower( $key );

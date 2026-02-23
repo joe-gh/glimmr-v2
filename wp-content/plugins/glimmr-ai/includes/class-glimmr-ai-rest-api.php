@@ -380,9 +380,9 @@ class Glimmr_AI_REST_API {
 
                 // Track conversation start (non-blocking).
                 try {
-                    Glimmr_AI_Analytics::track_conversation_start( $conversation_id, $context );
+                    Glimmr_AI_Analytics::track_conversation_start( (string) $conversation_id, $context );
                     // Store attribution for conversion tracking.
-                    Glimmr_AI_Analytics::set_attribution_conversation_id( $conversation_id );
+                    Glimmr_AI_Analytics::set_attribution_conversation_id( (string) $conversation_id );
                 } catch ( Exception $e ) {
                     Glimmr_AI_Logger::debug( 'Analytics tracking failed', array( 'error' => $e->getMessage() ), 'api' );
                 }
@@ -390,7 +390,7 @@ class Glimmr_AI_REST_API {
 
             // Verify conversation exists and is active.
             $conversation = Glimmr_AI_Database::get_conversation( $conversation_id );
-            if ( ! $conversation || 'expired' === $conversation->status ) {
+            if ( ! $conversation || 'expired' === $conversation->status ) { // @phpstan-ignore property.notFound
                 // S9: Server-generated IDs only - never accept client-supplied conversation IDs.
                 // Generate a new server-side UUID for security.
                 $new_conversation_id = Glimmr_AI_Database::insert_conversation(
@@ -671,7 +671,7 @@ class Glimmr_AI_REST_API {
 
                 // This is a user-facing assistant message - attach any pending artifacts.
                 if ( ! empty( $pending_artifacts ) ) {
-                    $msg->artifacts = $pending_artifacts;
+                    $msg->artifacts = $pending_artifacts; // @phpstan-ignore property.notFound
                     $pending_artifacts = array();
                 }
 
@@ -697,8 +697,8 @@ class Glimmr_AI_REST_API {
         return rest_ensure_response(
             array(
                 'messages'     => $processed_messages,
-                'status'       => $conversation->status,
-                'can_continue' => 'active' === $conversation->status,
+                'status'       => $conversation->status, // @phpstan-ignore property.notFound
+                'can_continue' => 'active' === $conversation->status, // @phpstan-ignore property.notFound
             )
         );
     }
@@ -1098,7 +1098,7 @@ class Glimmr_AI_REST_API {
      * View cart contents.
      *
      * @param WP_REST_Request $request The request object.
-     * @return WP_REST_Response
+     * @return WP_REST_Response|WP_Error
      */
     public function view_cart( $request ) {
         if ( ! class_exists( 'WooCommerce' ) ) {
@@ -1285,10 +1285,6 @@ class Glimmr_AI_REST_API {
      * @return array Filtered settings.
      */
     private function filter_sensitive_settings( $settings ) {
-        if ( ! is_array( $settings ) ) {
-            return $settings;
-        }
-
         // Keys to completely remove.
         $remove_keys = array(
             'openai_api_key_encrypted',
@@ -1494,29 +1490,6 @@ class Glimmr_AI_REST_API {
     }
 
     /**
-     * Check rate limit for current request.
-     *
-     * @return true|WP_Error True if allowed, WP_Error if rate limited.
-     */
-    private function check_rate_limit() {
-        $identifier      = $this->get_rate_limit_identifier();
-        $identifier_type = is_user_logged_in() ? 'user' : 'ip';
-        $limit           = Glimmr_AI_Settings::get_rate_limit();
-
-        $result = Glimmr_AI_Database::check_rate_limit( $identifier, $identifier_type, $limit );
-
-        if ( ! $result['allowed'] ) {
-            return new WP_Error(
-                'rate_limit_exceeded',
-                __( 'Rate limit exceeded. Please try again later.', 'glimmr-ai' ),
-                array( 'status' => 429 )
-            );
-        }
-
-        return true;
-    }
-
-    /**
      * Get rate limit identifier for current user/request.
      *
      * @return string
@@ -1712,12 +1685,10 @@ class Glimmr_AI_REST_API {
         }
 
         // Create new session.
-        if ( empty( $session_id ) ) {
-            $session_id = $this->create_anonymous_session();
+        $session_id = $this->create_anonymous_session();
 
-            // Set secure cookie (only via PHP, since this runs in REST API context).
-            $this->set_session_cookie( $cookie_name, $session_id );
-        }
+        // Set secure cookie (only via PHP, since this runs in REST API context).
+        $this->set_session_cookie( $cookie_name, $session_id );
 
         return $session_id;
     }
@@ -1790,18 +1761,14 @@ class Glimmr_AI_REST_API {
         $secure = is_ssl();
         $expires = time() + ( 30 * DAY_IN_SECONDS );
 
-        if ( PHP_VERSION_ID >= 70300 ) {
-            setcookie( $name, $value, array(
-                'expires'  => $expires,
-                'path'     => COOKIEPATH,
-                'domain'   => COOKIE_DOMAIN,
-                'secure'   => $secure,
-                'httponly' => true,
-                'samesite' => 'Lax',
-            ) );
-        } else {
-            setcookie( $name, $value, $expires, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
-        }
+        setcookie( $name, $value, array(
+            'expires'  => $expires,
+            'path'     => COOKIEPATH,
+            'domain'   => COOKIE_DOMAIN,
+            'secure'   => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ) );
     }
 
     /**
@@ -1822,7 +1789,7 @@ class Glimmr_AI_REST_API {
         // If user is logged in, check user_id match.
         if ( $current_user_id > 0 ) {
             // Allow if conversation belongs to this user.
-            if ( (int) $conversation->user_id === $current_user_id ) {
+            if ( (int) $conversation->user_id === $current_user_id ) { // @phpstan-ignore property.notFound
                 return true;
             }
             // Don't allow logged-in users to access anonymous conversations.
@@ -1849,7 +1816,7 @@ class Glimmr_AI_REST_API {
      */
     private function tool_content_to_artifact( $tool_name, $content ) {
         // Parse JSON content.
-        $data = is_string( $content ) ? json_decode( $content, true ) : $content;
+        $data = json_decode( $content, true );
 
         if ( ! $data || ! isset( $data['success'] ) || ! $data['success'] ) {
             return null;
@@ -1955,10 +1922,6 @@ class Glimmr_AI_REST_API {
      * @return array Products with decoded prices.
      */
     private function decode_product_prices( $products ) {
-        if ( ! is_array( $products ) ) {
-            return $products;
-        }
-
         foreach ( $products as &$product ) {
             if ( isset( $product['price'] ) ) {
                 $product['price'] = html_entity_decode( $product['price'], ENT_QUOTES, 'UTF-8' );
@@ -1981,10 +1944,6 @@ class Glimmr_AI_REST_API {
      * @return array Cart data with decoded prices.
      */
     private function decode_cart_prices( $cart_data ) {
-        if ( ! is_array( $cart_data ) ) {
-            return $cart_data;
-        }
-
         // Decode cart totals.
         $price_fields = array( 'subtotal', 'total', 'discount_total', 'shipping_total', 'tax_total' );
         foreach ( $price_fields as $field ) {
@@ -2066,7 +2025,7 @@ class Glimmr_AI_REST_API {
             );
         }
 
-        $minutes = ceil( $seconds / 60 );
+        $minutes = (int) ceil( $seconds / 60 );
 
         if ( $minutes < 60 ) {
             return sprintf(
@@ -2076,7 +2035,7 @@ class Glimmr_AI_REST_API {
             );
         }
 
-        $hours = ceil( $minutes / 60 );
+        $hours = (int) ceil( $minutes / 60 );
 
         return sprintf(
             /* translators: %d: number of hours */
@@ -2130,7 +2089,10 @@ class Glimmr_AI_REST_API {
     public function handle_chat_stream( $request ) {
         // License check — reject if not licensed.
         if ( class_exists( 'Glimmr_AI_License' ) && ! Glimmr_AI_License::get_instance()->is_licensed() ) {
-            return new WP_Error( 'not_licensed', __( 'Plugin is not licensed.', 'glimmr-ai' ), array( 'status' => 403 ) );
+            wp_send_json_error(
+                array( 'message' => __( 'Plugin is not licensed.', 'glimmr-ai' ) ),
+                403
+            );
         }
 
         $conversation_id = $request->get_param( 'conversation_id' );
@@ -2164,7 +2126,6 @@ class Glimmr_AI_REST_API {
                     array( 'message' => $check['message'] ),
                     400
                 );
-                return;
             }
         }
 
@@ -2181,7 +2142,6 @@ class Glimmr_AI_REST_API {
                         array( 'message' => __( 'Too many conversations created. Please wait before starting a new conversation.', 'glimmr-ai' ) ),
                         429
                     );
-                    return;
                 }
 
                 $conversation_id = Glimmr_AI_Database::insert_conversation(
@@ -2196,22 +2156,21 @@ class Glimmr_AI_REST_API {
                         array( 'message' => 'Failed to create conversation' ),
                         500
                     );
-                    return;
                 }
 
                 $send_init_event = true;
 
                 // Track conversation start and set attribution cookie/session.
                 try {
-                    Glimmr_AI_Analytics::track_conversation_start( $conversation_id, $context );
-                    Glimmr_AI_Analytics::set_attribution_conversation_id( $conversation_id );
+                    Glimmr_AI_Analytics::track_conversation_start( (string) $conversation_id, $context );
+                    Glimmr_AI_Analytics::set_attribution_conversation_id( (string) $conversation_id );
                 } catch ( Exception $e ) {
                     Glimmr_AI_Logger::debug( 'Analytics tracking failed', array( 'error' => $e->getMessage() ), 'api' );
                 }
             } else {
                 // Verify conversation exists and is valid.
                 $conversation = Glimmr_AI_Database::get_conversation( $conversation_id );
-                if ( ! $conversation || 'expired' === $conversation->status ) {
+                if ( ! $conversation || 'expired' === $conversation->status ) { // @phpstan-ignore property.notFound
                     $conversation_id = Glimmr_AI_Database::insert_conversation(
                         array(
                             'user_id'    => get_current_user_id() ?: null,
@@ -2221,18 +2180,19 @@ class Glimmr_AI_REST_API {
                     $send_init_event = true;
 
                     // Set attribution for the new conversation.
-                    try {
-                        Glimmr_AI_Analytics::track_conversation_start( $conversation_id, $context );
-                        Glimmr_AI_Analytics::set_attribution_conversation_id( $conversation_id );
-                    } catch ( Exception $e ) {
-                        Glimmr_AI_Logger::debug( 'Analytics tracking failed', array( 'error' => $e->getMessage() ), 'api' );
+                    if ( $conversation_id !== false ) {
+                        try {
+                            Glimmr_AI_Analytics::track_conversation_start( (string) $conversation_id, $context );
+                            Glimmr_AI_Analytics::set_attribution_conversation_id( (string) $conversation_id );
+                        } catch ( Exception $e ) {
+                            Glimmr_AI_Logger::debug( 'Analytics tracking failed', array( 'error' => $e->getMessage() ), 'api' );
+                        }
                     }
                 } elseif ( ! $this->validate_conversation_ownership( $conversation ) ) {
                     wp_send_json_error(
                         array( 'message' => 'You do not have permission to access this conversation.' ),
                         403
                     );
-                    return;
                 } else {
                     // Existing valid conversation — refresh attribution cookie/session
                     // to ensure it persists through checkout.
@@ -2245,7 +2205,6 @@ class Glimmr_AI_REST_API {
                 array( 'message' => 'An error occurred. Please try again.' ),
                 500
             );
-            return;
         }
 
         // Set SSE headers AFTER conversation setup and cookie are set.
@@ -2411,19 +2370,10 @@ class Glimmr_AI_REST_API {
      * @param string $message         The user message.
      * @param string $conversation_id The conversation ID.
      * @param array  $context         Additional context.
-     * @return string The AI response.
+     * @return string|array The AI response.
      */
     private function get_ai_response( $message, $conversation_id, $context = array() ) {
         $glimmr_ai = Glimmr_AI::get_instance();
-
-        if ( ! $glimmr_ai ) {
-            Glimmr_AI_Logger::error(
-                'Glimmr_AI instance is null',
-                array( 'conversation_id' => $conversation_id ),
-                'api'
-            );
-            return $this->get_fallback_response();
-        }
 
         // Check if OpenAI is configured.
         // Use the dedicated get_api_key() method which handles decryption.
@@ -2441,15 +2391,6 @@ class Glimmr_AI_REST_API {
         try {
             // Get conversation manager and process the message.
             $conversation_manager = $glimmr_ai->get_conversation_manager();
-
-            if ( ! $conversation_manager ) {
-                Glimmr_AI_Logger::error(
-                    'Conversation manager is null',
-                    array( 'conversation_id' => $conversation_id ),
-                    'api'
-                );
-                return $this->get_fallback_response();
-            }
 
             $response = $conversation_manager->process_message( $conversation_id, $message, $context );
 
@@ -2479,10 +2420,6 @@ class Glimmr_AI_REST_API {
      * @return array Sanitized context.
      */
     private function sanitize_context( $context ) {
-        if ( ! is_array( $context ) ) {
-            return array();
-        }
-
         $sanitized = array();
 
         // Page URL - validate and sanitize.

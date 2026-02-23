@@ -523,10 +523,6 @@ abstract class Glimmr_AI_Tool_Base {
      * @return array Product data.
      */
     protected function format_product( $product ) {
-        if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
-            return null;
-        }
-
         // Handle pricing for variable products.
         // Variable products return 0 from get_price(), so we need to get the variation price range.
         $price_display = '';
@@ -597,10 +593,6 @@ abstract class Glimmr_AI_Tool_Base {
      * @return array Order data.
      */
     protected function format_order( $order, $include_items = false ) {
-        if ( ! $order || ! is_a( $order, 'WC_Order' ) ) {
-            return null;
-        }
-
         $data = array(
             'id'             => $order->get_id(),
             'order_number'   => $order->get_order_number(),

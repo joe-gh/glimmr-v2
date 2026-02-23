@@ -24,13 +24,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Glimmr_AI_Rate_Limiter {
 
     /**
-     * Database instance.
-     *
-     * @var Glimmr_AI_Database
-     */
-    private $database;
-
-    /**
      * Settings instance.
      *
      * @var Glimmr_AI_Settings
@@ -61,11 +54,12 @@ class Glimmr_AI_Rate_Limiter {
     /**
      * Constructor.
      *
-     * @param Glimmr_AI_Database $database Database instance.
-     * @param Glimmr_AI_Settings $settings Settings instance.
+     * @param Glimmr_AI_Database $_database Database instance (unused, kept for backward compatibility).
+     * @param Glimmr_AI_Settings $settings  Settings instance.
+     *
+     * @phpstan-ignore constructor.unusedParameter
      */
-    public function __construct( $database, $settings ) {
-        $this->database = $database;
+    public function __construct( $_database, $settings ) {
         $this->settings = $settings;
 
         // Load rate limit configuration from settings.
@@ -320,7 +314,7 @@ class Glimmr_AI_Rate_Limiter {
     private function get_window_start() {
         $now = time();
         $window = floor( $now / $this->window_duration ) * $this->window_duration;
-        return date( 'Y-m-d H:i:s', $window );
+        return date( 'Y-m-d H:i:s', (int) $window );
     }
 
     // =========================================================================
@@ -581,7 +575,11 @@ class Glimmr_AI_Rate_Limiter {
         $usage = array();
 
         for ( $i = 0; $i < $days; $i++ ) {
-            $date = date( 'Y-m-d', strtotime( "-{$i} days" ) );
+            $ts = strtotime( "-{$i} days" );
+            if ( $ts === false ) {
+                continue;
+            }
+            $date = date( 'Y-m-d', $ts );
             $key = 'glimmr_ai_tokens_' . $date;
             $tokens = (int) get_transient( $key );
 

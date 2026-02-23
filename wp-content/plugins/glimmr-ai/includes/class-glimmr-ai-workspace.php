@@ -258,7 +258,7 @@ class Glimmr_AI_Workspace {
 	 * @param array $updates Workspace updates from AI.
 	 */
 	public function apply_updates( $updates ) {
-		if ( empty( $updates ) || ! is_array( $updates ) ) {
+		if ( empty( $updates ) ) {
 			return;
 		}
 
@@ -723,7 +723,7 @@ class Glimmr_AI_Workspace {
 	 * @param array  $result    Tool result.
 	 */
 	public function process_tool_result( $tool_name, $result ) {
-		if ( ! is_array( $result ) || empty( $result['success'] ) ) {
+		if ( empty( $result['success'] ) ) {
 			return;
 		}
 

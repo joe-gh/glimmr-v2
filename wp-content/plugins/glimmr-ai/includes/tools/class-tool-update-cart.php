@@ -415,6 +415,9 @@ class Glimmr_AI_Tool_Update_Cart extends Glimmr_AI_Tool_Base {
         foreach ( $cart_item['variation'] as $key => $value ) {
             $clean_key = str_replace( 'attribute_', '', $key );
             $clean_key = str_replace( 'pa_', '', $clean_key );
+            if ( is_array( $clean_key ) ) {
+                $clean_key = implode( ', ', $clean_key );
+            }
             $attrs[ ucfirst( $clean_key ) ] = $value;
         }
         return $attrs;
@@ -521,7 +524,7 @@ class Glimmr_AI_Tool_Update_Cart extends Glimmr_AI_Tool_Base {
                 Glimmr_AI_Logger::warning(
                     'Cart initialization failed in update_cart - WC()->cart is still null after wc_load_cart()',
                     array(
-                        'session_exists'  => ! is_null( WC()->session ),
+                        'session_exists'  => true,
                         'customer_exists' => ! is_null( WC()->customer ),
                     ),
                     'tools'

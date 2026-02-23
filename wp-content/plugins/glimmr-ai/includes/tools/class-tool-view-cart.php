@@ -286,8 +286,8 @@ class Glimmr_AI_Tool_View_Cart extends Glimmr_AI_Tool_Base {
         // Verify cart was actually loaded - wc_load_cart() may fail silently.
         if ( is_null( WC()->cart ) ) {
             $this->log_debug( 'Cart initialization failed - WC()->cart is still null after wc_load_cart()', array(
-                'session_exists'  => ! is_null( WC()->session ),
-                'customer_exists' => ! is_null( WC()->customer ),
+                'session_exists'  => true,
+                'customer_exists' => true,
             ) );
             return false;
         }

@@ -261,7 +261,11 @@ class Glimmr_AI_Tool_Resolve_Cart_Item extends Glimmr_AI_Tool_Base {
 			foreach ( $cart_item['variation'] as $attr_key => $attr_val ) {
 				$clean_key = str_replace( 'attribute_', '', $attr_key );
 				$clean_key = str_replace( 'pa_', '', $clean_key );
+				if ( is_array( $clean_key ) ) {
+					$clean_key = implode( '-', $clean_key );
+				}
 				$clean_key = ucfirst( str_replace( '-', ' ', $clean_key ) );
+				$attr_val  = is_array( $attr_val ) ? implode( ', ', $attr_val ) : $attr_val;
 				$attrs[]   = $clean_key . ': ' . ucfirst( $attr_val );
 			}
 			$variation_desc = implode( ', ', $attrs );

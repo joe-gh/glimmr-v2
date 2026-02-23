@@ -30,18 +30,21 @@ function glimmr_ai_uninstall() {
     $license_data = get_option( 'glimmr_ai_license_data', array() );
     if ( ! empty( $license_key ) && ! empty( $license_data['activation_id'] ) ) {
         $server_url = 'https://glimmr.us/wp-json/glimmr-licensing/v1/deactivate';
-        wp_remote_post( $server_url, array(
-            'timeout' => 10,
-            'headers' => array(
-                'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
-            ),
-            'body'    => wp_json_encode( array(
-                'license_key'   => $license_key,
-                'activation_id' => $license_data['activation_id'],
-                'site_url'      => home_url(),
-            ) ),
+        $body = wp_json_encode( array(
+            'license_key'   => $license_key,
+            'activation_id' => $license_data['activation_id'],
+            'site_url'      => home_url(),
         ) );
+        if ( $body !== false ) {
+            wp_remote_post( $server_url, array(
+                'timeout' => 10,
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                    'Accept'       => 'application/json',
+                ),
+                'body'    => $body,
+            ) );
+        }
     }
 
     // Delete options.
@@ -57,25 +60,28 @@ function glimmr_ai_uninstall() {
         // Delete options from all sites in the network.
         $sites = get_sites( array( 'number' => 0 ) );
         foreach ( $sites as $site ) {
-            switch_to_blog( $site->blog_id );
+            switch_to_blog( (int) $site->blog_id );
 
             // Deactivate license for this site.
             $site_license_key  = get_option( 'glimmr_ai_license_key', '' );
             $site_license_data = get_option( 'glimmr_ai_license_data', array() );
             if ( ! empty( $site_license_key ) && ! empty( $site_license_data['activation_id'] ) ) {
                 $server_url = 'https://glimmr.us/wp-json/glimmr-licensing/v1/deactivate';
-                wp_remote_post( $server_url, array(
-                    'timeout' => 10,
-                    'headers' => array(
-                        'Content-Type' => 'application/json',
-                        'Accept'       => 'application/json',
-                    ),
-                    'body'    => wp_json_encode( array(
-                        'license_key'   => $site_license_key,
-                        'activation_id' => $site_license_data['activation_id'],
-                        'site_url'      => home_url(),
-                    ) ),
+                $site_body = wp_json_encode( array(
+                    'license_key'   => $site_license_key,
+                    'activation_id' => $site_license_data['activation_id'],
+                    'site_url'      => home_url(),
                 ) );
+                if ( $site_body !== false ) {
+                    wp_remote_post( $server_url, array(
+                        'timeout' => 10,
+                        'headers' => array(
+                            'Content-Type' => 'application/json',
+                            'Accept'       => 'application/json',
+                        ),
+                        'body'    => $site_body,
+                    ) );
+                }
             }
 
             delete_option( 'glimmr_ai_settings' );

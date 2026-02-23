@@ -186,10 +186,10 @@ class Glimmr_AI_Tool_Add_To_Cart extends Glimmr_AI_Tool_Base {
     /**
      * Handle adding a variable product.
      *
-     * @param WC_Product_Variable $product      The variable product.
-     * @param int                 $quantity     Quantity to add.
-     * @param int                 $variation_id Variation ID (if provided).
-     * @param array               $variation    Variation attributes (if provided).
+     * @param WC_Product $product      The variable product.
+     * @param int        $quantity     Quantity to add.
+     * @param int        $variation_id Variation ID (if provided).
+     * @param array      $variation    Variation attributes (if provided).
      * @return array Tool result.
      */
     private function handle_variable_product( $product, $quantity, $variation_id, $variation ) {
@@ -199,7 +199,7 @@ class Glimmr_AI_Tool_Add_To_Cart extends Glimmr_AI_Tool_Base {
         }
 
         // Find variation if not provided directly.
-        if ( empty( $variation_id ) && ! empty( $variation ) ) {
+        if ( empty( $variation_id ) ) {
             $data_store = WC_Data_Store::load( 'product' );
             $variation_id = $data_store->find_matching_product_variation( $product, $variation );
 
@@ -391,7 +391,7 @@ class Glimmr_AI_Tool_Add_To_Cart extends Glimmr_AI_Tool_Base {
     /**
      * Build needs_variation_selection response.
      *
-     * @param WC_Product_Variable $product Variable product.
+     * @param WC_Product $product Variable product.
      * @return array Response asking for variation selection.
      */
     private function build_needs_selection_response( $product ) {
@@ -460,8 +460,8 @@ class Glimmr_AI_Tool_Add_To_Cart extends Glimmr_AI_Tool_Base {
     /**
      * Get valid variation combinations.
      *
-     * @param WC_Product_Variable $product Variable product.
-     * @param int                 $limit   Max combinations.
+     * @param WC_Product $product Variable product.
+     * @param int        $limit   Max combinations.
      * @return array Valid combinations.
      */
     private function get_valid_combinations( $product, $limit ) {
@@ -489,7 +489,7 @@ class Glimmr_AI_Tool_Add_To_Cart extends Glimmr_AI_Tool_Base {
     /**
      * Find in-stock alternatives for an out-of-stock variation.
      *
-     * @param WC_Product_Variable  $product           Parent product.
+     * @param WC_Product           $product           Parent product.
      * @param WC_Product_Variation $current_variation Current variation.
      * @return array Alternative variations.
      */
@@ -553,169 +553,6 @@ class Glimmr_AI_Tool_Add_To_Cart extends Glimmr_AI_Tool_Base {
         }
 
         return implode( ' / ', $parts );
-    }
-
-    /**
-     * Request variation selection from user.
-     *
-     * @param WC_Product_Variable $product Variable product.
-     * @return array Response asking for variation selection.
-     */
-    private function request_variation_selection( $product ) {
-        $available_attrs = array();
-
-        foreach ( $product->get_variation_attributes() as $attr_name => $options ) {
-            $attr_label = wc_attribute_label( $attr_name, $product );
-            $available_attrs[ $attr_label ] = array_values( $options );
-        }
-
-        // Get some available variations with prices.
-        $variations = array();
-        foreach ( array_slice( $product->get_available_variations(), 0, 5 ) as $var ) {
-            $var_id = $var['variation_id'] ?? 0;
-            if ( ! $var_id ) {
-                continue;
-            }
-            $variation_product = wc_get_product( $var_id );
-            if ( $variation_product && $variation_product->is_in_stock() ) {
-                $variations[] = array(
-                    'variation_id' => $var_id,
-                    'attributes'   => $var['attributes'] ?? array(),
-                    'price'        => $this->format_price( $variation_product->get_price() ),
-                    'in_stock'     => true,
-                );
-            }
-        }
-
-        return $this->format_result(
-            array(
-                'product_id'   => $product->get_id(),
-                'product_name' => $product->get_name(),
-                'is_variable'  => true,
-                'attributes'   => $available_attrs,
-                'variations'   => $variations,
-            ),
-            true,
-            __( 'This product has multiple options. Please specify which variation you would like.', 'glimmr-ai' )
-        );
-    }
-
-    /**
-     * Ensure WooCommerce cart is loaded with the browser's existing session.
-     *
-     * This is critical for REST API calls - WooCommerce doesn't automatically
-     * load the session for REST API requests, so we need to manually ensure
-     * the browser's session cookie is used.
-     */
-    private function ensure_cart_loaded() {
-        $this->log_debug( 'ensure_cart_loaded() called', array(
-            'cart_null'     => is_null( WC()->cart ),
-            'session_null'  => is_null( WC()->session ),
-            'customer_null' => is_null( WC()->customer ),
-        ) );
-
-        // Find the WooCommerce session cookie from the request.
-        $wc_session_cookie_name = 'wp_woocommerce_session_' . COOKIEHASH;
-        $session_cookie_value = isset( $_COOKIE[ $wc_session_cookie_name ] )
-            ? sanitize_text_field( wp_unslash( $_COOKIE[ $wc_session_cookie_name ] ) )
-            : '';
-
-        $this->log_debug( 'Session cookie check', array(
-            'cookie_name'   => $wc_session_cookie_name,
-            'cookie_exists' => ! empty( $session_cookie_value ),
-            'cookie_length' => strlen( $session_cookie_value ),
-        ) );
-
-        // Initialize session if needed.
-        if ( is_null( WC()->session ) ) {
-            $this->log_debug( 'Creating new WC_Session_Handler' );
-            WC()->session = new WC_Session_Handler();
-            WC()->session->init();
-        }
-
-        // Log session details after init.
-        $session_customer_id = WC()->session->get_customer_id();
-        $this->log_debug( 'Session after init', array(
-            'session_class'        => get_class( WC()->session ),
-            'customer_id'          => $session_customer_id,
-            'has_session'          => WC()->session->has_session(),
-            'is_user_logged_in'    => is_user_logged_in(),
-            'wp_user_id'           => get_current_user_id(),
-        ) );
-
-        // For logged-in users, WooCommerce should handle session correctly.
-        // For guests, we need to ensure the session from cookie is used.
-        if ( ! is_user_logged_in() && ! empty( $session_cookie_value ) ) {
-            // Parse the session cookie - format is: customer_id||expiration||hash
-            $cookie_parts = explode( '||', $session_cookie_value );
-            if ( count( $cookie_parts ) >= 3 ) {
-                $cookie_customer_id = $cookie_parts[0];
-                $this->log_debug( 'Parsed session cookie', array(
-                    'cookie_customer_id'  => $cookie_customer_id,
-                    'session_customer_id' => $session_customer_id,
-                    'ids_match'           => $cookie_customer_id === $session_customer_id,
-                ) );
-
-                // If session customer ID doesn't match cookie, we have a problem.
-                if ( $cookie_customer_id !== $session_customer_id ) {
-                    $this->log_debug( 'Session mismatch! Attempting to reload session with cookie customer ID' );
-                    // Force WooCommerce to use the cookie's customer ID.
-                    // This is a workaround - WooCommerce should have done this automatically.
-                    WC()->session->set_customer_session_cookie( true );
-                }
-            }
-        }
-
-        // Initialize customer if needed.
-        if ( is_null( WC()->customer ) ) {
-            $this->log_debug( 'Initializing WC customer' );
-            WC()->customer = new WC_Customer( get_current_user_id(), true );
-        }
-
-        // Load cart if needed.
-        if ( is_null( WC()->cart ) ) {
-            $this->log_debug( 'Loading cart via wc_load_cart()' );
-            wc_load_cart();
-        }
-
-        // Log cart state after loading.
-        $this->log_debug( 'Cart after loading', array(
-            'cart_contents_count'   => WC()->cart ? WC()->cart->get_cart_contents_count() : 'null',
-            'cart_hash'             => WC()->cart ? WC()->cart->get_cart_hash() : 'null',
-            'is_empty'              => WC()->cart ? WC()->cart->is_empty() : 'null',
-            'session_customer_id'   => WC()->session ? WC()->session->get_customer_id() : 'null',
-        ) );
-
-        // Log cart contents for debugging.
-        if ( WC()->cart && ! WC()->cart->is_empty() ) {
-            $cart_items = array();
-            foreach ( WC()->cart->get_cart() as $key => $item ) {
-                $cart_items[] = array(
-                    'key'          => substr( $key, 0, 8 ) . '...',
-                    'product_id'   => $item['product_id'] ?? 0,
-                    'variation_id' => $item['variation_id'] ?? 0,
-                    'quantity'     => $item['quantity'] ?? 0,
-                );
-            }
-            $this->log_debug( 'Existing cart contents', array( 'items' => $cart_items ) );
-        }
-    }
-
-    /**
-     * Get current cart summary.
-     *
-     * @return array Cart summary.
-     */
-    private function get_cart_summary() {
-        $cart = WC()->cart;
-
-        return array(
-            'item_count'     => $cart->get_cart_contents_count(),
-            'subtotal'       => $this->format_price( $cart->get_subtotal() ),
-            'total'          => $this->format_price( $cart->get_total( 'edit' ) ),
-            'cart_url'       => wc_get_cart_url(),
-            'checkout_url'   => wc_get_checkout_url(),
-        );
     }
 
     /**

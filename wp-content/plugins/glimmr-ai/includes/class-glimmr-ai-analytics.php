@@ -738,7 +738,11 @@ class Glimmr_AI_Analytics {
         global $wpdb;
 
         $table = Glimmr_AI_Database::get_table_name( 'analytics' );
-        $cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_to_keep} days" ) );
+        $ts = strtotime( "-{$days_to_keep} days" );
+        if ( $ts === false ) {
+            return 0;
+        }
+        $cutoff = gmdate( 'Y-m-d H:i:s', $ts );
 
         return $wpdb->query(
             $wpdb->prepare(

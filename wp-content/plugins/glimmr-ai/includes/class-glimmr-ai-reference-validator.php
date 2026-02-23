@@ -229,10 +229,6 @@ class Glimmr_AI_Reference_Validator {
 			$value = $value[ $part ];
 		}
 
-		if ( $value === null ) {
-			return array();
-		}
-
 		// Normalize to array.
 		if ( is_array( $value ) ) {
 			return array_map( 'absint', $value );

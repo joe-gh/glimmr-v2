@@ -122,7 +122,9 @@ class Glimmr_AI_Tool_Check_Gift_Card_Balance extends Glimmr_AI_Tool_Base {
     private function check_pw_gift_cards( $card_number ) {
         try {
             // PW Gift Cards uses PW_Gift_Card::get_by_card_number().
+            /** @phpstan-ignore function.impossibleType */
             if ( method_exists( 'PW_Gift_Card', 'get_by_card_number' ) ) {
+                /** @phpstan-ignore class.notFound */
                 $gift_card = PW_Gift_Card::get_by_card_number( $card_number );
 
                 if ( $gift_card && $gift_card->get_id() ) {
@@ -154,10 +156,10 @@ class Glimmr_AI_Tool_Check_Gift_Card_Balance extends Glimmr_AI_Tool_Base {
             if ( function_exists( 'YITH_YWGC' ) ) {
                 $yith = YITH_YWGC();
                 if ( method_exists( $yith, 'get_gift_card_by_code' ) ) {
-                    $gift_card = $yith->get_gift_card_by_code( $card_number );
+                    $gift_card = $yith->get_gift_card_by_code( $card_number ); // @phpstan-ignore method.nonObject
 
                     if ( $gift_card && method_exists( $gift_card, 'get_balance' ) ) {
-                        $balance = $gift_card->get_balance();
+                        $balance = $gift_card->get_balance(); // @phpstan-ignore method.nonObject
 
                         return $this->format_balance_result(
                             $card_number,
@@ -208,11 +210,12 @@ class Glimmr_AI_Tool_Check_Gift_Card_Balance extends Glimmr_AI_Tool_Base {
     private function check_wc_gift_cards( $card_number ) {
         try {
             // WC Gift Cards uses WC_GC_Gift_Cards::get_by_code().
+            /** @phpstan-ignore function.impossibleType */
             if ( class_exists( 'WC_GC_Gift_Cards' ) && method_exists( 'WC_GC_Gift_Cards', 'get_by_code' ) ) {
                 $gift_card = WC_GC_Gift_Cards::get_by_code( $card_number );
 
                 if ( $gift_card && method_exists( $gift_card, 'get_balance' ) ) {
-                    $balance = $gift_card->get_balance();
+                    $balance = $gift_card->get_balance(); // @phpstan-ignore method.nonObject
 
                     return $this->format_balance_result(
                         $card_number,
@@ -272,7 +275,7 @@ class Glimmr_AI_Tool_Check_Gift_Card_Balance extends Glimmr_AI_Tool_Base {
             // Smart Coupons uses WooCommerce coupon system with 'smart_coupon' discount type.
             $coupon = new WC_Coupon( $card_number );
 
-            if ( $coupon && $coupon->get_id() > 0 ) {
+            if ( $coupon->get_id() > 0 ) {
                 $discount_type = $coupon->get_discount_type();
 
                 // Smart Coupons uses 'smart_coupon' type for store credit.

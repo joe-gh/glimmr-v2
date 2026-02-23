@@ -232,7 +232,7 @@ class Glimmr_AI_Tool_Registry {
         $this->openai = $openai;
 
         // Update text_answer tool.
-        if ( isset( $this->tools['text_answer'] ) ) {
+        if ( isset( $this->tools['text_answer'] ) && method_exists( $this->tools['text_answer'], 'set_openai' ) ) {
             $this->tools['text_answer']->set_openai( $openai );
         }
     }
@@ -381,6 +381,11 @@ class Glimmr_AI_Tool_Registry {
             do_action( 'glimmr_ai_before_tool_execute', $name, $arguments );
 
             $result = $tool->execute( $arguments );
+
+            // Normalize string results to array format.
+            if ( is_string( $result ) ) {
+                $result = array( 'message' => $result );
+            }
 
             /**
              * Fires after a tool is executed.

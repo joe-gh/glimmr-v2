@@ -135,13 +135,13 @@ class Glimmr_AI_Tool_Site_Knowledge extends Glimmr_AI_Tool_Base {
             );
 
             foreach ( $zone['shipping_methods'] as $method ) {
-                if ( ! $method->is_enabled() ) {
+                if ( ! is_object( $method ) || ! $method->is_enabled() ) { // @phpstan-ignore method.notFound
                     continue;
                 }
 
                 $method_info = array(
-                    'name' => $method->get_title(),
-                    'type' => $method->id,
+                    'name' => $method->get_title(), // @phpstan-ignore method.notFound
+                    'type' => $method->id, // @phpstan-ignore property.notFound
                 );
 
                 // Get cost if available.
@@ -152,7 +152,7 @@ class Glimmr_AI_Tool_Site_Knowledge extends Glimmr_AI_Tool_Base {
                     }
 
                     // Check for free shipping threshold.
-                    if ( 'free_shipping' === $method->id ) {
+                    if ( 'free_shipping' === $method->id ) { // @phpstan-ignore property.notFound
                         $min_amount = $method->get_option( 'min_amount' );
                         if ( $min_amount ) {
                             $method_info['min_order'] = $this->format_price( $min_amount );

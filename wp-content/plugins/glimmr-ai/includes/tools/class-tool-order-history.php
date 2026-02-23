@@ -227,10 +227,6 @@ class Glimmr_AI_Tool_Order_History extends Glimmr_AI_Tool_Base {
     protected function format_order( $order, $include_items = false ) {
         $data = parent::format_order( $order, $include_items );
 
-        if ( null === $data ) {
-            return null;
-        }
-
         // Add view order URL.
         $data['view_url'] = $order->get_view_order_url();
 

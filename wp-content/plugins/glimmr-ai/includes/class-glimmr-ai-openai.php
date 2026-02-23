@@ -1005,7 +1005,7 @@ class Glimmr_AI_OpenAI {
                     'status'     => $http_code,
                     'error_type' => $error_type,
                     'error_code' => $error_code,
-                    'raw_body'   => substr( $result['content'] ?? '', 0, 500 ),
+                    'raw_body'   => substr( $result['content'], 0, 500 ),
                 ),
                 'openai'
             );

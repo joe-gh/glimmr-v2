@@ -430,6 +430,9 @@ class Glimmr_AI_Context {
 
         // Parse URL to determine page type.
         $path = wp_parse_url( $url, PHP_URL_PATH );
+        if ( ! is_string( $path ) ) {
+            $path = '';
+        }
 
         // Check for product page.
         if ( ! empty( $request_context['product_id'] ) ) {

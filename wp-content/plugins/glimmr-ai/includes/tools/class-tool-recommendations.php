@@ -204,8 +204,7 @@ class Glimmr_AI_Tool_Recommendations extends Glimmr_AI_Tool_Base {
                     'seed'     => $seed,
                     'category' => $category,
                 ),
-                __( 'No recommendations available at this time.', 'glimmr-ai' ),
-                __( 'Try a different recommendation type or remove category filters.', 'glimmr-ai' )
+                __( 'No recommendations available at this time. Try a different recommendation type or remove category filters.', 'glimmr-ai' )
             );
         }
 

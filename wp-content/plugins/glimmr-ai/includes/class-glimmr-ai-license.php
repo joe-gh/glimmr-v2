@@ -490,13 +490,18 @@ class Glimmr_AI_License {
         $host      = wp_parse_url( $url, PHP_URL_HOST );
         $sslverify = ! ( $host && str_ends_with( $host, '.local' ) );
 
+        $body = wp_json_encode( $data );
+        if ( $body === false ) {
+            return new WP_Error( 'json_encode_failed', __( 'Failed to encode request data.', 'glimmr-ai' ) );
+        }
+
         return wp_remote_post( $url, array(
             'timeout'   => self::REQUEST_TIMEOUT,
             'headers'   => array(
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
             ),
-            'body'      => wp_json_encode( $data ),
+            'body'      => $body,
             'sslverify' => $sslverify,
         ) );
     }

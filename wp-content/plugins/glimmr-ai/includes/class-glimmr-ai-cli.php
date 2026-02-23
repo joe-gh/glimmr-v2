@@ -92,10 +92,6 @@ class Glimmr_AI_CLI {
 
         // Get plugin instance and services.
         $plugin = Glimmr_AI::get_instance();
-        if ( ! $plugin ) {
-            WP_CLI::error( 'Glimmr AI plugin not initialized.' );
-            return;
-        }
 
         $settings = new Glimmr_AI_Settings();
         $database = new Glimmr_AI_Database();
@@ -117,6 +113,10 @@ class Glimmr_AI_CLI {
 
         if ( ! $conversation_id ) {
             $conv_data = $conversation->create( $user_id, null, array( 'source' => 'cli' ) );
+            if ( is_wp_error( $conv_data ) ) {
+                WP_CLI::error( 'Failed to create conversation: ' . $conv_data->get_error_message() );
+                return;
+            }
             $conversation_id = $conv_data['conversation_id'];
             WP_CLI::log( WP_CLI::colorize( '%GCreated conversation:%n ' . $conversation_id ) );
         } else {
@@ -155,41 +155,35 @@ class Glimmr_AI_CLI {
         WP_CLI::log( WP_CLI::colorize( '%B=== Response (in ' . $elapsed . 'ms) ===%n' ) );
         WP_CLI::log( '' );
 
-        if ( is_array( $response ) ) {
-            // New format with content and artifacts.
-            $content = $response['content'] ?? '';
-            $artifacts = $response['artifacts'] ?? array();
+        $content = $response['content'] ?? '';
+        $artifacts = $response['artifacts'] ?? array();
 
-            WP_CLI::log( WP_CLI::colorize( '%GContent:%n' ) );
-            WP_CLI::log( $content );
-            WP_CLI::log( '' );
+        WP_CLI::log( WP_CLI::colorize( '%GContent:%n' ) );
+        WP_CLI::log( $content );
+        WP_CLI::log( '' );
 
-            if ( ! empty( $artifacts ) ) {
-                WP_CLI::log( WP_CLI::colorize( '%B=== Artifacts ===%n' ) );
-                foreach ( $artifacts as $i => $artifact ) {
-                    $type = $artifact['type'] ?? 'unknown';
-                    $data = $artifact['data'] ?? array();
+        if ( ! empty( $artifacts ) ) {
+            WP_CLI::log( WP_CLI::colorize( '%B=== Artifacts ===%n' ) );
+            foreach ( $artifacts as $i => $artifact ) {
+                $type = $artifact['type'] ?? 'unknown';
+                $data = $artifact['data'] ?? array();
 
-                    WP_CLI::log( WP_CLI::colorize( '%Y[' . ( $i + 1 ) . '] Type:%n ' . $type ) );
+                WP_CLI::log( WP_CLI::colorize( '%Y[' . ( $i + 1 ) . '] Type:%n ' . $type ) );
 
-                    // Show artifact data summary.
-                    if ( $type === 'product_lookup' && isset( $data['products'] ) ) {
-                        $count = count( $data['products'] );
-                        WP_CLI::log( '    Products found: ' . $count );
-                        foreach ( $data['products'] as $product ) {
-                            $name = $product['name'] ?? 'Unknown';
-                            $price = $product['price'] ?? 'N/A';
-                            WP_CLI::log( '    - ' . $name . ' (' . $price . ')' );
-                        }
-                    } else {
-                        WP_CLI::log( '    Data: ' . wp_json_encode( $data, JSON_PRETTY_PRINT ) );
+                // Show artifact data summary.
+                if ( $type === 'product_lookup' && isset( $data['products'] ) ) {
+                    $count = count( $data['products'] );
+                    WP_CLI::log( '    Products found: ' . $count );
+                    foreach ( $data['products'] as $product ) {
+                        $name = $product['name'] ?? 'Unknown';
+                        $price = $product['price'] ?? 'N/A';
+                        WP_CLI::log( '    - ' . $name . ' (' . $price . ')' );
                     }
-                    WP_CLI::log( '' );
+                } else {
+                    WP_CLI::log( '    Data: ' . wp_json_encode( $data, JSON_PRETTY_PRINT ) );
                 }
+                WP_CLI::log( '' );
             }
-        } else {
-            // Legacy string response.
-            WP_CLI::log( $response );
         }
 
         WP_CLI::log( '' );
@@ -354,16 +348,12 @@ class Glimmr_AI_CLI {
         WP_CLI::log( WP_CLI::colorize( '%GEnabled Tools:%n' ) );
 
         $plugin = Glimmr_AI::get_instance();
-        if ( $plugin ) {
-            $tool_registry = $plugin->get_tool_registry();
-            $tools = $tool_registry->get_definitions( true );
+        $tool_registry = $plugin->get_tool_registry();
+        $tools = $tool_registry->get_definitions( true );
 
-            foreach ( $tools as $tool ) {
-                $name = $tool['function']['name'] ?? $tool['name'] ?? 'unknown';
-                WP_CLI::log( '  - ' . $name );
-            }
-        } else {
-            WP_CLI::log( '  (Plugin not fully initialized)' );
+        foreach ( $tools as $tool ) {
+            $name = $tool['function']['name'] ?? $tool['name'] ?? 'unknown';
+            WP_CLI::log( '  - ' . $name );
         }
 
         WP_CLI::log( '' );
@@ -531,6 +521,10 @@ class Glimmr_AI_CLI {
 
         // Stage 4: Read back from file and verify
         $file_content = file_get_contents( $output_file );
+        if ( false === $file_content ) {
+            WP_CLI::warning( 'Stage 4 - Could not read back file for verification.' );
+            $file_content = '';
+        }
         WP_CLI::log( 'Stage 4 - File content after writing:' );
         foreach ( $test_strings as $needle => $location ) {
             $found = strpos( $file_content, $needle ) !== false;
@@ -670,6 +664,7 @@ class Glimmr_AI_CLI {
         $rating_counts = array_count_values( $ratings );
         krsort( $rating_counts );
         foreach ( $rating_counts as $rating => $cnt ) {
+            $rating = (int) $rating;
             $stars = str_repeat( '★', $rating ) . str_repeat( '☆', 5 - $rating );
             WP_CLI::log( sprintf( '  %s (%d stars): %d reviews', $stars, $rating, $cnt ) );
         }
@@ -721,7 +716,8 @@ class Glimmr_AI_CLI {
 
             // Create a random date within the last 6 months.
             $days_ago = wp_rand( 1, 180 );
-            $date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_ago} days" ) );
+            $timestamp = strtotime( "-{$days_ago} days" );
+            $date = gmdate( 'Y-m-d H:i:s', false !== $timestamp ? $timestamp : time() );
 
             $comment_data = array(
                 'comment_post_ID'      => $product_id,
@@ -736,7 +732,7 @@ class Glimmr_AI_CLI {
 
             $comment_id = wp_insert_comment( $comment_data );
 
-            if ( $comment_id && ! is_wp_error( $comment_id ) ) {
+            if ( $comment_id ) {
                 // Add rating meta.
                 update_comment_meta( $comment_id, 'rating', $rating );
 
@@ -762,7 +758,7 @@ class Glimmr_AI_CLI {
         }
 
         // Force recalculation of average rating.
-        if ( method_exists( $product, 'set_average_rating' ) ) {
+        if ( $product instanceof WC_Product && method_exists( $product, 'set_average_rating' ) ) {
             $product->set_average_rating( '' );
             $product->save();
         }
@@ -827,7 +823,7 @@ class Glimmr_AI_CLI {
 
         // Adjust ratings to hit target.
         $attempts = 0;
-        while ( $diff !== 0 && $attempts < $count * 2 ) {
+        while ( $diff != 0 && $attempts < $count * 2 ) {
             $idx = wp_rand( 0, $count - 1 );
             $current = $ratings[ $idx ];
 
@@ -1107,11 +1103,11 @@ class Glimmr_AI_CLI {
      * @param string                      $full_prompt     The assembled prompt.
      * @param array                       $request_context Request context used.
      * @param Glimmr_AI_Workspace|null    $workspace       Workspace object used.
-     * @param object                      $settings        Settings instance.
+     * @param Glimmr_AI_Settings          $settings        Settings instance.
      * @param bool                        $include_tools   Whether to include tool definitions.
      * @return string Formatted output content.
      */
-    private static function build_prompt_output( $full_prompt, $request_context, $workspace, $settings, $include_tools ) {
+    private static function build_prompt_output( $full_prompt, $request_context, $workspace, Glimmr_AI_Settings $settings, $include_tools ) {
         $output = '';
 
         // Header.
@@ -1141,10 +1137,8 @@ class Glimmr_AI_CLI {
         $output .= "WORKSPACE STATE (Injected into prompt)\n";
         $output .= "================================================================================\n";
         $output .= "\n";
-        if ( $workspace && method_exists( $workspace, 'get_state' ) ) {
+        if ( $workspace ) {
             $output .= wp_json_encode( $workspace->get_state(), JSON_PRETTY_PRINT ) . "\n";
-        } elseif ( $workspace && method_exists( $workspace, 'get_context_snapshot' ) ) {
-            $output .= wp_json_encode( $workspace->get_context_snapshot(), JSON_PRETTY_PRINT ) . "\n";
         } else {
             $output .= "(No workspace state - workspace is null or empty)\n";
         }
@@ -1180,13 +1174,9 @@ class Glimmr_AI_CLI {
             $output .= "\n";
 
             $plugin = Glimmr_AI::get_instance();
-            if ( $plugin ) {
-                $tool_registry = $plugin->get_tool_registry();
-                $tools = $tool_registry->get_definitions( true );
-                $output .= wp_json_encode( $tools, JSON_PRETTY_PRINT ) . "\n";
-            } else {
-                $output .= "(Plugin not fully initialized - could not get tool definitions)\n";
-            }
+            $tool_registry = $plugin->get_tool_registry();
+            $tools = $tool_registry->get_definitions( true );
+            $output .= wp_json_encode( $tools, JSON_PRETTY_PRINT ) . "\n";
             $output .= "\n";
         }
 

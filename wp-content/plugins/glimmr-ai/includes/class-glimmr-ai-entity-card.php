@@ -80,7 +80,7 @@ class Glimmr_AI_Entity_Card {
 	 * @return array|null Cart item card data or null if invalid.
 	 */
 	public static function cart_item( $key, $item ) {
-		if ( empty( $key ) || ! is_array( $item ) ) {
+		if ( empty( $key ) ) {
 			return null;
 		}
 
@@ -105,7 +105,7 @@ class Glimmr_AI_Entity_Card {
 	 * @return string Formatted single-line representation.
 	 */
 	public static function format_product_line( $card ) {
-		if ( ! is_array( $card ) || ! isset( $card['id'] ) ) {
+		if ( ! isset( $card['id'] ) ) {
 			return '';
 		}
 
@@ -131,7 +131,7 @@ class Glimmr_AI_Entity_Card {
 	 * @return string Formatted single-line representation.
 	 */
 	public static function format_order_line( $card ) {
-		if ( ! is_array( $card ) || ! isset( $card['id'] ) ) {
+		if ( ! isset( $card['id'] ) ) {
 			return '';
 		}
 
@@ -156,7 +156,7 @@ class Glimmr_AI_Entity_Card {
 	 * @return string Formatted single-line representation.
 	 */
 	public static function format_cart_item_line( $card ) {
-		if ( ! is_array( $card ) || ! isset( $card['key'] ) ) {
+		if ( ! isset( $card['key'] ) ) {
 			return '';
 		}
 
@@ -178,11 +178,6 @@ class Glimmr_AI_Entity_Card {
 	 */
 	public static function products_from_ids( $product_ids, $limit = 5 ) {
 		$cards = array();
-
-		if ( ! is_array( $product_ids ) ) {
-			return $cards;
-		}
-
 		$ids = array_slice( array_map( 'absint', $product_ids ), 0, $limit );
 
 		foreach ( $ids as $id ) {
@@ -204,11 +199,6 @@ class Glimmr_AI_Entity_Card {
 	 */
 	public static function orders_from_ids( $order_ids, $limit = 3 ) {
 		$cards = array();
-
-		if ( ! is_array( $order_ids ) ) {
-			return $cards;
-		}
-
 		$ids = array_slice( array_map( 'absint', $order_ids ), 0, $limit );
 
 		foreach ( $ids as $id ) {

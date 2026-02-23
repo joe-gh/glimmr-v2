@@ -153,8 +153,7 @@ class Glimmr_AI_Tool_Coupon_Lookup extends Glimmr_AI_Tool_Base {
             return $this->format_outcome(
                 'no_matches',
                 array( 'filters' => $filters ),
-                __( 'No coupons match your criteria.', 'glimmr-ai' ),
-                __( 'Try removing some filters to see more coupons.', 'glimmr-ai' )
+                __( 'No coupons match your criteria. Try removing some filters to see more coupons.', 'glimmr-ai' )
             );
         }
 
@@ -407,40 +406,6 @@ class Glimmr_AI_Tool_Coupon_Lookup extends Glimmr_AI_Tool_Base {
         // If specific categories are set, check if product is in one.
         if ( ! empty( $coupon_cats ) ) {
             return ! empty( array_intersect( $product_cats, $coupon_cats ) );
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if coupon applies to a specific category.
-     *
-     * @param WC_Coupon $coupon   Coupon object.
-     * @param string    $category Category name or slug.
-     * @return bool Whether coupon applies.
-     */
-    private function coupon_applies_to_category( $coupon, $category ) {
-        $coupon_cats = $coupon->get_product_categories();
-        $excluded_cats = $coupon->get_excluded_product_categories();
-
-        // Get category term.
-        $term = get_term_by( 'slug', $category, 'product_cat' );
-        if ( ! $term ) {
-            $term = get_term_by( 'name', $category, 'product_cat' );
-        }
-
-        if ( ! $term ) {
-            return false;
-        }
-
-        // Check if category is excluded.
-        if ( in_array( $term->term_id, $excluded_cats, true ) ) {
-            return false;
-        }
-
-        // If specific categories are set, check if this one is included.
-        if ( ! empty( $coupon_cats ) ) {
-            return in_array( $term->term_id, $coupon_cats, true );
         }
 
         return true;

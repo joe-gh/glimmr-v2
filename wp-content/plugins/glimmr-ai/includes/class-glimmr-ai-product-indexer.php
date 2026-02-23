@@ -91,13 +91,6 @@ class Glimmr_AI_Product_Indexer {
     );
 
     /**
-     * Database instance.
-     *
-     * @var Glimmr_AI_Database
-     */
-    private $database;
-
-    /**
      * Settings instance.
      *
      * @var Glimmr_AI_Settings
@@ -121,11 +114,12 @@ class Glimmr_AI_Product_Indexer {
     /**
      * Constructor.
      *
-     * @param Glimmr_AI_Database $database Database instance.
-     * @param Glimmr_AI_Settings $settings Settings instance.
+     * @param Glimmr_AI_Database $_database Database instance (unused, kept for backward compatibility).
+     * @param Glimmr_AI_Settings $settings  Settings instance.
+     *
+     * @phpstan-ignore constructor.unusedParameter
      */
-    public function __construct( $database, $settings ) {
-        $this->database   = $database;
+    public function __construct( $_database, $settings ) {
         $this->settings   = $settings;
         $this->batch_size = (int) $settings->get( 'product_sync_batch_size', 100 );
     }
@@ -375,7 +369,7 @@ class Glimmr_AI_Product_Indexer {
      * @return bool True if it appears to be serialized.
      */
     private function is_serialized_string( $value ) {
-        if ( ! is_string( $value ) || strlen( $value ) < 4 ) {
+        if ( strlen( $value ) < 4 ) {
             return false;
         }
 
@@ -391,7 +385,7 @@ class Glimmr_AI_Product_Indexer {
      * @return bool True if it appears to be JSON.
      */
     private function is_json_string( $value ) {
-        if ( ! is_string( $value ) || strlen( $value ) < 2 ) {
+        if ( strlen( $value ) < 2 ) {
             return false;
         }
 
@@ -459,7 +453,8 @@ class Glimmr_AI_Product_Indexer {
             $parts = array();
 
             // Get the filename.
-            $filename = basename( get_attached_file( $id ) );
+            $attached_file = get_attached_file( $id );
+            $filename = $attached_file ? basename( $attached_file ) : '';
             if ( $filename ) {
                 // Remove extension for cleaner search.
                 $parts[] = pathinfo( $filename, PATHINFO_FILENAME );
@@ -614,12 +609,12 @@ class Glimmr_AI_Product_Indexer {
      */
     public function init_hooks() {
         // Product save/update.
-        add_action( 'woocommerce_update_product', array( $this, 'index_product' ), 10, 1 );
-        add_action( 'woocommerce_new_product', array( $this, 'index_product' ), 10, 1 );
+        add_action( 'woocommerce_update_product', function ( $product_id ) { $this->index_product( $product_id ); }, 10, 1 );
+        add_action( 'woocommerce_new_product', function ( $product_id ) { $this->index_product( $product_id ); }, 10, 1 );
 
         // Product delete.
-        add_action( 'woocommerce_delete_product', array( $this, 'remove_product' ), 10, 1 );
-        add_action( 'woocommerce_trash_product', array( $this, 'remove_product' ), 10, 1 );
+        add_action( 'woocommerce_delete_product', function ( $product_id ) { $this->remove_product( $product_id ); }, 10, 1 );
+        add_action( 'woocommerce_trash_product', function ( $product_id ) { $this->remove_product( $product_id ); }, 10, 1 );
 
         // Variation updates - reindex the parent product.
         add_action( 'woocommerce_update_product_variation', array( $this, 'index_variation_parent' ), 10, 1 );
@@ -683,7 +678,7 @@ class Glimmr_AI_Product_Indexer {
         $existing_ids = array_map( 'intval', $existing_ids );
 
         // Process in batches.
-        $batches = array_chunk( $product_ids, $this->batch_size );
+        $batches = array_chunk( $product_ids, max( 1, $this->batch_size ) );
         $processed_ids = array();
 
         foreach ( $batches as $batch ) {
@@ -777,7 +772,7 @@ class Glimmr_AI_Product_Indexer {
         $results['total'] = count( $modified_ids );
 
         // Process in batches.
-        $batches = array_chunk( $modified_ids, $this->batch_size );
+        $batches = array_chunk( $modified_ids, max( 1, $this->batch_size ) );
 
         foreach ( $batches as $batch ) {
             // Preload taxonomy data for this batch.
@@ -982,7 +977,7 @@ class Glimmr_AI_Product_Indexer {
         $attributes = array();
         $attribute_values = array();
         foreach ( $product->get_attributes() as $attr_name => $attr ) {
-            if ( is_object( $attr ) ) {
+            if ( $attr instanceof \WC_Product_Attribute ) {
                 $options = $attr->get_options();
                 $attributes[ $attr_name ] = $options;
                 // Collect attribute values for search_text.
@@ -990,7 +985,7 @@ class Glimmr_AI_Product_Indexer {
                     foreach ( $options as $opt ) {
                         if ( is_numeric( $opt ) ) {
                             // Term ID - get term name.
-                            $term = get_term( $opt );
+                            $term = get_term( (int) $opt );
                             if ( $term && ! is_wp_error( $term ) ) {
                                 $attribute_values[] = $term->name;
                             }
@@ -1023,7 +1018,7 @@ class Glimmr_AI_Product_Indexer {
         $variation_attribute_values = array();
 
         // Process variations for variable products.
-        if ( $product->is_type( 'variable' ) ) {
+        if ( $product->is_type( 'variable' ) && $product instanceof WC_Product_Variable ) {
             $variation_data = $this->aggregate_variation_data( $product );
 
             $data['min_variation_price'] = $variation_data['min_price'];
@@ -1304,6 +1299,9 @@ class Glimmr_AI_Product_Indexer {
             $exclude_cats = $this->settings->get( 'product_exclude_categories', array() );
             if ( ! empty( $exclude_cats ) ) {
                 $product_cats = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+                if ( is_wp_error( $product_cats ) ) {
+                    $product_cats = array();
+                }
                 if ( array_intersect( $product_cats, $exclude_cats ) ) {
                     return false;
                 }
@@ -1322,6 +1320,9 @@ class Glimmr_AI_Product_Indexer {
             $include_cats = $this->settings->get( 'product_include_categories', array() );
             if ( ! empty( $include_cats ) ) {
                 $product_cats = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+                if ( is_wp_error( $product_cats ) ) {
+                    $product_cats = array();
+                }
                 if ( array_intersect( $product_cats, $include_cats ) ) {
                     return true;
                 }
@@ -1340,6 +1341,9 @@ class Glimmr_AI_Product_Indexer {
             $exclude_cats = $this->settings->get( 'product_exclude_categories', array() );
             if ( ! empty( $exclude_cats ) ) {
                 $product_cats = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+                if ( is_wp_error( $product_cats ) ) {
+                    $product_cats = array();
+                }
                 if ( array_intersect( $product_cats, $exclude_cats ) ) {
                     return false;
                 }
@@ -2024,6 +2028,9 @@ class Glimmr_AI_Product_Indexer {
 
         // Split query into words.
         $words = preg_split( '/[\s\-_,\.]+/', strtolower( $query ) );
+        if ( ! is_array( $words ) ) {
+            return array();
+        }
         $words = array_filter( $words, function( $word ) use ( $stop_words ) {
             // Keep words that are 2+ chars and not stop words.
             return strlen( $word ) >= 2 && ! in_array( $word, $stop_words, true );

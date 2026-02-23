@@ -116,8 +116,7 @@ class Glimmr_AI_Tool_Summarize_Reviews extends Glimmr_AI_Tool_Base {
                     'question'     => $question,
                     'aspect'       => $aspect,
                 ),
-                __( 'This product has no reviews to analyze.', 'glimmr-ai' ),
-                __( 'Consider looking at similar products or checking back later for reviews.', 'glimmr-ai' )
+                __( 'This product has no reviews to analyze. Consider looking at similar products or checking back later for reviews.', 'glimmr-ai' )
             );
         }
 
@@ -171,7 +170,13 @@ class Glimmr_AI_Tool_Summarize_Reviews extends Glimmr_AI_Tool_Base {
         $reviews = array();
         $aspect_keywords = $this->get_aspect_keywords( $aspect );
 
+        if ( ! is_array( $comments ) ) {
+            $comments = array();
+        }
         foreach ( $comments as $comment ) {
+            if ( ! $comment instanceof \WP_Comment ) {
+                continue;
+            }
             $formatted = $this->format_review_for_analysis( $comment );
 
             // If aspect filtering, prioritize relevant reviews.
@@ -221,8 +226,9 @@ class Glimmr_AI_Tool_Summarize_Reviews extends Glimmr_AI_Tool_Base {
      * @return array Formatted review.
      */
     private function format_review_for_analysis( $comment ) {
-        $rating = (int) get_comment_meta( $comment->comment_ID, 'rating', true );
-        $verified = (bool) get_comment_meta( $comment->comment_ID, 'verified', true );
+        $comment_id = (int) $comment->comment_ID;
+        $rating = (int) get_comment_meta( $comment_id, 'rating', true );
+        $verified = (bool) get_comment_meta( $comment_id, 'verified', true );
         $content = wp_strip_all_tags( $comment->comment_content );
 
         // Create compact format for LLM analysis.

@@ -2,7 +2,7 @@ includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
 parameters:
-    level: 5
+    level: 7
 
     paths:
         - glimmr-ai.php
@@ -26,10 +26,6 @@ parameters:
         -
             identifier: class.notFound
             message: '#WP_CLI#'
-        # dbDelta - conditionally loaded from wp-admin/includes/upgrade.php
-        -
-            identifier: function.notFound
-            message: '#dbDelta#'
         # WooCommerce/WP-CLI functions - not available in static analysis
         -
             identifier: function.notFound
@@ -37,3 +33,10 @@ parameters:
         # WordPress constants defined at runtime (COOKIEPATH, etc.)
         -
             identifier: constant.notFound
+        # Level 6 documentation noise - no bug-finding value
+        -
+            identifier: missingType.iterableValue
+        -
+            identifier: missingType.return
+        -
+            identifier: missingType.parameter

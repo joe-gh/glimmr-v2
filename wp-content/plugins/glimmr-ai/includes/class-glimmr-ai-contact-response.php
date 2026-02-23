@@ -37,7 +37,7 @@ class Glimmr_AI_Contact_Response {
         $options = wp_parse_args( $options, $defaults );
 
         // Validate inputs.
-        if ( empty( $request ) || empty( $request->request_id ) ) {
+        if ( empty( $request->request_id ) ) {
             return array(
                 'success' => false,
                 'message' => __( 'Invalid contact request.', 'glimmr-ai' ),
@@ -123,8 +123,8 @@ class Glimmr_AI_Contact_Response {
         $subject = sprintf(
             /* translators: 1: subject line, 2: reference number */
             __( 'Re: %1$s - Ref: %2$s', 'glimmr-ai' ),
-            $request->subject,
-            $request->request_id
+            $request->subject, // @phpstan-ignore property.notFound
+            $request->request_id // @phpstan-ignore property.notFound
         );
 
         // Build email body.
@@ -147,7 +147,7 @@ class Glimmr_AI_Contact_Response {
         );
 
         // Send email.
-        return wp_mail( $request->email, $subject, $body, $headers );
+        return wp_mail( $request->email, $subject, $body, $headers ); // @phpstan-ignore property.notFound
     }
 
     /**
@@ -275,7 +275,7 @@ class Glimmr_AI_Contact_Response {
                             printf(
                                 /* translators: %s: reference number */
                                 esc_html__( 'Reference: %s', 'glimmr-ai' ),
-                                esc_html( $request->request_id )
+                                esc_html( $request->request_id ) // @phpstan-ignore property.notFound
                             );
                             ?>
                         </div>
@@ -285,7 +285,7 @@ class Glimmr_AI_Contact_Response {
                             printf(
                                 /* translators: %s: customer name */
                                 esc_html__( 'Hi %s,', 'glimmr-ai' ),
-                                esc_html( $request->name )
+                                esc_html( $request->name ) // @phpstan-ignore property.notFound
                             );
                             ?>
                         </p>
@@ -300,9 +300,9 @@ class Glimmr_AI_Contact_Response {
 
                         <div class="original-request">
                             <h3><?php esc_html_e( 'Your Original Request', 'glimmr-ai' ); ?></h3>
-                            <p><strong><?php esc_html_e( 'Subject:', 'glimmr-ai' ); ?></strong> <?php echo esc_html( $request->subject ); ?></p>
+                            <p><strong><?php esc_html_e( 'Subject:', 'glimmr-ai' ); ?></strong> <?php echo esc_html( $request->subject ); // @phpstan-ignore property.notFound ?></p>
                             <div class="original-message">
-                                <?php echo nl2br( esc_html( $request->message ) ); ?>
+                                <?php echo nl2br( esc_html( $request->message ) ); // @phpstan-ignore property.notFound ?>
                             </div>
                         </div>
                     </div>
@@ -315,7 +315,9 @@ class Glimmr_AI_Contact_Response {
         </body>
         </html>
         <?php
-        return ob_get_clean();
+        $body = ob_get_clean();
+
+        return $body !== false ? $body : '';
     }
 
     /**

@@ -165,7 +165,7 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 	 *
 	 * @param WC_Product $product            Product object.
 	 * @param bool       $include_variations Include variation data.
-	 * @return array Full product data.
+	 * @return array|null Full product data or null on failure.
 	 */
 	private function format_product_full( $product, $include_variations = true ) {
 		// Start with base product data from parent class.
@@ -199,7 +199,7 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 		// Attributes.
 		$data['attributes'] = array();
 		foreach ( $product->get_attributes() as $attr_name => $attr ) {
-			if ( is_object( $attr ) && method_exists( $attr, 'is_taxonomy' ) ) {
+			if ( $attr instanceof \WC_Product_Attribute ) {
 				if ( $attr->is_taxonomy() ) {
 					$terms = wc_get_product_terms( $product->get_id(), $attr->get_name(), array( 'fields' => 'names' ) );
 					$data['attributes'][ wc_attribute_label( $attr->get_name() ) ] = $terms;
