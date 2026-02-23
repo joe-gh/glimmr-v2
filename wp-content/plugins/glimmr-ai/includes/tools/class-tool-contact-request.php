@@ -95,6 +95,19 @@ class Glimmr_AI_Tool_Contact_Request extends Glimmr_AI_Tool_Base {
      * @return array Tool result.
      */
     public function execute( $arguments ) {
+        // Rate limit: 3 contact requests per hour per session.
+        $session_id = $this->context['session_id'] ?? ( $this->context['conversation_id'] ?? wp_hash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) );
+        $rate_key = 'glimmr_contact_' . md5( $session_id );
+        $attempts = get_transient( $rate_key );
+        if ( false !== $attempts && $attempts >= 3 ) {
+            return $this->format_outcome(
+                'rate_limited',
+                array(),
+                __( 'Too many contact requests. Please try again later.', 'glimmr-ai' )
+            );
+        }
+        set_transient( $rate_key, ( $attempts ? $attempts + 1 : 1 ), HOUR_IN_SECONDS );
+
         // Extract and validate required fields.
         $name = $this->get_string_arg( $arguments, 'name' );
         $email = $this->get_string_arg( $arguments, 'email' );
@@ -322,6 +335,11 @@ class Glimmr_AI_Tool_Contact_Request extends Glimmr_AI_Tool_Base {
 
                 // S10: PII Masking - Apply PII masking to conversation context before storage.
                 $context = Glimmr_AI_PII_Masker::mask_text( $context );
+
+                // Cap context size to prevent multi-megabyte strings in DB and email notifications.
+                if ( strlen( $context ) > 5000 ) {
+                    $context = substr( $context, 0, 5000 ) . "\n\n[... conversation truncated ...]";
+                }
             }
         }
 
@@ -344,6 +362,7 @@ class Glimmr_AI_Tool_Contact_Request extends Glimmr_AI_Tool_Base {
         // S8: Site isolation for multisite.
         $site_id = get_current_blog_id();
 
+        // S-WRITE: Intentional INSERT - stores customer contact request.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
         $result = $wpdb->insert(
             $table_name,
@@ -422,9 +441,12 @@ class Glimmr_AI_Tool_Contact_Request extends Glimmr_AI_Tool_Base {
         $body = $this->build_email_body( $data );
 
         // Set headers for HTML email.
+        // Strip newlines from name to prevent email header injection
+        // (sanitize_text_field does NOT strip \r and \n).
+        $safe_name = str_replace( array( "\r", "\n", "\0" ), '', $data['name'] );
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
-            'Reply-To: ' . $data['name'] . ' <' . $data['email'] . '>',
+            'Reply-To: ' . $safe_name . ' <' . sanitize_email( $data['email'] ) . '>',
         );
 
         // Send email.

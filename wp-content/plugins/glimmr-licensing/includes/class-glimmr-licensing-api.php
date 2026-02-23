@@ -26,6 +26,13 @@ class Glimmr_Licensing_API {
     const NAMESPACE = 'glimmr-licensing/v1';
 
     /**
+     * Option key for development keys.
+     *
+     * @var string
+     */
+    const DEV_KEYS_OPTION = 'glimmr_licensing_dev_keys';
+
+    /**
      * Rate limit: requests per minute per IP.
      *
      * @var int
@@ -152,6 +159,20 @@ class Glimmr_Licensing_API {
             );
         }
 
+        // Development keys bypass the database entirely.
+        if ( $this->is_dev_key( $license_key ) ) {
+            $manager = new Glimmr_Licensing_Manager();
+            $manager->log_action( 0, 'dev_activate', array( 'site_url' => $site_url ), $ip_address );
+            return new WP_REST_Response( array(
+                'success'          => true,
+                'activation_id'    => $this->dev_activation_id( $license_key, $site_url ),
+                'plan'             => 'development',
+                'site_limit'       => 0,
+                'activations_used' => 0,
+                'expiry'           => null,
+            ), 200 );
+        }
+
         // Limit environment data size to 2KB.
         if ( is_array( $environment ) && strlen( wp_json_encode( $environment ) ) > 2048 ) {
             $environment = array();
@@ -204,6 +225,16 @@ class Glimmr_Licensing_API {
             );
         }
 
+        // Development keys — no-op deactivation.
+        if ( $this->is_dev_key( $license_key ) ) {
+            $manager = new Glimmr_Licensing_Manager();
+            $manager->log_action( 0, 'dev_deactivate', array( 'site_url' => $site_url ), $ip_address );
+            return new WP_REST_Response( array(
+                'success' => true,
+                'message' => __( 'Site deactivated successfully.', 'glimmr-licensing' ),
+            ), 200 );
+        }
+
         $manager = new Glimmr_Licensing_Manager();
         $result  = $manager->deactivate( $license_key, $activation_id, $site_url, $ip_address );
 
@@ -249,6 +280,19 @@ class Glimmr_Licensing_API {
                 array( 'valid' => false, 'error' => 'invalid_key', 'message' => __( 'Invalid license key format.', 'glimmr-licensing' ) ),
                 200
             );
+        }
+
+        // Development keys are always valid.
+        if ( $this->is_dev_key( $license_key ) ) {
+            $manager = new Glimmr_Licensing_Manager();
+            $manager->log_action( 0, 'dev_validate', array( 'site_url' => $site_url ), $ip_address );
+            return new WP_REST_Response( array(
+                'valid'            => true,
+                'plan'             => 'development',
+                'site_limit'       => 0,
+                'activations_used' => 0,
+                'expiry'           => null,
+            ), 200 );
         }
 
         $manager = new Glimmr_Licensing_Manager();
@@ -347,16 +391,50 @@ class Glimmr_Licensing_API {
     private function get_client_ip() {
         $ip = '';
 
-        // Prefer REMOTE_ADDR — not spoofable by the client.
         if ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
             $ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
-        } elseif ( ! empty( $_SERVER['HTTP_X_REAL_IP'] ) ) {
-            $ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) );
-        } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-            $ips = explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
-            $ip  = trim( $ips[0] );
         }
 
         return filter_var( $ip, FILTER_VALIDATE_IP ) ? $ip : '0.0.0.0';
+    }
+
+    /**
+     * Check if a license key is a development key.
+     *
+     * Only accepts dev keys when explicitly enabled via the
+     * GLIMMR_DEV_KEYS_ENABLED constant, preventing dev key
+     * bypass in production environments.
+     *
+     * @param string $key License key.
+     * @return bool True if this is a dev key.
+     */
+    private function is_dev_key( $key ) {
+        if ( ! defined( 'GLIMMR_DEV_KEYS_ENABLED' ) || ! GLIMMR_DEV_KEYS_ENABLED ) {
+            return false;
+        }
+        return Glimmr_Licensing_Admin::is_dev_key( $key );
+    }
+
+    /**
+     * Generate a deterministic activation ID for a dev key + site URL pair.
+     *
+     * Uses a hash so the same key + site always returns the same activation ID,
+     * making the activate endpoint idempotent for dev keys without DB storage.
+     *
+     * @param string $key      License key.
+     * @param string $site_url Site URL.
+     * @return string UUID-formatted activation ID.
+     */
+    private function dev_activation_id( $key, $site_url ) {
+        $hash = md5( 'dev:' . $key . ':' . $site_url );
+        // Format as UUID v4-like: 8-4-4-4-12
+        return sprintf(
+            '%s-%s-%s-%s-%s',
+            substr( $hash, 0, 8 ),
+            substr( $hash, 8, 4 ),
+            substr( $hash, 12, 4 ),
+            substr( $hash, 16, 4 ),
+            substr( $hash, 20, 12 )
+        );
     }
 }

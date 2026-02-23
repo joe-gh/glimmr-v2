@@ -174,6 +174,7 @@ export const QuickRepliesEditor = ({ replies, onChange }) => {
                         variant="link"
                         isDestructive
                         onClick={() => removeReply(index)}
+                        aria-label={`Remove quick reply ${index + 1}`}
                     >
                         Remove
                     </Button>

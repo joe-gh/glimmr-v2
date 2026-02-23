@@ -103,21 +103,25 @@ function glimmr_ai_uninstall() {
     }
 
     // Clear transients.
-    $wpdb->query(
-        "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_glimmr_ai_%'"
-    );
-    $wpdb->query(
-        "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_glimmr_ai_%'"
-    );
+    $wpdb->query( $wpdb->prepare(
+        "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+        $wpdb->esc_like( '_transient_glimmr_ai_' ) . '%'
+    ) );
+    $wpdb->query( $wpdb->prepare(
+        "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+        $wpdb->esc_like( '_transient_timeout_glimmr_ai_' ) . '%'
+    ) );
 
     // For multisite, also clear sitemeta.
     if ( is_multisite() ) {
-        $wpdb->query(
-            "DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE '_site_transient_glimmr_ai_%'"
-        );
-        $wpdb->query(
-            "DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE '_site_transient_timeout_glimmr_ai_%'"
-        );
+        $wpdb->query( $wpdb->prepare(
+            "DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s",
+            $wpdb->esc_like( '_site_transient_glimmr_ai_' ) . '%'
+        ) );
+        $wpdb->query( $wpdb->prepare(
+            "DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s",
+            $wpdb->esc_like( '_site_transient_timeout_glimmr_ai_' ) . '%'
+        ) );
     }
 
     // Clear any cached data.

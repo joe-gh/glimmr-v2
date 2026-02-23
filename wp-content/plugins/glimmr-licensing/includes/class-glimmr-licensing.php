@@ -67,6 +67,7 @@ class Glimmr_Licensing {
         require_once $dir . 'class-glimmr-licensing-woocommerce.php';
 
         if ( is_admin() ) {
+            require_once $dir . 'class-glimmr-licensing-activator.php';
             require_once GLIMMR_LICENSING_PLUGIN_DIR . 'admin/class-glimmr-licensing-admin.php';
         }
     }
@@ -92,6 +93,8 @@ class Glimmr_Licensing {
 
         // Admin.
         if ( is_admin() ) {
+            add_action( 'admin_init', array( 'Glimmr_Licensing_Activator', 'maybe_seed_products' ) );
+
             $admin = new Glimmr_Licensing_Admin();
             $admin->register_hooks();
         }

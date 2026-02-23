@@ -11,6 +11,7 @@
 import { h, Fragment } from 'preact';
 import { useEffect, useRef, useState, useCallback } from 'preact/hooks';
 import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 
 // Base components
 import ProductCard from './ProductCard';
@@ -24,6 +25,7 @@ import ProductDetailModal from './ProductDetailModal';
 // API utilities
 import { getProduct } from '../utils/storeApi';
 import { debug, debugError, debugWarn } from '../utils/debug';
+import { isSafeUrl } from '../utils/urlValidation';
 import ProductComparisonTable, { ComparisonTrigger } from './ProductComparisonTable';
 import OrderStatusCard from './OrderStatusCard';
 import OrderHistoryList from './OrderHistoryList';
@@ -64,18 +66,52 @@ const containsHtml = (content) => {
 };
 
 // S14: XSS Prevention - Content sanitized via DOMPurify
-const ALLOWED_TAGS = ['strong', 'em', 'code', 'a', 'br', 'p', 'ul', 'ol', 'li', 'span'];
+const ALLOWED_TAGS = ['strong', 'em', 'code', 'a', 'br', 'p', 'ul', 'ol', 'li', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre'];
 const ALLOWED_ATTR = ['href', 'target', 'rel', 'class'];
+
+// Configure marked for chat messages
+marked.setOptions({
+    gfm: true,        // GitHub Flavored Markdown
+    breaks: true,     // Convert \n to <br>
+    headerIds: false, // Don't add IDs to headers (cleaner output)
+    mangle: false,    // Don't mangle email addresses
+});
+
+/**
+ * Parse markdown and convert to HTML using marked library.
+ * S14: XSS Prevention - Output is sanitized via DOMPurify after parsing.
+ */
+const parseMarkdown = (text) => {
+    if (!text) return '';
+    return marked.parse(text);
+};
 
 /**
  * Parse and render message content.
- * Supports both HTML content and plain text with links.
+ * Supports HTML content, markdown, and plain text with links.
  * S14: XSS Prevention - All HTML sanitized via DOMPurify before rendering
  */
 const renderContent = (content, isHtml = false) => {
     if (!content) return null;
 
-    // If content contains HTML, sanitize and render it
+    // Check if content contains markdown indicators
+    const hasMarkdown = /\*\*|__|`|^[-*•]\s|^\d+[.)]\s/m.test(content);
+
+    // If content has markdown, parse it (even if it also contains HTML)
+    // This handles cases where AI returns partial HTML + markdown
+    if (hasMarkdown) {
+        // Parse markdown and sanitize
+        const html = parseMarkdown(content);
+        const safeContent = DOMPurify.sanitize(html, {
+            ALLOWED_TAGS,
+            ALLOWED_ATTR,
+        });
+        return (
+            <div className="glimmr-message-markdown" dangerouslySetInnerHTML={{ __html: safeContent }} />
+        );
+    }
+
+    // If content is HTML (no markdown), sanitize and render it
     if (isHtml || containsHtml(content)) {
         const safeContent = DOMPurify.sanitize(content, {
             ALLOWED_TAGS,
@@ -132,9 +168,9 @@ const ArtifactRenderer = ({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isLoadingProduct, setIsLoadingProduct] = useState(false);
-    // Auto-open comparison overlay only for NEW comparisons (not from history)
-    const isComparisonArtifact = artifact?.type === 'product_comparison' || artifact?.type === 'product_compare';
-    const [isComparisonOpen, setIsComparisonOpen] = useState(isComparisonArtifact && isNew);
+    const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+    // Track if we've auto-opened to prevent re-opening on re-renders
+    const hasAutoOpenedComparisonRef = useRef(false);
 
     /**
      * Handle product click to open detail modal.
@@ -157,11 +193,14 @@ const ArtifactRenderer = ({
             debug('[ArtifactRenderer] Fetching fresh product details for:', product.id);
             const fullProduct = await getProduct(product.id);
 
-            // Replace with fresh data (preserve original URL as fallback)
+            // Replace with fresh data (preserve fields not in Store API)
             setSelectedProduct(prev => ({
                 ...fullProduct,
                 // Keep original URL if Store API didn't return one
                 url: fullProduct.url || prev?.url,
+                // Preserve available_options with color swatches from tool response
+                // (Store API doesn't include swatch image URLs)
+                available_options: prev?.available_options || fullProduct.available_options,
             }));
             debug('[ArtifactRenderer] Fresh product details loaded:', {
                 id: fullProduct.id,
@@ -202,22 +241,43 @@ const ArtifactRenderer = ({
 
         const uiAction = artifact.data.ui_action;
         if (uiAction.action === 'open_url' && uiAction.url) {
+            // Validate URL is same-origin to prevent open redirect
+            if (!isSafeUrl(uiAction.url)) {
+                debugWarn('[ArtifactRenderer] Blocked navigation to external/unsafe URL:', uiAction.url);
+                return;
+            }
+
             // Small delay for user to see the response first
             const timer = setTimeout(() => {
-                const target = uiAction.target || '_blank';
-                debug('[ArtifactRenderer] Opening URL:', uiAction.url, 'target:', target);
+                debug('[ArtifactRenderer] Opening URL:', uiAction.url);
 
-                if (target === '_self') {
+                if (uiAction.target === '_self') {
                     // Same-tab navigation - use location.href for cleaner UX
                     window.location.href = uiAction.url;
                 } else {
-                    // New tab - use window.open
-                    window.open(uiAction.url, target, 'noopener,noreferrer');
+                    // New tab - hardcode target to _blank for safety
+                    window.open(uiAction.url, '_blank', 'noopener,noreferrer');
                 }
             }, 1000);
             return () => clearTimeout(timer);
         }
     }, [isNew, artifact]);
+
+    // Auto-open comparison overlay for NEW comparisons (not from history)
+    useEffect(() => {
+        if (!isNew || hasAutoOpenedComparisonRef.current) return;
+
+        const isComparisonArtifact = artifact?.type === 'product_comparison' || artifact?.type === 'product_compare';
+        if (isComparisonArtifact) {
+            // Small delay to ensure component is fully mounted
+            const timer = setTimeout(() => {
+                debug('[ArtifactRenderer] Auto-opening comparison overlay');
+                setIsComparisonOpen(true);
+                hasAutoOpenedComparisonRef.current = true;
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [isNew, artifact?.type]);
 
     if (!artifact || !artifact.type) return null;
 
@@ -315,8 +375,8 @@ const ArtifactRenderer = ({
                 compareProducts = artifact.data.products;
             }
 
-            // Limit count to what will actually display (comparisonMaxProducts defaults to 4)
-            const maxProducts = config?.artifacts?.comparisonMaxProducts || 4;
+            // Limit count to what will actually display (comparisonMaxProducts defaults to 8)
+            const maxProducts = config?.artifacts?.comparisonMaxProducts || 8;
             const actualProductCount = Math.min(compareProducts.length, maxProducts);
             return (
                 <Fragment>
@@ -497,6 +557,11 @@ const ArtifactRenderer = ({
                                             <div
                                                 className="glimmr-rating-bar-fill"
                                                 style={{ width: `${ratingData.percentage}%` }}
+                                                role="progressbar"
+                                                aria-valuenow={ratingData.percentage}
+                                                aria-valuemin={0}
+                                                aria-valuemax={100}
+                                                aria-label={`${star} star: ${ratingData.percentage}%`}
                                             />
                                         </div>
                                         <span className="glimmr-rating-count">{ratingData.count}</span>
@@ -521,7 +586,7 @@ const ArtifactRenderer = ({
                                         </span>
                                     )}
                                 </div>
-                                <div className="glimmr-review-rating">
+                                <div className="glimmr-review-rating" aria-label={`${review.rating} out of 5 stars`}>
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <span
                                             key={star}
@@ -659,8 +724,20 @@ const Message = ({
     onViewOrder,
 }) => {
     const [showFlagMenu, setShowFlagMenu] = useState(false);
+    const flagBtnRef = useRef(null);
+    const flagMenuRef = useRef(null);
     const isUser = message.role === 'user';
     const isError = message.isError;
+
+    // Auto-focus first menuitem when flag menu opens
+    useEffect(() => {
+        if (showFlagMenu && flagMenuRef.current) {
+            const firstItem = flagMenuRef.current.querySelector('[role="menuitem"]');
+            if (firstItem) {
+                firstItem.focus();
+            }
+        }
+    }, [showFlagMenu]);
 
     const handleFlag = (issueType) => {
         onFlagMessage(message.id, issueType, '');
@@ -707,6 +784,7 @@ const Message = ({
     return (
         <div
             className={`glimmr-message ${isUser ? 'is-user' : 'is-assistant'} ${isError ? 'is-error' : ''} ${message.isStreaming ? 'is-streaming' : ''}`}
+            role={isError ? 'alert' : undefined}
         >
             {/* Avatar for assistant */}
             {!isUser && config.avatarUrl && (
@@ -773,25 +851,51 @@ const Message = ({
                     {!isUser && !isError && (
                         <div className="glimmr-flag-wrapper">
                             <button
+                                ref={flagBtnRef}
                                 className="glimmr-flag-btn"
                                 onClick={() => setShowFlagMenu(!showFlagMenu)}
                                 aria-label="Report issue with this response"
+                                aria-expanded={showFlagMenu}
+                                aria-haspopup="true"
                             >
                                 <FlagIcon />
                             </button>
 
                             {showFlagMenu && (
-                                <div className="glimmr-flag-menu">
-                                    <button onClick={() => handleFlag('wrong_answer')}>
+                                <div
+                                    className="glimmr-flag-menu"
+                                    ref={flagMenuRef}
+                                    role="menu"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Escape') {
+                                            setShowFlagMenu(false);
+                                            flagBtnRef.current?.focus();
+                                        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            const items = Array.from(
+                                                flagMenuRef.current.querySelectorAll('[role="menuitem"]')
+                                            );
+                                            const currentIdx = items.indexOf(document.activeElement);
+                                            let nextIdx;
+                                            if (e.key === 'ArrowDown') {
+                                                nextIdx = currentIdx < items.length - 1 ? currentIdx + 1 : 0;
+                                            } else {
+                                                nextIdx = currentIdx > 0 ? currentIdx - 1 : items.length - 1;
+                                            }
+                                            items[nextIdx]?.focus();
+                                        }
+                                    }}
+                                >
+                                    <button role="menuitem" onClick={() => handleFlag('wrong_answer')}>
                                         Wrong information
                                     </button>
-                                    <button onClick={() => handleFlag('unhelpful')}>
+                                    <button role="menuitem" onClick={() => handleFlag('unhelpful')}>
                                         Not helpful
                                     </button>
-                                    <button onClick={() => handleFlag('inappropriate')}>
+                                    <button role="menuitem" onClick={() => handleFlag('inappropriate')}>
                                         Inappropriate
                                     </button>
-                                    <button onClick={() => handleFlag('other')}>
+                                    <button role="menuitem" onClick={() => handleFlag('other')}>
                                         Other issue
                                     </button>
                                 </div>
@@ -831,7 +935,7 @@ const MessageList = ({
     }, [messages, isTyping, loadingStatus]);
 
     return (
-        <div className="glimmr-messages" ref={listRef} role="log" aria-live="polite">
+        <div className="glimmr-messages" ref={listRef} role="log" aria-live="polite" aria-atomic="false" aria-relevant="additions">
             {messages.map((message) => (
                 <Message
                     key={message.id}

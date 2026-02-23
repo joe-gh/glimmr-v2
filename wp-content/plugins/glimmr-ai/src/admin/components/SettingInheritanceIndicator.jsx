@@ -14,7 +14,7 @@ const { Tooltip } = wp.components;
  */
 export const LockedIndicator = ({ settingName }) => (
     <span className="glimmr-setting-locked" title={`${settingName} is locked by the network administrator`}>
-        <span className="dashicons dashicons-lock"></span>
+        <span className="dashicons dashicons-lock" aria-hidden="true"></span>
         <span className="glimmr-indicator-text">Locked by Network</span>
     </span>
 );
@@ -24,7 +24,7 @@ export const LockedIndicator = ({ settingName }) => (
  */
 export const InheritedIndicator = ({ settingName }) => (
     <span className="glimmr-setting-inherited" title={`${settingName} is using the network default value`}>
-        <span className="dashicons dashicons-admin-links"></span>
+        <span className="dashicons dashicons-admin-links" aria-hidden="true"></span>
         <span className="glimmr-indicator-text">Network Default</span>
     </span>
 );
@@ -34,7 +34,7 @@ export const InheritedIndicator = ({ settingName }) => (
  */
 export const OverriddenIndicator = ({ settingName }) => (
     <span className="glimmr-setting-overridden" title={`${settingName} has been customized for this site`}>
-        <span className="dashicons dashicons-admin-generic"></span>
+        <span className="dashicons dashicons-admin-generic" aria-hidden="true"></span>
         <span className="glimmr-indicator-text">Site Override</span>
     </span>
 );
@@ -66,7 +66,7 @@ const SettingInheritanceIndicator = ({
     if (isLocked) {
         return (
             <span className={`${className} locked`}>
-                <span className="dashicons dashicons-lock"></span>
+                <span className="dashicons dashicons-lock" aria-hidden="true"></span>
                 {showLabel && <span className="glimmr-indicator-text">Locked</span>}
             </span>
         );
@@ -75,7 +75,7 @@ const SettingInheritanceIndicator = ({
     if (isInherited) {
         return (
             <span className={`${className} inherited`}>
-                <span className="dashicons dashicons-admin-links"></span>
+                <span className="dashicons dashicons-admin-links" aria-hidden="true"></span>
                 {showLabel && <span className="glimmr-indicator-text">Network</span>}
             </span>
         );
@@ -144,7 +144,7 @@ export const NetworkInheritanceBanner = ({ inheritNetwork, onToggle }) => {
     return (
         <div className="glimmr-network-inheritance-banner">
             <div className="glimmr-banner-content">
-                <span className="dashicons dashicons-networking"></span>
+                <span className="dashicons dashicons-networking" aria-hidden="true"></span>
                 <div className="glimmr-banner-text">
                     <strong>Network Configuration</strong>
                     <p>

@@ -78,7 +78,7 @@ const StatCard = ({ title, value, icon, color = 'blue', formatted = false }) => 
     return (
         <div className={`glimmr-stat-card ${colorClasses[color] || ''}`}>
             <div className="glimmr-stat-icon">
-                <span className={`dashicons dashicons-${icon}`}></span>
+                <span className={`dashicons dashicons-${icon}`} aria-hidden="true"></span>
             </div>
             <div className="glimmr-stat-content">
                 <div className="glimmr-stat-value">{formatted ? value : formatNumber(value)}</div>
@@ -112,7 +112,7 @@ const ConversationChart = ({ data }) => {
     if (!data || data.length === 0) {
         return (
             <div className="glimmr-chart-empty">
-                <span className="dashicons dashicons-chart-bar"></span>
+                <span className="dashicons dashicons-chart-bar" aria-hidden="true"></span>
                 <p>No data available for this period</p>
             </div>
         );
@@ -152,7 +152,7 @@ const ConversationChart = ({ data }) => {
     };
 
     return (
-        <div className="glimmr-recharts-container">
+        <div className="glimmr-recharts-container" role="img" aria-label="Conversations chart showing daily volume and message trends">
             <ResponsiveContainer width="100%" height={220}>
                 <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                     <defs>
@@ -265,7 +265,7 @@ const RevenueChart = ({ data }) => {
     if (!data || data.length === 0) {
         return (
             <div className="glimmr-chart-empty">
-                <span className="dashicons dashicons-chart-area"></span>
+                <span className="dashicons dashicons-chart-area" aria-hidden="true"></span>
                 <p>No revenue data available for this period</p>
             </div>
         );
@@ -301,7 +301,7 @@ const RevenueChart = ({ data }) => {
     };
 
     return (
-        <div className="glimmr-recharts-container">
+        <div className="glimmr-recharts-container" role="img" aria-label="Revenue and orders chart showing daily trends">
             <ResponsiveContainer width="100%" height={220}>
                 <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
                     <defs>
@@ -377,7 +377,7 @@ const TopConversations = ({ conversations, onViewConversation }) => {
     if (!conversations || conversations.length === 0) {
         return (
             <div className="glimmr-recent-empty">
-                <span className="dashicons dashicons-awards"></span>
+                <span className="dashicons dashicons-awards" aria-hidden="true"></span>
                 <p>No converting conversations yet</p>
             </div>
         );
@@ -413,7 +413,7 @@ const TopConversations = ({ conversations, onViewConversation }) => {
                         </div>
                     </div>
                     <div className="glimmr-top-conv-arrow">
-                        <span className="dashicons dashicons-arrow-right-alt2"></span>
+                        <span className="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span>
                     </div>
                 </button>
             ))}
@@ -428,7 +428,7 @@ const RecentActivity = ({ conversations, onViewConversation }) => {
     if (!conversations || conversations.length === 0) {
         return (
             <div className="glimmr-recent-empty">
-                <span className="dashicons dashicons-format-chat"></span>
+                <span className="dashicons dashicons-format-chat" aria-hidden="true"></span>
                 <p>No recent conversations</p>
             </div>
         );
@@ -444,7 +444,7 @@ const RecentActivity = ({ conversations, onViewConversation }) => {
                     onClick={() => onViewConversation(conv)}
                 >
                     <div className="glimmr-recent-icon">
-                        <span className="dashicons dashicons-format-chat"></span>
+                        <span className="dashicons dashicons-format-chat" aria-hidden="true"></span>
                     </div>
                     <div className="glimmr-recent-content">
                         <div className="glimmr-recent-title">
@@ -461,7 +461,7 @@ const RecentActivity = ({ conversations, onViewConversation }) => {
                         {new Date(conv.created_at).toLocaleDateString()}
                     </div>
                     <div className="glimmr-recent-arrow">
-                        <span className="dashicons dashicons-arrow-right-alt2"></span>
+                        <span className="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span>
                     </div>
                 </button>
             ))}
@@ -485,7 +485,7 @@ const Message = ({ message }) => {
     return (
         <div className={`glimmr-message glimmr-message-${message.role}`}>
             <div className="glimmr-message-header">
-                <span className={`dashicons dashicons-${config.icon}`}></span>
+                <span className={`dashicons dashicons-${config.icon}`} aria-hidden="true"></span>
                 <span className="glimmr-message-role">{config.label}</span>
                 <span className="glimmr-message-time">
                     {formatDate(message.created_at)}
@@ -621,7 +621,7 @@ const HealthStatusPanel = ({ status, checks, errorTypes, recentErrors }) => {
     return (
         <div className="glimmr-health-panel">
             <div className={`glimmr-health-status glimmr-health-${config.color}`}>
-                <span className={`dashicons dashicons-${config.icon}`}></span>
+                <span className={`dashicons dashicons-${config.icon}`} aria-hidden="true"></span>
                 <span className="glimmr-health-label">{config.label}</span>
             </div>
 
@@ -629,7 +629,7 @@ const HealthStatusPanel = ({ status, checks, errorTypes, recentErrors }) => {
                 {checks && Object.entries(checks).map(([key, check]) => (
                     <div key={key} className="glimmr-health-check-item">
                         <span className={`glimmr-check-indicator ${check.passed ? 'passed' : 'failed'}`}>
-                            <span className={`dashicons dashicons-${check.passed ? 'yes' : 'no'}`}></span>
+                            <span className={`dashicons dashicons-${check.passed ? 'yes' : 'no'}`} aria-hidden="true"></span>
                         </span>
                         <span className="glimmr-check-label">{check.label}</span>
                     </div>
@@ -706,7 +706,7 @@ const ResponseTimeStats = ({ stats, daily }) => {
             </div>
 
             {daily && daily.length > 0 && (
-                <div className="glimmr-response-time-chart">
+                <div className="glimmr-response-time-chart" role="img" aria-label="Response time chart showing daily average latency">
                     <ResponsiveContainer width="100%" height={120}>
                         <BarChart data={daily} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -1053,14 +1053,14 @@ const Dashboard = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    <span className="dashicons dashicons-external"></span>
+                    <span className="dashicons dashicons-external" aria-hidden="true"></span>
                     View Site
                 </a>
             </div>
 
             {error && (
                 <div className="glimmr-error-notice">
-                    <span className="dashicons dashicons-warning"></span>
+                    <span className="dashicons dashicons-warning" aria-hidden="true"></span>
                     {error}
                 </div>
             )}
@@ -1235,7 +1235,7 @@ const Dashboard = () => {
                 <Card className="glimmr-getting-started">
                     <CardBody>
                         <div className="glimmr-getting-started-content">
-                            <span className="dashicons dashicons-lightbulb"></span>
+                            <span className="dashicons dashicons-lightbulb" aria-hidden="true"></span>
                             <div>
                                 <h3>Getting Started with Glimmr AI</h3>
                                 <p>

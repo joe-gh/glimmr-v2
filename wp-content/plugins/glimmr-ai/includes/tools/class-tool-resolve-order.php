@@ -240,21 +240,23 @@ class Glimmr_AI_Tool_Resolve_Order extends Glimmr_AI_Tool_Base {
 		if ( ! $this->timing_safe_email_compare( $email, $order_email ) ) {
 			return array(
 				'status'   => 'verification_failed',
-				'method'   => 'email_mismatch',
+				'method'   => 'verification_failed',
 				'required' => array( 'email' ),
-				'message'  => __( 'The email address does not match our records for this order.', 'glimmr-ai' ),
+				'message'  => __( 'Order not found or verification failed.', 'glimmr-ai' ),
 			);
 		}
 
 		// Email matches. Optionally verify zip for extra security.
 		if ( ! empty( $zip ) ) {
 			$order_zip = $order->get_billing_postcode();
-			if ( strtoupper( str_replace( array( ' ', '-' ), '', $zip ) ) !== strtoupper( str_replace( array( ' ', '-' ), '', $order_zip ) ) ) {
+			$normalized_zip = strtoupper( str_replace( array( ' ', '-' ), '', $zip ) );
+			$normalized_order_zip = strtoupper( str_replace( array( ' ', '-' ), '', $order_zip ) );
+			if ( ! hash_equals( $normalized_order_zip, $normalized_zip ) ) {
 				return array(
 					'status'   => 'verification_failed',
-					'method'   => 'zip_mismatch',
+					'method'   => 'verification_failed',
 					'required' => array( 'zip' ),
-					'message'  => __( 'The billing zip code does not match our records.', 'glimmr-ai' ),
+					'message'  => __( 'Order not found or verification failed.', 'glimmr-ai' ),
 				);
 			}
 		}

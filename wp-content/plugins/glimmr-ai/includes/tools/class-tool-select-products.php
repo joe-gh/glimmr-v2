@@ -45,7 +45,7 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 		'product_ids' => array(
 			'type'        => 'array',
 			'items'       => array( 'type' => 'integer' ),
-			'description' => 'Array of product IDs selected from candidates (max 5)',
+			'description' => 'Array of product IDs selected from candidates (max 8)',
 			'required'    => true,
 		),
 		'include_variations' => array(
@@ -77,12 +77,12 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 			);
 		}
 
-		// Sanitize and limit to 5 products.
+		// Sanitize and limit to 8 products.
 		$product_ids = array_map( 'intval', $product_ids );
 		$product_ids = array_filter( $product_ids, function( $id ) {
 			return $id > 0;
 		} );
-		$product_ids = array_slice( array_unique( $product_ids ), 0, 5 );
+		$product_ids = array_slice( array_unique( $product_ids ), 0, 8 );
 
 		if ( empty( $product_ids ) ) {
 			return $this->format_validation_error(
@@ -218,6 +218,9 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 				'sizes'  => array(),
 			);
 
+			// Track color swatches by name to avoid duplicates.
+			$color_swatches = array();
+
 			foreach ( array_slice( $variations, 0, 20 ) as $variation ) {
 				$var_product = wc_get_product( $variation['variation_id'] );
 				if ( ! $var_product ) {
@@ -248,10 +251,13 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 
 					// Get the display value (term name for taxonomies).
 					$display_value = $attr_value;
+					$swatch_image = null;
 					if ( taxonomy_exists( $clean_name ) ) {
 						$term = get_term_by( 'slug', $attr_value, $clean_name );
 						if ( $term ) {
 							$display_value = $term->name;
+							// Get swatch image from term meta (cfvsw_image from Color Filter Variation Swatches plugin).
+							$swatch_image = get_term_meta( $term->term_id, 'cfvsw_image', true );
 						}
 					}
 
@@ -260,8 +266,9 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 					// Track available options for quick reference.
 					$label_lower = strtolower( $label );
 					if ( strpos( $label_lower, 'color' ) !== false || strpos( $label_lower, 'colour' ) !== false ) {
-						if ( ! in_array( $display_value, $data['available_options']['colors'], true ) ) {
-							$data['available_options']['colors'][] = $display_value;
+						// Track color with swatch image.
+						if ( ! isset( $color_swatches[ $display_value ] ) ) {
+							$color_swatches[ $display_value ] = $swatch_image;
 						}
 					} elseif ( strpos( $label_lower, 'size' ) !== false ) {
 						if ( ! in_array( $display_value, $data['available_options']['sizes'], true ) ) {
@@ -271,6 +278,14 @@ class Glimmr_AI_Tool_Select_Products extends Glimmr_AI_Tool_Base {
 				}
 
 				$data['variations'][] = $var_data;
+			}
+
+			// Build colors array with swatch images.
+			foreach ( $color_swatches as $color_name => $swatch_url ) {
+				$data['available_options']['colors'][] = array(
+					'name'   => $color_name,
+					'swatch' => $swatch_url ?: null,
+				);
 			}
 
 			// Remove empty available_options.

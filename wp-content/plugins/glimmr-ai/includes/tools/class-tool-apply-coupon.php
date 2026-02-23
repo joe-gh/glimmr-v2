@@ -122,14 +122,10 @@ class Glimmr_AI_Tool_Apply_Coupon extends Glimmr_AI_Tool_Base {
         // Normalize coupon code.
         $coupon_code = wc_format_coupon_code( $coupon_code );
 
-        // Check if cart is empty (except for remove which should work anyway).
-        if ( $cart->is_empty() && 'apply' === $op ) {
-            return $this->format_outcome(
-                'cart_empty',
-                array(),
-                __( 'Your cart is empty. Add items before applying a coupon.', 'glimmr-ai' )
-            );
-        }
+        // Note: We skip the empty cart check here because:
+        // 1. The tool returns a cart_action intent for frontend execution via Store API
+        // 2. Store API maintains its own cart session that may differ from WC()->cart
+        // 3. WooCommerce will return appropriate error if cart is actually empty when coupon is applied
 
         if ( 'remove' === $op ) {
             return $this->remove_coupon( $coupon_code, $cart );

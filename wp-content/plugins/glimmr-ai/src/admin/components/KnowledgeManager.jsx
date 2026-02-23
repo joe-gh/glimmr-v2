@@ -269,7 +269,7 @@ const CustomContentTab = ({ items, onAdd, onEdit, onDelete, onSync }) => {
         <div className="glimmr-content-tab">
             <div className="glimmr-content-toolbar">
                 <Button variant="primary" onClick={openAddModal}>
-                    <span className="dashicons dashicons-plus-alt2"></span>
+                    <span className="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
                     Add Custom Content
                 </Button>
             </div>
@@ -277,7 +277,7 @@ const CustomContentTab = ({ items, onAdd, onEdit, onDelete, onSync }) => {
             <div className="glimmr-content-list">
                 {items.length === 0 ? (
                     <div className="glimmr-empty-state">
-                        <span className="dashicons dashicons-edit"></span>
+                        <span className="dashicons dashicons-edit" aria-hidden="true"></span>
                         <p>No custom content yet.</p>
                         <p className="description">
                             Add custom knowledge entries like FAQs, policies, or store information.
@@ -376,10 +376,12 @@ const ProgressBar = ({ current = 0, total = 0, label, status }) => {
 const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) => {
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
+    const [reindexing, setReindexing] = useState(false);
     const [purging, setPurging] = useState(false);
     const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
     const [productStats, setProductStats] = useState({
         total_products: 0,
+        indexed_products: 0,
         synced_products: 0,
         pending_products: 0,
         failed_products: 0,
@@ -533,6 +535,32 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
         setPurging(false);
     };
 
+    const handleReindex = async () => {
+        setReindexing(true);
+        try {
+            const formData = new FormData();
+            formData.append('action', 'glimmr_ai_reindex_products');
+            formData.append('nonce', nonce);
+
+            const response = await fetch(ajaxUrl, { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.success) {
+                onNotice({
+                    type: 'success',
+                    message: result.data?.message || `Indexed ${result.data?.indexed || 0} products from WooCommerce.`
+                });
+                fetchProductStatus();
+            } else {
+                onNotice({ type: 'error', message: result.data?.message || 'Failed to reindex products.' });
+            }
+        } catch (err) {
+            console.error('Reindex error:', err);
+            onNotice({ type: 'error', message: 'Network error during reindex.' });
+        }
+        setReindexing(false);
+    };
+
     const handleToggleAutoSync = (enabled) => {
         if (onSettingsChange) {
             onSettingsChange({ product_auto_sync_enabled: enabled });
@@ -572,13 +600,30 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
     }
 
     const totalProducts = productStats.total_products || 0;
+    const indexedProducts = productStats.indexed_products || 0;
     const syncedProducts = productStats.synced_products || 0;
     const pendingProducts = productStats.pending_products || 0;
     const failedProducts = productStats.failed_products || 0;
+    const unindexedProducts = Math.max(0, totalProducts - indexedProducts);
     const syncPercentage = totalProducts > 0 ? Math.round((syncedProducts / totalProducts) * 100) : 0;
 
     return (
         <div className="glimmr-products-tab">
+            {/* Index Warning - Products not yet indexed */}
+            {totalProducts > 0 && indexedProducts === 0 && (
+                <Notice status="warning" isDismissible={false} className="glimmr-products-notice">
+                    <strong>Products not indexed.</strong> You have {totalProducts.toLocaleString()} WooCommerce products but none are indexed yet.
+                    Click "Reindex Products" below to build the product index before syncing to the vector store.
+                </Notice>
+            )}
+
+            {/* Partial Index Warning */}
+            {indexedProducts > 0 && unindexedProducts > 0 && (
+                <Notice status="info" isDismissible={false} className="glimmr-products-notice">
+                    <strong>{unindexedProducts.toLocaleString()} products not indexed.</strong> Click "Reindex Products" to include new products in the index.
+                </Notice>
+            )}
+
             {/* Vector Store Warning */}
             {!productStats.vector_store_id && (
                 <Notice status="warning" isDismissible={false} className="glimmr-products-notice">
@@ -604,6 +649,21 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
                 </div>
             )}
 
+            {/* Active Reindex Banner */}
+            {reindexing && (
+                <div className="glimmr-sync-banner">
+                    <div className="glimmr-sync-banner__content">
+                        <Spinner />
+                        <div className="glimmr-sync-banner__info">
+                            <strong>Indexing products from WooCommerce...</strong>
+                            <span className="glimmr-sync-banner__progress">
+                                This may take a while for large catalogs
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Success Message */}
             {!syncing && syncProgress.status === 'complete' && (
                 <Notice status="success" isDismissible onRemove={() => setSyncProgress(prev => ({ ...prev, status: 'idle' }))}>
@@ -626,7 +686,7 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
                                 disabled={syncing}
                                 className="glimmr-card__action"
                             >
-                                <span className="dashicons dashicons-update"></span>
+                                <span className="dashicons dashicons-update" aria-hidden="true"></span>
                                 Refresh
                             </Button>
                         </div>
@@ -635,8 +695,17 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
                             <table className="glimmr-stats-table">
                                 <tbody>
                                     <tr>
-                                        <td className="glimmr-stats-table__label">Total Products</td>
+                                        <td className="glimmr-stats-table__label">WooCommerce Products</td>
                                         <td className="glimmr-stats-table__value">{totalProducts.toLocaleString()}</td>
+                                    </tr>
+                                    <tr className={indexedProducts < totalProducts ? 'glimmr-stats-table__row--warning' : ''}>
+                                        <td className="glimmr-stats-table__label">
+                                            {indexedProducts < totalProducts && (
+                                                <span className="glimmr-status-dot glimmr-status-dot--warning"></span>
+                                            )}
+                                            Indexed for Search
+                                        </td>
+                                        <td className="glimmr-stats-table__value">{indexedProducts.toLocaleString()}</td>
                                     </tr>
                                     <tr className="glimmr-stats-table__row--success">
                                         <td className="glimmr-stats-table__label">
@@ -698,7 +767,7 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
                         <div className="glimmr-card glimmr-card--error">
                             <div className="glimmr-card__header">
                                 <h3 className="glimmr-card__title">
-                                    <span className="dashicons dashicons-warning"></span>
+                                    <span className="dashicons dashicons-warning" aria-hidden="true"></span>
                                     Sync Errors ({syncProgress.errors.length})
                                 </h3>
                                 <Button variant="link" isSmall onClick={() => setShowErrors(!showErrors)}>
@@ -723,32 +792,63 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
 
                 {/* Right Column - Actions */}
                 <div className="glimmr-products-sidebar">
+                    {/* Index Actions Card */}
+                    <div className="glimmr-card">
+                        <div className="glimmr-card__header">
+                            <h3 className="glimmr-card__title">Step 1: Index Products</h3>
+                        </div>
+                        <div className="glimmr-card__body">
+                            <p className="glimmr-card__help">
+                                Build the product index from WooCommerce. Required before syncing to vector store.
+                            </p>
+                            <Button
+                                variant={indexedProducts < totalProducts ? 'primary' : 'secondary'}
+                                onClick={handleReindex}
+                                disabled={reindexing || syncing || purging || totalProducts === 0}
+                                className="glimmr-action-stack__btn"
+                            >
+                                {reindexing ? <Spinner /> : <span className="dashicons dashicons-database" aria-hidden="true"></span>}
+                                {reindexing ? 'Indexing...' : (indexedProducts === 0 ? 'Reindex Products' : 'Rebuild Index')}
+                            </Button>
+                            {indexedProducts > 0 && unindexedProducts > 0 && (
+                                <p className="glimmr-card__meta">
+                                    {unindexedProducts.toLocaleString()} new products to index
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Sync Actions Card */}
                     <div className="glimmr-card">
                         <div className="glimmr-card__header">
-                            <h3 className="glimmr-card__title">Sync Actions</h3>
+                            <h3 className="glimmr-card__title">Step 2: Sync to Vector Store</h3>
                         </div>
                         <div className="glimmr-card__body">
                             <div className="glimmr-action-stack">
                                 <Button
                                     variant="primary"
                                     onClick={() => handleStartSync(false)}
-                                    disabled={syncing || purging || totalProducts === 0}
+                                    disabled={syncing || reindexing || purging || indexedProducts === 0}
                                     className="glimmr-action-stack__btn"
                                 >
-                                    <span className="dashicons dashicons-update"></span>
+                                    <span className="dashicons dashicons-update" aria-hidden="true"></span>
                                     {syncedProducts === 0 ? 'Sync All Products' : 'Sync New & Updated'}
                                 </Button>
                                 <Button
                                     variant="secondary"
                                     onClick={() => handleStartSync(true)}
-                                    disabled={syncing || purging || totalProducts === 0}
+                                    disabled={syncing || reindexing || purging || indexedProducts === 0}
                                     className="glimmr-action-stack__btn"
                                 >
-                                    <span className="dashicons dashicons-image-rotate"></span>
+                                    <span className="dashicons dashicons-image-rotate" aria-hidden="true"></span>
                                     Full Re-sync
                                 </Button>
                             </div>
+                            {indexedProducts === 0 && totalProducts > 0 && (
+                                <p className="glimmr-card__meta glimmr-card__meta--warning">
+                                    Index products first before syncing
+                                </p>
+                            )}
 
                             <div className="glimmr-action-divider"></div>
 
@@ -756,10 +856,10 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
                                 variant="tertiary"
                                 isDestructive
                                 onClick={() => setShowPurgeConfirm(true)}
-                                disabled={syncing || purging || syncedProducts === 0}
+                                disabled={syncing || reindexing || purging || syncedProducts === 0}
                                 className="glimmr-action-stack__btn glimmr-action-stack__btn--danger"
                             >
-                                {purging ? <Spinner /> : <span className="dashicons dashicons-trash"></span>}
+                                {purging ? <Spinner /> : <span className="dashicons dashicons-trash" aria-hidden="true"></span>}
                                 {purging ? 'Purging...' : 'Purge All Products'}
                             </Button>
                         </div>
@@ -786,7 +886,7 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
                     <div className="glimmr-card glimmr-card--muted">
                         <div className="glimmr-card__header">
                             <h3 className="glimmr-card__title">
-                                <span className="dashicons dashicons-info-outline"></span>
+                                <span className="dashicons dashicons-info-outline" aria-hidden="true"></span>
                                 Help
                             </h3>
                             <Button variant="link" isSmall onClick={() => setShowHelp(!showHelp)}>
@@ -799,11 +899,19 @@ const ProductsTab = ({ ajaxUrl, nonce, onNotice, settings, onSettingsChange }) =
                                     <strong>Semantic Search:</strong> Synced products can be found by meaning, not just keywords.
                                     "Cozy sweaters" finds relevant products even without exact matches.
                                 </p>
+                                <p><strong>Two-Step Process:</strong></p>
+                                <dl>
+                                    <dt>Step 1: Reindex Products</dt>
+                                    <dd>Reads products from WooCommerce and builds the local index. Required for new stores or after adding many products.</dd>
+                                    <dt>Step 2: Sync to Vector Store</dt>
+                                    <dd>Uploads indexed products to OpenAI for semantic search.</dd>
+                                </dl>
+                                <p><strong>Sync Options:</strong></p>
                                 <dl>
                                     <dt>Sync New & Updated</dt>
                                     <dd>Only syncs products changed since last sync.</dd>
                                     <dt>Full Re-sync</dt>
-                                    <dd>Clears and rebuilds all product data.</dd>
+                                    <dd>Clears and rebuilds all vector store data.</dd>
                                     <dt>Purge</dt>
                                     <dd>Removes all products from vector store.</dd>
                                 </dl>
@@ -893,7 +1001,7 @@ const SyncOverview = ({ stats, onSyncAll, onSyncEverything, onPurgeEverything, o
                                 </>
                             ) : (
                                 <>
-                                    <span className="dashicons dashicons-update"></span>
+                                    <span className="dashicons dashicons-update" aria-hidden="true"></span>
                                     Sync Pending Knowledge
                                 </>
                             )}
@@ -903,7 +1011,7 @@ const SyncOverview = ({ stats, onSyncAll, onSyncEverything, onPurgeEverything, o
                             onClick={onSyncEverything}
                             disabled={syncing || purging}
                         >
-                            <span className="dashicons dashicons-cloud-upload"></span>
+                            <span className="dashicons dashicons-cloud-upload" aria-hidden="true"></span>
                             Sync Everything
                         </Button>
                         <Button
@@ -919,7 +1027,7 @@ const SyncOverview = ({ stats, onSyncAll, onSyncEverything, onPurgeEverything, o
                                 </>
                             ) : (
                                 <>
-                                    <span className="dashicons dashicons-trash"></span>
+                                    <span className="dashicons dashicons-trash" aria-hidden="true"></span>
                                     Purge Everything
                                 </>
                             )}
@@ -938,7 +1046,7 @@ const SyncOverview = ({ stats, onSyncAll, onSyncEverything, onPurgeEverything, o
                                 </>
                             ) : (
                                 <>
-                                    <span className="dashicons dashicons-warning"></span>
+                                    <span className="dashicons dashicons-warning" aria-hidden="true"></span>
                                     Purge All (Direct)
                                 </>
                             )}
@@ -1635,20 +1743,24 @@ const KnowledgeManager = () => {
 
             <Card className="glimmr-knowledge-content">
                 <CardHeader>
-                    <div className="glimmr-knowledge-tabs">
+                    <div className="glimmr-knowledge-tabs" role="tablist" aria-label="Content type sections">
                         {CONTENT_TYPES.map((tab) => (
                             <button
                                 key={tab.name}
+                                role="tab"
+                                aria-selected={activeTab === tab.name}
+                                aria-controls={`tabpanel-knowledge-${tab.name}`}
+                                id={`tab-knowledge-${tab.name}`}
                                 className={`glimmr-tab-button ${activeTab === tab.name ? 'is-active' : ''}`}
                                 onClick={() => setActiveTab(tab.name)}
                             >
-                                <span className={`dashicons dashicons-${tab.icon}`}></span>
+                                <span className={`dashicons dashicons-${tab.icon}`} aria-hidden="true"></span>
                                 {tab.title}
                             </button>
                         ))}
                     </div>
                 </CardHeader>
-                <CardBody>
+                <CardBody role="tabpanel" id={`tabpanel-knowledge-${activeTab}`} aria-labelledby={`tab-knowledge-${activeTab}`}>
                     {renderTabContent()}
                 </CardBody>
             </Card>

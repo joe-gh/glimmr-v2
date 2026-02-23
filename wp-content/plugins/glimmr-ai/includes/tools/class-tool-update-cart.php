@@ -155,7 +155,43 @@ class Glimmr_AI_Tool_Update_Cart extends Glimmr_AI_Tool_Base {
 
         $cart = WC()->cart;
 
+        // Handle session sync issue: Store API maintains its own cart session that may differ from WC()->cart.
+        // If cart appears empty but we have a cart_item_key, trust the frontend and return a cart_action.
         if ( $cart->is_empty() ) {
+            // If cart_item_key is provided, we can still attempt the operation via Store API
+            if ( ! empty( $item['cart_item_key'] ) ) {
+                // For set_qty and remove, we can return cart_action directly
+                // For increment/decrement, we need the current quantity which we don't have
+                if ( 'set_qty' === $op ) {
+                    return $this->format_outcome(
+                        'cart_action',
+                        array(
+                            'action'        => 'update',
+                            'cart_item_key' => $item['cart_item_key'],
+                            'product_id'    => $item['product_id'] ?: null,
+                            'variation_id'  => $item['variation_id'] ?: null,
+                            'quantity'      => $quantity,
+                            'product_name'  => __( 'item', 'glimmr-ai' ),
+                            'op'            => $op,
+                        ),
+                        sprintf( __( 'Setting quantity to %d.', 'glimmr-ai' ), $quantity )
+                    );
+                } elseif ( 'remove' === $op ) {
+                    return $this->format_outcome(
+                        'cart_action',
+                        array(
+                            'action'        => 'remove',
+                            'cart_item_key' => $item['cart_item_key'],
+                            'product_id'    => $item['product_id'] ?: null,
+                            'variation_id'  => $item['variation_id'] ?: null,
+                            'product_name'  => __( 'item', 'glimmr-ai' ),
+                        ),
+                        __( 'Removing item from cart.', 'glimmr-ai' )
+                    );
+                }
+                // For increment/decrement without current qty, fall through to cart_empty error
+            }
+
             return $this->format_outcome(
                 'cart_empty',
                 array( 'cart' => $this->get_cart_summary() ),
@@ -395,7 +431,7 @@ class Glimmr_AI_Tool_Update_Cart extends Glimmr_AI_Tool_Base {
     private function calculate_new_quantity( $op, $current, $quantity ) {
         switch ( $op ) {
             case 'increment':
-                return $current + $quantity;
+                return min( $current + $quantity, 99 );
             case 'decrement':
                 return max( 0, $current - $quantity );
             case 'set_qty':

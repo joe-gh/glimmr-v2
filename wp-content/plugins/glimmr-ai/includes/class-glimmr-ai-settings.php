@@ -187,6 +187,13 @@ class Glimmr_AI_Settings {
             return self::$cached_settings;
         }
 
+        // If plugin is not network-activated, skip inheritance entirely.
+        // Network settings only apply when the plugin is enabled at network level.
+        if ( ! self::is_network_activated() ) {
+            self::$cached_settings = $site_settings;
+            return self::$cached_settings;
+        }
+
         // Get network settings with network-wide transient caching.
         // Uses get_site_transient so the cache is shared across all sites in the network.
         $network_settings = get_site_transient( self::NETWORK_CACHE_KEY );
@@ -231,13 +238,34 @@ class Glimmr_AI_Settings {
     }
 
     /**
+     * Check if the plugin is network-activated.
+     *
+     * Network settings and inheritance only apply when the plugin
+     * is activated at the network level in multisite.
+     *
+     * @return bool True if network-activated, false otherwise.
+     */
+    public static function is_network_activated() {
+        if ( ! is_multisite() ) {
+            return false;
+        }
+
+        // Include plugin.php if not already loaded (needed for is_plugin_active_for_network).
+        if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        return is_plugin_active_for_network( 'glimmr-ai/glimmr-ai.php' );
+    }
+
+    /**
      * Check if a setting is locked by network (cannot be overridden by site).
      *
      * @param string $key The setting key.
      * @return bool True if locked.
      */
     public static function is_setting_locked( $key ) {
-        if ( ! is_multisite() ) {
+        if ( ! is_multisite() || ! self::is_network_activated() ) {
             return false;
         }
 
@@ -256,7 +284,7 @@ class Glimmr_AI_Settings {
      * @return bool True if inherited from network.
      */
     public static function is_setting_inherited( $key ) {
-        if ( ! is_multisite() ) {
+        if ( ! is_multisite() || ! self::is_network_activated() ) {
             return false;
         }
 
@@ -940,11 +968,22 @@ class Glimmr_AI_Settings {
             'contact_include_context',
             'contact_email_notifications',
             'contact_require_phone',
+            // Logging boolean fields.
+            'log_ai_requests',
+            'log_tool_execution',
         );
 
         foreach ( $bool_fields as $field ) {
             if ( isset( $settings[ $field ] ) ) {
                 $settings[ $field ] = (bool) $settings[ $field ];
+            }
+        }
+
+        // Sanitize log_level (enum validation).
+        if ( isset( $settings['log_level'] ) ) {
+            $allowed_levels = array( 'debug', 'info', 'warning', 'error', 'critical' );
+            if ( ! in_array( $settings['log_level'], $allowed_levels, true ) ) {
+                $settings['log_level'] = 'warning'; // Default to warning if invalid.
             }
         }
 

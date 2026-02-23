@@ -456,8 +456,12 @@ class Glimmr_AI_Tool_Checkout_Link extends Glimmr_AI_Tool_Base {
      */
     private function generate_checkout_link( $arguments = array() ) {
         $cart = WC()->cart;
+        $auto_navigate = ! empty( $arguments['auto_navigate'] );
 
-        if ( $cart->is_empty() ) {
+        // When auto_navigate is set, trust the frontend cart state.
+        // The Store API maintains its own cart session that may differ from WC()->cart.
+        // Skip the empty check to allow the navigation - the checkout page will handle empty carts.
+        if ( ! $auto_navigate && $cart->is_empty() ) {
             return $this->format_outcome(
                 'cart_empty',
                 array(
@@ -468,11 +472,13 @@ class Glimmr_AI_Tool_Checkout_Link extends Glimmr_AI_Tool_Base {
             );
         }
 
-        // Calculate totals.
-        $cart->calculate_totals();
+        // Calculate totals if cart has items.
+        if ( ! $cart->is_empty() ) {
+            $cart->calculate_totals();
+        }
 
         // Check if auto_navigate is requested - triggers frontend redirect.
-        if ( ! empty( $arguments['auto_navigate'] ) ) {
+        if ( $auto_navigate ) {
             return $this->format_outcome(
                 'cart_action',
                 array(
@@ -521,8 +527,11 @@ class Glimmr_AI_Tool_Checkout_Link extends Glimmr_AI_Tool_Base {
      */
     private function generate_cart_link( $arguments = array() ) {
         $cart = WC()->cart;
+        $auto_navigate = ! empty( $arguments['auto_navigate'] );
 
-        if ( $cart->is_empty() ) {
+        // When auto_navigate is set, trust the frontend cart state.
+        // The Store API maintains its own cart session that may differ from WC()->cart.
+        if ( ! $auto_navigate && $cart->is_empty() ) {
             return $this->format_outcome(
                 'cart_empty',
                 array(
@@ -532,10 +541,13 @@ class Glimmr_AI_Tool_Checkout_Link extends Glimmr_AI_Tool_Base {
             );
         }
 
-        $cart->calculate_totals();
+        // Calculate totals if cart has items.
+        if ( ! $cart->is_empty() ) {
+            $cart->calculate_totals();
+        }
 
         // Check if auto_navigate is requested - triggers frontend redirect.
-        if ( ! empty( $arguments['auto_navigate'] ) ) {
+        if ( $auto_navigate ) {
             return $this->format_outcome(
                 'cart_action',
                 array(

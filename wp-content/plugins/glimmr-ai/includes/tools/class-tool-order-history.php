@@ -83,7 +83,9 @@ class Glimmr_AI_Tool_Order_History extends Glimmr_AI_Tool_Base {
         $status        = $this->get_string_arg( $arguments, 'status', 'all' );
         $limit         = min( $this->get_int_arg( $arguments, 'limit', 5 ), 20 );
         $date_range    = $this->get_string_arg( $arguments, 'date_range', 'all' );
-        $include_items = $this->get_bool_arg( $arguments, 'include_items', false );
+
+        // Always include items - the frontend needs them for display.
+        $include_items = true;
 
         // Build query args.
         $query_args = array(

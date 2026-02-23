@@ -147,7 +147,10 @@ class Glimmr_Licensing_Manager {
     }
 
     /**
-     * Get a license by its key.
+     * Get a license by its key with timing-safe verification.
+     *
+     * Retrieves by key prefix (first segment), then verifies the full
+     * key using hash_equals() to prevent timing-based enumeration.
      *
      * @param string $license_key The license key.
      * @return object|null License row or null.
@@ -155,11 +158,31 @@ class Glimmr_Licensing_Manager {
     public function get_license_by_key( $license_key ) {
         global $wpdb;
 
+        // Extract the first segment (prefix + first group, e.g., "GLMR-XXXX") for lookup.
+        $parts = explode( '-', $license_key );
+        if ( count( $parts ) < 2 ) {
+            return null;
+        }
+        $prefix = $parts[0] . '-' . $parts[1];
+
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-        return $wpdb->get_row( $wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}glimmr_licenses WHERE license_key = %s",
-            $license_key
+        $candidates = $wpdb->get_results( $wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}glimmr_licenses WHERE license_key LIKE %s",
+            $wpdb->esc_like( $prefix ) . '%'
         ) );
+
+        if ( empty( $candidates ) ) {
+            return null;
+        }
+
+        // Timing-safe comparison against all candidates.
+        foreach ( $candidates as $candidate ) {
+            if ( hash_equals( $candidate->license_key, $license_key ) ) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -982,13 +1005,13 @@ class Glimmr_Licensing_Manager {
     /**
      * Log an action for a license.
      *
-     * @param int    $license_id License ID.
+     * @param int    $license_id License ID (use 0 for dev key actions).
      * @param string $action     Action name.
      * @param array  $details    Context data.
      * @param string $ip_address Client IP.
      * @return void
      */
-    private function log_action( $license_id, $action, $details = array(), $ip_address = '' ) {
+    public function log_action( $license_id, $action, $details = array(), $ip_address = '' ) {
         global $wpdb;
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery

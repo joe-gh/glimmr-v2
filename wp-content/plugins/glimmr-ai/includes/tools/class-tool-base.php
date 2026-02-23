@@ -624,11 +624,43 @@ abstract class Glimmr_AI_Tool_Base {
         if ( $include_items ) {
             $data['items'] = array();
             foreach ( $order->get_items() as $item ) {
-                $data['items'][] = array(
+                $item_data = array(
                     'name'     => $item->get_name(),
                     'quantity' => $item->get_quantity(),
                     'total'    => $this->format_price( $item->get_total() ),
                 );
+
+                // Add product image.
+                $product = $item->get_product();
+                if ( $product ) {
+                    $image_id = $product->get_image_id();
+                    if ( $image_id ) {
+                        $image_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+                        if ( $image_url ) {
+                            $item_data['image'] = $image_url;
+                        }
+                    }
+                }
+
+                // Add variation details (e.g., "Size: L, Color: Navy").
+                if ( $item instanceof WC_Order_Item_Product ) {
+                    $variation_info = array();
+                    $meta_data = $item->get_meta_data();
+                    foreach ( $meta_data as $meta ) {
+                        $key = $meta->key;
+                        // Skip internal/hidden meta keys.
+                        if ( str_starts_with( $key, '_' ) ) {
+                            continue;
+                        }
+                        $label = wc_attribute_label( $key );
+                        $variation_info[] = $label . ': ' . $meta->value;
+                    }
+                    if ( ! empty( $variation_info ) ) {
+                        $item_data['variation'] = implode( ', ', $variation_info );
+                    }
+                }
+
+                $data['items'][] = $item_data;
             }
         }
 
@@ -692,7 +724,20 @@ abstract class Glimmr_AI_Tool_Base {
      * @return array Sanitized value.
      */
     protected function get_array_arg( $arguments, $key, $default = array() ) {
-        return isset( $arguments[ $key ] ) && is_array( $arguments[ $key ] ) ? $arguments[ $key ] : $default;
+        if ( ! isset( $arguments[ $key ] ) || ! is_array( $arguments[ $key ] ) ) {
+            return $default;
+        }
+        // Sanitize array elements.
+        return array_map( function( $v ) {
+            if ( is_string( $v ) ) {
+                return sanitize_text_field( $v );
+            }
+            if ( is_int( $v ) || is_float( $v ) ) {
+                return $v;
+            }
+            // Let nested arrays/objects pass for tool-specific handling.
+            return $v;
+        }, $arguments[ $key ] );
     }
 
     /**

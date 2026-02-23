@@ -15,7 +15,7 @@ import { useState, useCallback, useRef, useEffect } from 'preact/hooks';
  * Left arrow icon.
  */
 const ChevronLeft = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <polyline points="15 18 9 12 15 6" />
     </svg>
 );
@@ -24,7 +24,7 @@ const ChevronLeft = () => (
  * Right arrow icon.
  */
 const ChevronRight = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <polyline points="9 18 15 12 9 6" />
     </svg>
 );
@@ -44,6 +44,7 @@ const ImageGallery = ({
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
     const [touchStart, setTouchStart] = useState(null);
     const galleryRef = useRef(null);
     const autoPlayRef = useRef(null);
@@ -71,7 +72,7 @@ const ImageGallery = ({
                         />
                     ) : (
                         <div className="glimmr-gallery-placeholder">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                                 <circle cx="8.5" cy="8.5" r="1.5" />
                                 <polyline points="21 15 16 10 5 21" />
@@ -152,11 +153,11 @@ const ImageGallery = ({
      * Auto-play functionality.
      */
     useEffect(() => {
-        if (autoPlay && normalizedImages.length > 1) {
+        if (autoPlay && !isPaused && normalizedImages.length > 1) {
             autoPlayRef.current = setInterval(nextSlide, autoPlayInterval);
             return () => clearInterval(autoPlayRef.current);
         }
-    }, [autoPlay, autoPlayInterval, nextSlide, normalizedImages.length]);
+    }, [autoPlay, isPaused, autoPlayInterval, nextSlide, normalizedImages.length]);
 
     /**
      * Pause auto-play on hover.
@@ -168,10 +169,32 @@ const ImageGallery = ({
     }, []);
 
     const handleMouseLeave = useCallback(() => {
-        if (autoPlay && normalizedImages.length > 1) {
+        if (autoPlay && !isPaused && normalizedImages.length > 1) {
             autoPlayRef.current = setInterval(nextSlide, autoPlayInterval);
         }
-    }, [autoPlay, autoPlayInterval, nextSlide, normalizedImages.length]);
+    }, [autoPlay, isPaused, autoPlayInterval, nextSlide, normalizedImages.length]);
+
+    /**
+     * Pause auto-play on focus for accessibility.
+     */
+    const handleFocus = useCallback(() => {
+        if (autoPlayRef.current) {
+            clearInterval(autoPlayRef.current);
+        }
+    }, []);
+
+    const handleBlur = useCallback(() => {
+        if (autoPlay && !isPaused && normalizedImages.length > 1) {
+            autoPlayRef.current = setInterval(nextSlide, autoPlayInterval);
+        }
+    }, [autoPlay, isPaused, autoPlayInterval, nextSlide, normalizedImages.length]);
+
+    /**
+     * Toggle pause/play for auto-play.
+     */
+    const togglePause = useCallback(() => {
+        setIsPaused((prev) => !prev);
+    }, []);
 
     return (
         <div
@@ -180,6 +203,8 @@ const ImageGallery = ({
             onKeyDown={handleKeyDown}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             tabIndex="0"
             role="region"
             aria-label="Product image gallery"
@@ -223,20 +248,40 @@ const ImageGallery = ({
                 <div className="glimmr-gallery-counter">
                     {currentIndex + 1} / {normalizedImages.length}
                 </div>
+
+                {/* Auto-play pause/play button */}
+                {autoPlay && (
+                    <button
+                        type="button"
+                        className="glimmr-gallery-pause"
+                        onClick={togglePause}
+                        aria-label={isPaused ? 'Play slideshow' : 'Pause slideshow'}
+                    >
+                        {isPaused ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                <polygon points="5 3 19 12 5 21 5 3" />
+                            </svg>
+                        ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                <rect x="6" y="4" width="4" height="16" />
+                                <rect x="14" y="4" width="4" height="16" />
+                            </svg>
+                        )}
+                    </button>
+                )}
             </div>
 
             {/* Dot indicators */}
             {showDots && normalizedImages.length > 1 && (
-                <div className="glimmr-gallery-dots" role="tablist">
+                <div className="glimmr-gallery-dots">
                     {normalizedImages.map((_, index) => (
                         <button
                             key={index}
                             type="button"
                             className={`glimmr-gallery-dot ${index === currentIndex ? 'is-active' : ''}`}
                             onClick={() => goToSlide(index)}
-                            role="tab"
-                            aria-selected={index === currentIndex}
-                            aria-label={`Go to image ${index + 1}`}
+                            aria-label={`Image ${index + 1} of ${normalizedImages.length}`}
+                            aria-current={index === currentIndex ? "true" : undefined}
                         />
                     ))}
                 </div>
@@ -253,7 +298,7 @@ const ImageGallery = ({
                             onClick={() => goToSlide(index)}
                             aria-label={`View image ${index + 1}`}
                         >
-                            <img src={image.src} alt="" />
+                            <img src={image.src} alt={image.alt || `Product image ${index + 1}`} />
                         </button>
                     ))}
                 </div>

@@ -2249,15 +2249,33 @@ class Glimmr_AI_REST_API {
         }
 
         // Set SSE headers AFTER conversation setup and cookie are set.
-        header( 'Content-Type: text/event-stream' );
-        header( 'Cache-Control: no-cache' );
+        header( 'Content-Type: text/event-stream; charset=utf-8' );
+        header( 'Cache-Control: no-cache, no-store, must-revalidate' );
         header( 'Connection: keep-alive' );
         header( 'X-Accel-Buffering: no' ); // Disable nginx buffering.
+        header( 'Content-Encoding: none' ); // Prevent compression.
 
-        // Disable output buffering.
-        if ( ob_get_level() ) {
-            ob_end_clean();
+        // Remove Content-Length to enable chunked transfer (required for SSE).
+        header_remove( 'Content-Length' );
+
+        // Disable ALL levels of output buffering (WordPress/PHP can have multiple).
+        while ( ob_get_level() > 0 ) {
+            ob_end_flush();
         }
+
+        // Disable implicit output buffering and enable auto-flush.
+        if ( function_exists( 'apache_setenv' ) ) {
+            @apache_setenv( 'no-gzip', '1' ); // Disable Apache gzip compression.
+        }
+        @ini_set( 'zlib.output_compression', '0' ); // Disable zlib compression.
+        @ini_set( 'implicit_flush', '1' ); // Enable implicit flush.
+
+        // Send padding to fill proxy/fastcgi buffers (some configs buffer first 4KB).
+        echo ':' . str_repeat( ' ', 2048 ) . "\n\n";
+        if ( ob_get_level() > 0 ) {
+            ob_flush();
+        }
+        flush();
 
         try {
             // Send init event now that SSE headers are set.
@@ -2367,6 +2385,11 @@ class Glimmr_AI_REST_API {
     private function send_sse_event( $event, $data ) {
         echo "event: {$event}\n";
         echo 'data: ' . wp_json_encode( $data ) . "\n\n";
+
+        // Flush all buffers to ensure real-time streaming.
+        if ( ob_get_level() > 0 ) {
+            ob_flush();
+        }
         flush();
     }
 

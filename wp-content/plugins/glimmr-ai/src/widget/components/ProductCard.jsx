@@ -16,7 +16,7 @@ import { debugError } from '../utils/debug';
  * Cart icon
  */
 const CartIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <circle cx="9" cy="21" r="1" />
         <circle cx="20" cy="21" r="1" />
         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
@@ -34,6 +34,8 @@ const StarIcon = ({ filled }) => (
         fill={filled ? 'currentColor' : 'none'}
         stroke="currentColor"
         strokeWidth="2"
+        aria-hidden="true"
+        focusable="false"
     >
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
@@ -53,7 +55,7 @@ const StarRating = ({ rating }) => {
         );
     }
 
-    return <div className="glimmr-product-rating">{stars}</div>;
+    return <div className="glimmr-product-rating" aria-label={`${numRating} out of 5 stars`}>{stars}</div>;
 };
 
 /**
@@ -163,6 +165,7 @@ const ProductCard = ({ product }) => {
                         className={`glimmr-product-add-btn ${added ? 'is-added' : ''}`}
                         onClick={handleAddToCart}
                         disabled={isAdding}
+                        aria-label={`Add ${product.name} to cart`}
                     >
                         {isAdding ? (
                             <span className="glimmr-loading-spinner" />

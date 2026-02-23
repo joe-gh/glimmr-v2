@@ -13,6 +13,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import QuickReplies from './QuickReplies';
 import { debugError } from '../utils/debug';
+import { updateCartCount } from '../utils/cartActionHandler';
 
 /**
  * Header icons
@@ -55,6 +56,8 @@ const ChatWindow = ({
     const [showAbout, setShowAbout] = useState(false);
     const menuRef = useRef(null);
     const menuButtonRef = useRef(null);
+    const aboutPreviousFocusRef = useRef(null);
+    const aboutModalRef = useRef(null);
 
     /**
      * Close menu when clicking outside.
@@ -117,6 +120,72 @@ const ChatWindow = ({
         }
     }, []);
 
+    /**
+     * Focus management for About modal: save previous focus and restore on close.
+     */
+    useEffect(() => {
+        if (showAbout) {
+            // Save the currently focused element
+            aboutPreviousFocusRef.current = document.activeElement;
+
+            // Focus the close button or first focusable element
+            if (aboutModalRef.current) {
+                const closeBtn = aboutModalRef.current.querySelector('.glimmr-about-close');
+                if (closeBtn) {
+                    closeBtn.focus();
+                }
+            }
+        } else if (aboutPreviousFocusRef.current) {
+            // Restore focus when modal closes
+            aboutPreviousFocusRef.current.focus();
+            aboutPreviousFocusRef.current = null;
+        }
+    }, [showAbout]);
+
+    /**
+     * Handle keyboard events for About modal: escape to close and focus trapping.
+     */
+    useEffect(() => {
+        if (!showAbout) return;
+
+        const handleKeyDown = (e) => {
+            // Close on Escape
+            if (e.key === 'Escape') {
+                setShowAbout(false);
+                return;
+            }
+
+            // Focus trap on Tab
+            if (e.key === 'Tab' && aboutModalRef.current) {
+                const focusableElements = aboutModalRef.current.querySelectorAll(
+                    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+
+                if (focusableElements.length === 0) return;
+
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey) {
+                    // Shift+Tab: if on first element, wrap to last
+                    if (document.activeElement === firstElement) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    }
+                } else {
+                    // Tab: if on last element, wrap to first
+                    if (document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [showAbout]);
+
     // Show quick replies only if no messages yet (besides greeting)
     const showQuickReplies =
         config.quickReplies &&
@@ -152,6 +221,9 @@ const ChatWindow = ({
         if (!response.ok || data.success === false) {
             throw new Error(data.message || 'Failed to add to cart');
         }
+
+        // Update custom cart count elements (e.g., #cart-item-count)
+        updateCartCount(data);
 
         // Refresh WooCommerce minicart fragments.
         if (typeof jQuery !== 'undefined' && jQuery(document.body).trigger) {
@@ -267,7 +339,7 @@ const ChatWindow = ({
 
             {/* GDPR Consent */}
             {!gdprConsent && config.gdprEnabled && (
-                <div className="glimmr-gdpr-banner" role="alertdialog" aria-labelledby="gdpr-title">
+                <div className="glimmr-gdpr-banner" role="region" aria-label="Privacy notice">
                     <div className="glimmr-gdpr-icon">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                             <circle cx="12" cy="12" r="10" />
@@ -286,6 +358,7 @@ const ChatWindow = ({
                                     className="glimmr-gdpr-link"
                                 >
                                     Privacy Policy
+                                    <span className="glimmr-sr-only"> (opens in new tab)</span>
                                 </a>.</>
                             )}
                         </p>
@@ -365,6 +438,7 @@ const ChatWindow = ({
                     aria-labelledby="glimmr-about-title"
                 >
                     <div
+                        ref={aboutModalRef}
                         className="glimmr-about-modal"
                         onClick={(e) => e.stopPropagation()}
                     >

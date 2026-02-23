@@ -3,7 +3,7 @@
  * Plugin Name: Glimmr AI Shopping Assistant
  * Plugin URI: https://glimmr.com/ai
  * Description: AI-powered shopping assistant for WooCommerce with OpenAI integration, product recommendations, order tracking, and intelligent customer support.
- * Version: 1.0.0
+ * Version: 1.0.2
  * Author: Joseph DiGiovanna - Vimpact Consulting LLC
  * Author URI: mailto:joseph.p.digiovanna@gmail.com
  * License: GPL-2.0+

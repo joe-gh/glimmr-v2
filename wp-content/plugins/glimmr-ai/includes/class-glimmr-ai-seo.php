@@ -58,6 +58,11 @@ class Glimmr_AI_SEO {
             return;
         }
 
+        // Check if knowledge base indexing is enabled.
+        if ( ! Glimmr_AI_Settings::get( 'seo_index_knowledge', true ) ) {
+            return;
+        }
+
         // Add FAQ schema to product pages.
         if ( Glimmr_AI_Settings::get( 'seo_faq_schema', true ) ) {
             add_action( 'wp_head', array( $this, 'output_faq_schema' ), 5 );
@@ -111,8 +116,7 @@ class Glimmr_AI_SEO {
             return $pieces;
         }
 
-        // Yoast handles FAQ natively, but we can add our knowledge base FAQs.
-        // This integrates with their existing FAQ schema piece.
+        $pieces[] = new Glimmr_AI_Yoast_FAQ_Piece( $faqs, $context );
         return $pieces;
     }
 
@@ -265,11 +269,96 @@ class Glimmr_AI_SEO {
         $faqs = array();
         foreach ( $results as $row ) {
             $faqs[] = array(
-                'question' => $row['title'],
+                'question' => wp_strip_all_tags( $row['title'] ),
                 'answer'   => wp_strip_all_tags( $row['content'] ),
             );
         }
 
         return $faqs;
+    }
+}
+
+/**
+ * Yoast SEO FAQ Schema Piece.
+ *
+ * Implements Yoast's Abstract_Schema_Piece to inject FAQPage data
+ * from the Glimmr AI knowledge base into the Yoast schema graph.
+ *
+ * @since 1.10.0
+ */
+if ( class_exists( 'Yoast\WP\SEO\Generators\Schema\Abstract_Schema_Piece' ) ) {
+
+    // phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound
+    class Glimmr_AI_Yoast_FAQ_Piece extends \Yoast\WP\SEO\Generators\Schema\Abstract_Schema_Piece {
+
+        /**
+         * FAQ data.
+         *
+         * @var array
+         */
+        private $faqs;
+
+        /**
+         * Constructor.
+         *
+         * @param array $faqs    Array of FAQ entries with 'question' and 'answer' keys.
+         * @param mixed $context Yoast schema context.
+         */
+        public function __construct( $faqs, $context ) {
+            $this->faqs    = $faqs;
+            $this->context = $context;
+        }
+
+        /**
+         * Determine if this piece should be output.
+         *
+         * @return bool
+         */
+        public function is_needed() {
+            return ! empty( $this->faqs );
+        }
+
+        /**
+         * Generate the FAQ schema data.
+         *
+         * @return array Schema data.
+         */
+        public function generate() {
+            $main_entity = array();
+
+            foreach ( $this->faqs as $faq ) {
+                $main_entity[] = array(
+                    '@type'          => 'Question',
+                    'name'           => $faq['question'],
+                    'acceptedAnswer' => array(
+                        '@type' => 'Answer',
+                        'text'  => $faq['answer'],
+                    ),
+                );
+            }
+
+            return array(
+                '@type'      => 'FAQPage',
+                '@id'        => $this->context->canonical . '#faq',
+                'mainEntity' => $main_entity,
+            );
+        }
+    }
+
+} elseif ( ! class_exists( 'Glimmr_AI_Yoast_FAQ_Piece' ) ) {
+    /**
+     * Stub class when Yoast is not active.
+     *
+     * Prevents fatal errors if the piece is instantiated without Yoast.
+     */
+    // phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound
+    class Glimmr_AI_Yoast_FAQ_Piece {
+        /**
+         * Constructor stub.
+         *
+         * @param array $faqs    FAQ data.
+         * @param mixed $context Schema context.
+         */
+        public function __construct( $faqs, $context ) {}
     }
 }

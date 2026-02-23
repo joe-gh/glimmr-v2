@@ -188,6 +188,16 @@ class Glimmr_AI_Rate_Limiter {
 
         $allowed = $current_count <= $limit;
 
+        // Audit log: Record rate limit violations for SOC 2 compliance.
+        if ( ! $allowed && class_exists( 'Glimmr_AI_Audit_Log' ) ) {
+            Glimmr_AI_Audit_Log::log_rate_limit_violation(
+                $identifier,
+                $identifier_type,
+                $limit,
+                $current_count
+            );
+        }
+
         return array(
             'allowed'   => $allowed,
             'limit'     => $limit,

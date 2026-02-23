@@ -498,6 +498,29 @@ class Glimmr_AI_CLI {
         WP_CLI::log( '  MD5: ' . md5( $output ) );
         WP_CLI::log( '' );
 
+        // Validate output path — restrict to plugin or uploads directory.
+        $real_dir = realpath( dirname( $output_file ) );
+        if ( false === $real_dir ) {
+            WP_CLI::error( 'Output directory does not exist.' );
+            return;
+        }
+        $output_file   = wp_normalize_path( $real_dir . '/' . basename( $output_file ) );
+        $allowed_bases = array(
+            wp_normalize_path( GLIMMR_AI_PLUGIN_DIR ),
+            wp_normalize_path( wp_upload_dir()['basedir'] ),
+        );
+        $path_allowed = false;
+        foreach ( $allowed_bases as $base ) {
+            if ( str_starts_with( $output_file, $base ) ) {
+                $path_allowed = true;
+                break;
+            }
+        }
+        if ( ! $path_allowed ) {
+            WP_CLI::error( 'Output file must be within the plugin or uploads directory.' );
+            return;
+        }
+
         // Write to file.
         $result = file_put_contents( $output_file, $output );
 

@@ -12,12 +12,13 @@ import { h, Fragment } from 'preact';
 
 /**
  * Format cart item count for display.
- * @param {object} cart - Cart data from Store API.
+ * @param {object} cart - Cart data from Store API or backend tool.
  * @returns {string} Formatted item count.
  */
 const formatItemCount = (cart) => {
     if (!cart) return '';
-    const count = cart.items_count || 0;
+    // Handle both Store API (items_count) and backend tool (cart_count) formats
+    const count = cart.items_count ?? cart.cart_count ?? cart.item_count ?? 0;
     return count === 1 ? '1 item' : `${count} items`;
 };
 

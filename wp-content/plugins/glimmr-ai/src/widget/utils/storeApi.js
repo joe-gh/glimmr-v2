@@ -10,6 +10,7 @@
  */
 
 import { debug, debugError, debugWarn } from './debug';
+import DOMPurify from 'dompurify';
 
 const STORE_API_BASE = '/wp-json/wc/store/v1';
 
@@ -486,8 +487,8 @@ const transformStoreProduct = (storeProduct) => {
         in_stock: storeProduct.is_in_stock,
         stock_status: storeProduct.is_in_stock ? 'instock' : 'outofstock',
         stock_quantity: storeProduct.stock_quantity,
-        description: storeProduct.description,
-        short_description: storeProduct.short_description,
+        description: DOMPurify.sanitize(storeProduct.description || '', { ALLOWED_TAGS: [] }),
+        short_description: DOMPurify.sanitize(storeProduct.short_description || '', { ALLOWED_TAGS: [] }),
         url: storeProduct.permalink,
         image: gallery[0] || null,
         gallery: gallery,

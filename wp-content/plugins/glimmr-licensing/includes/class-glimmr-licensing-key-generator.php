@@ -65,9 +65,8 @@ class Glimmr_Licensing_Key_Generator {
 
         for ( $s = 0; $s < self::SEGMENTS; $s++ ) {
             $segment = '';
-            $bytes   = random_bytes( self::SEGMENT_LENGTH );
             for ( $i = 0; $i < self::SEGMENT_LENGTH; $i++ ) {
-                $index    = ord( $bytes[ $i ] ) % $charset_len;
+                $index    = random_int( 0, $charset_len - 1 );
                 $segment .= $charset[ $index ];
             }
             $segments[] = $segment;

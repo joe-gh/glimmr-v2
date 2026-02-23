@@ -168,6 +168,7 @@ class Glimmr_AI_Tool_Reorder extends Glimmr_AI_Tool_Base {
                 $variation_attrs = $product->get_variation_attributes();
             }
 
+            $raw_line_total = floatval( $product->get_price() ) * $available_qty;
             $reorderable_items[] = array(
                 'product_id'      => $product_id,
                 'variation_id'    => $variation_id ?: null,
@@ -176,7 +177,8 @@ class Glimmr_AI_Tool_Reorder extends Glimmr_AI_Tool_Base {
                 'reduced'         => $available_qty < $quantity,
                 'name'            => $product->get_name(),
                 'price'           => $this->format_price( $product->get_price() ),
-                'line_total'      => $this->format_price( $product->get_price() * $available_qty ),
+                'line_total'      => $this->format_price( $raw_line_total ),
+                'line_total_raw'  => $raw_line_total,
                 'attributes'      => $variation_attrs,
                 'image'           => wp_get_attachment_url( $product->get_image_id() ) ?: wc_placeholder_img_src(),
             );
@@ -194,12 +196,12 @@ class Glimmr_AI_Tool_Reorder extends Glimmr_AI_Tool_Base {
             );
         }
 
-        // Calculate totals.
+        // Calculate totals using raw prices.
         $total_items = 0;
         $total_price = 0;
         foreach ( $reorderable_items as $item ) {
             $total_items += $item['quantity'];
-            $total_price += floatval( str_replace( array( '$', ',', '£', '€' ), '', $item['line_total'] ) );
+            $total_price += $item['line_total_raw'];
         }
 
         // Return cart_action intent for frontend execution.

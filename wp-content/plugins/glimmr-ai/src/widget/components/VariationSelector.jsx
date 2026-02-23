@@ -13,8 +13,9 @@ import { useState, useEffect, useCallback } from 'preact/hooks';
 
 /**
  * Color swatch component for color-type attributes.
+ * Supports both swatch images (from WooCommerce swatch plugins) and solid colors.
  */
-const ColorSwatch = ({ name, value, color, isSelected, onClick, disabled }) => {
+const ColorSwatch = ({ name, value, color, swatchImage, isSelected, onClick, disabled }) => {
     // Try to determine color from value name or use a default
     const getSwatchColor = () => {
         if (color) return color;
@@ -44,10 +45,19 @@ const ColorSwatch = ({ name, value, color, isSelected, onClick, disabled }) => {
         return colorMap[lowerValue] || '#9CA3AF';
     };
 
+    // Build style based on whether we have a swatch image or color
+    const swatchStyle = swatchImage
+        ? {
+            backgroundImage: `url(${swatchImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+        }
+        : { backgroundColor: getSwatchColor() };
+
     return (
         <button
             type="button"
-            className={`glimmr-swatch ${isSelected ? 'is-selected' : ''} ${disabled ? 'is-disabled' : ''}`}
+            className={`glimmr-swatch ${isSelected ? 'is-selected' : ''} ${disabled ? 'is-disabled' : ''} ${swatchImage ? 'has-image' : ''}`}
             onClick={() => !disabled && onClick(name, value)}
             disabled={disabled}
             aria-label={`Select ${value}`}
@@ -56,7 +66,7 @@ const ColorSwatch = ({ name, value, color, isSelected, onClick, disabled }) => {
         >
             <span
                 className="glimmr-swatch-color"
-                style={{ backgroundColor: getSwatchColor() }}
+                style={swatchStyle}
             />
             {isSelected && (
                 <svg className="glimmr-swatch-check" viewBox="0 0 20 20" fill="currentColor">
@@ -124,9 +134,30 @@ const VariationSelector = ({
     selectedAttributes = {},
     onChange,
     disabled = false,
+    colorSwatches = [],
 }) => {
+    // Build a map of color name -> swatch URL for easy lookup
+    const colorSwatchMap = {};
+    if (Array.isArray(colorSwatches)) {
+        colorSwatches.forEach(({ name, swatch }) => {
+            if (name) {
+                colorSwatchMap[name] = swatch || null;
+            }
+        });
+    }
+
     const [selected, setSelected] = useState(selectedAttributes);
     const [availableOptions, setAvailableOptions] = useState({});
+
+    /**
+     * Sync internal state when parent's selectedAttributes changes.
+     * This handles auto-selection from ProductDetailModal.
+     */
+    useEffect(() => {
+        if (Object.keys(selectedAttributes).length > 0) {
+            setSelected(selectedAttributes);
+        }
+    }, [selectedAttributes]);
 
     /**
      * Determine which options are available based on current selections.
@@ -281,6 +312,7 @@ const VariationSelector = ({
                                         key={option}
                                         name={name}
                                         value={option}
+                                        swatchImage={colorSwatchMap[option]}
                                         isSelected={selected[name] === option}
                                         onClick={handleChange}
                                         disabled={disabled || disabledOptions.includes(option)}

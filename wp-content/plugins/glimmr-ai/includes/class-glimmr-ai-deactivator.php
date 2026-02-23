@@ -29,6 +29,10 @@ class Glimmr_AI_Deactivator {
      * @return void
      */
     public static function deactivate() {
+        // Release license activation on the server.
+        require_once GLIMMR_AI_PLUGIN_DIR . 'includes/class-glimmr-ai-license.php';
+        Glimmr_AI_License::get_instance()->deactivate();
+
         // Clear scheduled cron jobs.
         self::clear_cron_jobs();
 

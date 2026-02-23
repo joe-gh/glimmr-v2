@@ -614,9 +614,23 @@ class Glimmr_AI_Admin {
         // Remove the configured flag - it's metadata, not a setting.
         unset( $settings['openai_api_key_configured'] );
 
+        // Capture old settings for audit comparison.
+        $old_settings = Glimmr_AI_Settings::get_all( true );
+
         $result = Glimmr_AI_Settings::update( $settings );
 
         if ( $result ) {
+            // Audit log: Track which settings changed.
+            $changed_keys = array();
+            foreach ( $settings as $key => $value ) {
+                if ( ! isset( $old_settings[ $key ] ) || $old_settings[ $key ] !== $value ) {
+                    $changed_keys[] = $key;
+                }
+            }
+            if ( ! empty( $changed_keys ) ) {
+                Glimmr_AI_Audit_Log::log_bulk_settings_change( $changed_keys );
+            }
+
             // Get fresh settings with masked API key for response.
             $response_settings = $this->prepare_settings_for_frontend();
             wp_send_json_success( array(
@@ -1645,6 +1659,12 @@ class Glimmr_AI_Admin {
             );
         }
 
+        // Audit log: Knowledge base addition.
+        Glimmr_AI_Audit_Log::log_knowledge_change( 'add', array(
+            'title'   => $title,
+            'item_id' => $result['id'],
+        ) );
+
         wp_send_json_success(
             array(
                 'message' => __( 'Content added and synced to vector store.', 'glimmr-ai' ),
@@ -1700,6 +1720,12 @@ class Glimmr_AI_Admin {
             );
         }
 
+        // Audit log: Knowledge base edit.
+        Glimmr_AI_Audit_Log::log_knowledge_change( 'edit', array(
+            'item_id' => $id,
+            'title'   => $title,
+        ) );
+
         wp_send_json_success(
             array(
                 'message' => __( 'Content updated and synced to vector store.', 'glimmr-ai' ),
@@ -1735,6 +1761,8 @@ class Glimmr_AI_Admin {
         $result = $vector_store->delete_knowledge( $id );
 
         if ( $result ) {
+            // Audit log: Knowledge base deletion.
+            Glimmr_AI_Audit_Log::log_knowledge_change( 'delete', array( 'item_id' => $id ) );
             wp_send_json_success( array( 'message' => __( 'Content deleted.', 'glimmr-ai' ) ) );
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to delete. The item may still exist in the vector store.', 'glimmr-ai' ) ) );
@@ -1820,6 +1848,9 @@ class Glimmr_AI_Admin {
             $sanitized_tools[ sanitize_key( $tool ) ] = (bool) $enabled;
         }
 
+        // Capture old settings for audit comparison.
+        $old_settings = Glimmr_AI_Settings::get_all( true );
+
         // Save settings.
         $update_data = array(
             'system_prompt'    => $system_prompt,
@@ -1840,6 +1871,25 @@ class Glimmr_AI_Admin {
         $result = Glimmr_AI_Settings::update( $update_data );
 
         if ( $result ) {
+            // Audit log: Track prompt and tool configuration changes.
+            $prompt_changed = ( $old_settings['system_prompt'] ?? '' ) !== $system_prompt;
+            if ( $prompt_changed ) {
+                Glimmr_AI_Audit_Log::log_prompt_change( true );
+            }
+
+            // Detect tool enable/disable changes.
+            $old_tools    = $old_settings['enabled_tools'] ?? array();
+            $tool_changes = array();
+            foreach ( $sanitized_tools as $tool => $enabled ) {
+                $was_enabled = $old_tools[ $tool ] ?? true;
+                if ( (bool) $was_enabled !== $enabled ) {
+                    $tool_changes[ $tool ] = $enabled;
+                }
+            }
+            if ( ! empty( $tool_changes ) ) {
+                Glimmr_AI_Audit_Log::log_tools_change( $tool_changes );
+            }
+
             wp_send_json_success( array( 'message' => __( 'Configuration saved successfully.', 'glimmr-ai' ) ) );
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to save configuration.', 'glimmr-ai' ) ) );
@@ -2811,8 +2861,7 @@ class Glimmr_AI_Admin {
 
         // Log export for audit.
         if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
-            Glimmr_AI_Audit_Log::log_event( 'conversation_export', array(
-                'format'          => $format,
+            Glimmr_AI_Audit_Log::log_data_export( $format, array(
                 'period'          => $period,
                 'conversation_id' => $conversation_id,
                 'message_count'   => count( $messages ),
@@ -3364,7 +3413,9 @@ class Glimmr_AI_Admin {
         $body = json_decode( wp_remote_retrieve_body( $response ), true );
 
         if ( 200 !== $code ) {
-            $error_message = isset( $body['error']['message'] ) ? $body['error']['message'] : __( 'Invalid API key.', 'glimmr-ai' );
+            $error_message = isset( $body['error']['message'] )
+                ? sanitize_text_field( $body['error']['message'] )
+                : __( 'Invalid API key.', 'glimmr-ai' );
             wp_send_json_error( array( 'message' => $error_message ) );
         }
 
@@ -3429,7 +3480,9 @@ class Glimmr_AI_Admin {
         $body = json_decode( wp_remote_retrieve_body( $response ), true );
 
         if ( 200 !== $code ) {
-            $error_message = isset( $body['error']['message'] ) ? $body['error']['message'] : __( 'Invalid API key.', 'glimmr-ai' );
+            $error_message = isset( $body['error']['message'] )
+                ? sanitize_text_field( $body['error']['message'] )
+                : __( 'Invalid API key.', 'glimmr-ai' );
             wp_send_json_error( array( 'message' => $error_message ) );
         }
 
@@ -3438,6 +3491,10 @@ class Glimmr_AI_Admin {
             'openai_api_key' => $api_key,
             'openai_model'   => $model,
         ) );
+
+        // Audit log: API key and model change.
+        Glimmr_AI_Audit_Log::log_settings_change( 'openai_api_key', null, null );
+        Glimmr_AI_Audit_Log::log_settings_change( 'openai_model', null, $model );
 
         // Return masked key.
         $length = strlen( $api_key );
@@ -3495,7 +3552,7 @@ class Glimmr_AI_Admin {
             wp_send_json_error( array( 'message' => __( 'Permission denied.', 'glimmr-ai' ) ) );
         }
 
-        $enabled = isset( $_POST['enabled'] ) ? filter_var( $_POST['enabled'], FILTER_VALIDATE_BOOLEAN ) : false;
+        $enabled = isset( $_POST['enabled'] ) ? filter_var( wp_unslash( $_POST['enabled'] ), FILTER_VALIDATE_BOOLEAN ) : false;
 
         Glimmr_AI_Settings::update( array(
             'widget_enabled' => $enabled,

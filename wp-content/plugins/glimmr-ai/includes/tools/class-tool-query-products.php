@@ -105,16 +105,16 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 				'product_ids' => array(
 					'type'        => 'array',
 					'items'       => array( 'type' => 'integer' ),
-					'description' => 'Array of product IDs to compare (2-5 products)',
+					'description' => 'Array of product IDs to compare (2-8 products)',
 					'minItems'    => 2,
-					'maxItems'    => 5,
+					'maxItems'    => 8,
 				),
 				'product_names' => array(
 					'type'        => 'array',
 					'items'       => array( 'type' => 'string' ),
 					'description' => 'Array of product names to compare (alternative to IDs)',
 					'minItems'    => 2,
-					'maxItems'    => 5,
+					'maxItems'    => 8,
 				),
 				'search_params' => array(
 					'type'                 => 'object',
@@ -136,9 +136,9 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 						),
 						'limit' => array(
 							'type'        => 'integer',
-							'description' => 'Number of products to compare (2-5, default: 3)',
+							'description' => 'Number of products to compare (2-8, default: 3)',
 							'minimum'     => 2,
-							'maximum'     => 5,
+							'maximum'     => 8,
 						),
 					),
 				),
@@ -1096,10 +1096,99 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 		$not_found = array();
 		$auto_selected_info = null;
 
-		// Handle search_params for search-then-compare (one-call pattern).
-		if ( ! empty( $compare_params['search_params'] ) && is_array( $compare_params['search_params'] ) ) {
+		// Helper to check if product_ids has valid (non-zero) IDs.
+		$has_valid_product_ids = ! empty( $compare_params['product_ids'] )
+			&& is_array( $compare_params['product_ids'] )
+			&& count( array_filter( $compare_params['product_ids'], function( $id ) {
+				return is_numeric( $id ) && intval( $id ) > 0;
+			} ) ) >= 2;
+
+		// Helper to check if product_names has valid (non-empty) names.
+		$has_valid_product_names = ! empty( $compare_params['product_names'] )
+			&& is_array( $compare_params['product_names'] )
+			&& count( array_filter( $compare_params['product_names'], function( $name ) {
+				return is_string( $name ) && strlen( trim( $name ) ) > 0;
+			} ) ) >= 2;
+
+		// Helper to check if search_params has a meaningful query.
+		$has_valid_search_params = ! empty( $compare_params['search_params'] )
+			&& is_array( $compare_params['search_params'] )
+			&& (
+				! empty( trim( $compare_params['search_params']['query'] ?? '' ) )
+				|| ! empty( trim( $compare_params['search_params']['category'] ?? '' ) )
+			);
+
+		if ( class_exists( 'Glimmr_AI_Logger' ) ) {
+			Glimmr_AI_Logger::debug(
+				'execute_compare: Determining comparison source',
+				array(
+					'has_valid_product_ids'    => $has_valid_product_ids,
+					'has_valid_product_names'  => $has_valid_product_names,
+					'has_valid_search_params'  => $has_valid_search_params,
+					'raw_product_ids'          => $compare_params['product_ids'] ?? null,
+					'raw_product_names'        => $compare_params['product_names'] ?? null,
+					'raw_search_params'        => $compare_params['search_params'] ?? null,
+				),
+				'tools'
+			);
+		}
+
+		// Priority: product_ids > product_names > search_params.
+		// This ensures explicit IDs are used when provided, even if search_params exists with empty values.
+		if ( $has_valid_product_ids ) {
+			// Get product IDs from array.
+			$product_ids = array_map( 'absint', $compare_params['product_ids'] );
+			// Filter out zeros.
+			$product_ids = array_filter( $product_ids, function( $id ) {
+				return $id > 0;
+			} );
+			$product_ids = array_values( $product_ids );
+
+			if ( class_exists( 'Glimmr_AI_Logger' ) ) {
+				Glimmr_AI_Logger::debug(
+					'execute_compare: Using product_ids path',
+					array( 'product_ids' => $product_ids ),
+					'tools'
+				);
+			}
+
+		} elseif ( $has_valid_product_names ) {
+			// Resolve product names to IDs.
+			foreach ( $compare_params['product_names'] as $name ) {
+				if ( ! is_string( $name ) || strlen( trim( $name ) ) === 0 ) {
+					continue;
+				}
+				$resolved = $this->resolve_product_name( $name );
+				if ( $resolved ) {
+					$product_ids[] = $resolved;
+				} else {
+					$not_found[] = $name;
+				}
+			}
+
+			if ( class_exists( 'Glimmr_AI_Logger' ) ) {
+				Glimmr_AI_Logger::debug(
+					'execute_compare: Using product_names path',
+					array(
+						'resolved_ids' => $product_ids,
+						'not_found'    => $not_found,
+					),
+					'tools'
+				);
+			}
+
+		} elseif ( $has_valid_search_params ) {
+			// Handle search_params for search-then-compare (one-call pattern).
 			$search_params = $compare_params['search_params'];
-			$limit = min( max( $search_params['limit'] ?? 3, 2 ), 5 );
+			$limit = min( max( $search_params['limit'] ?? 4, 2 ), 8 );
+
+			if ( class_exists( 'Glimmr_AI_Logger' ) ) {
+				Glimmr_AI_Logger::debug(
+					'execute_compare: Using search_params path',
+					array( 'search_params' => $search_params, 'limit' => $limit ),
+					'tools'
+				);
+			}
 
 			// Build search arguments.
 			$search_args = array(
@@ -1130,25 +1219,11 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 				}, $search_result['data']['products'] ),
 			);
 
-		} elseif ( ! empty( $compare_params['product_ids'] ) && is_array( $compare_params['product_ids'] ) ) {
-			// Get product IDs from array.
-			$product_ids = array_map( 'absint', $compare_params['product_ids'] );
-
-		} elseif ( ! empty( $compare_params['product_names'] ) && is_array( $compare_params['product_names'] ) ) {
-			// Resolve product names to IDs.
-			foreach ( $compare_params['product_names'] as $name ) {
-				$resolved = $this->resolve_product_name( $name );
-				if ( $resolved ) {
-					$product_ids[] = $resolved;
-				} else {
-					$not_found[] = $name;
-				}
-			}
 		} else {
 			return $this->format_validation_error(
 				'missing_required',
 				'compare.product_ids',
-				__( 'compare requires either product_ids[], product_names[], or search_params object.', 'glimmr-ai' )
+				__( 'compare requires either product_ids[] (with at least 2 valid IDs), product_names[] (with at least 2 names), or search_params (with a query or category).', 'glimmr-ai' )
 			);
 		}
 
@@ -1171,8 +1246,8 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 			);
 		}
 
-		if ( count( $product_ids ) > 5 ) {
-			$product_ids = array_slice( $product_ids, 0, 5 );
+		if ( count( $product_ids ) > 8 ) {
+			$product_ids = array_slice( $product_ids, 0, 8 );
 		}
 
 		// Fetch products.
@@ -1504,6 +1579,10 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 			$variations = $product->get_available_variations();
 			$data['variations'] = array();
 
+			// Track color swatches for available_options.
+			$color_swatches = array();
+			$sizes          = array();
+
 			foreach ( array_slice( $variations, 0, 20 ) as $variation ) {
 				$var_product = wc_get_product( $variation['variation_id'] );
 				if ( $var_product ) {
@@ -1518,14 +1597,31 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 
 						// Convert slug to display name for taxonomy attributes.
 						// Empty string means "Any" - keep it empty for matching.
+						$display_value = $attr_value;
+						$swatch_image  = null;
 						if ( '' !== $attr_value && taxonomy_exists( $taxonomy ) ) {
 							$term = get_term_by( 'slug', $attr_value, $taxonomy );
 							if ( $term && ! is_wp_error( $term ) ) {
-								$attr_value = $term->name;
+								$display_value = $term->name;
+								// Get swatch image from term meta (cfvsw_image from Color Filter Variation Swatches plugin).
+								$swatch_image = get_term_meta( $term->term_id, 'cfvsw_image', true );
 							}
 						}
 
-						$friendly_attrs[ $label ] = $attr_value;
+						$friendly_attrs[ $label ] = $display_value;
+
+						// Track available options for quick reference.
+						$label_lower = strtolower( $label );
+						if ( strpos( $label_lower, 'color' ) !== false || strpos( $label_lower, 'colour' ) !== false ) {
+							// Track color with swatch image.
+							if ( '' !== $display_value && ! isset( $color_swatches[ $display_value ] ) ) {
+								$color_swatches[ $display_value ] = $swatch_image;
+							}
+						} elseif ( strpos( $label_lower, 'size' ) !== false ) {
+							if ( '' !== $display_value && ! in_array( $display_value, $sizes, true ) ) {
+								$sizes[] = $display_value;
+							}
+						}
 					}
 
 					$data['variations'][] = array(
@@ -1541,6 +1637,23 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 						'sku'            => $var_product->get_sku(),
 					);
 				}
+			}
+
+			// Build available_options with color swatches.
+			$data['available_options'] = array(
+				'colors' => array(),
+				'sizes'  => $sizes,
+			);
+			foreach ( $color_swatches as $color_name => $swatch_url ) {
+				$data['available_options']['colors'][] = array(
+					'name'   => $color_name,
+					'swatch' => $swatch_url ?: null,
+				);
+			}
+
+			// Remove empty available_options.
+			if ( empty( $data['available_options']['colors'] ) && empty( $data['available_options']['sizes'] ) ) {
+				unset( $data['available_options'] );
 			}
 		}
 
@@ -1696,11 +1809,11 @@ class Glimmr_AI_Tool_Query_Products extends Glimmr_AI_Tool_Base {
 			);
 		}
 
-		// Build query args.
+		// Build query args with upper bound for aggregate calculations.
 		$query_args = array(
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => -1,
+			'posts_per_page' => 10000, // Upper bound for aggregate calculations
 			'fields'         => 'ids',
 		);
 

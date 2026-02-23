@@ -110,7 +110,7 @@ const Message = ({ message }) => {
     return (
         <div className={`glimmr-message glimmr-message-${message.role}`}>
             <div className="glimmr-message-header">
-                <span className={`dashicons dashicons-${config.icon}`}></span>
+                <span className={`dashicons dashicons-${config.icon}`} aria-hidden="true"></span>
                 <span className="glimmr-message-role">{config.label}</span>
                 <span className="glimmr-message-time">
                     {formatDate(message.created_at)}
@@ -207,7 +207,7 @@ const ConversationDetail = ({ conversation, messages, onClose, onFlag, loading }
                 <div className="glimmr-conversation-actions">
                     {conversation.status !== 'flagged' && (
                         <Button variant="secondary" onClick={() => onFlag(conversation)}>
-                            <span className="dashicons dashicons-flag"></span>
+                            <span className="dashicons dashicons-flag" aria-hidden="true"></span>
                             Flag Issue
                         </Button>
                     )}
@@ -297,7 +297,7 @@ const FlaggedIssuesTab = ({ issues, onResolve, loading }) => {
     if (issues.length === 0) {
         return (
             <div className="glimmr-empty-state">
-                <span className="dashicons dashicons-yes-alt"></span>
+                <span className="dashicons dashicons-yes-alt" aria-hidden="true"></span>
                 <p>No flagged issues. Great job!</p>
             </div>
         );
@@ -694,19 +694,27 @@ const Conversations = () => {
             )}
 
             {/* Tab Navigation */}
-            <div className="glimmr-conversations-tabs">
+            <div className="glimmr-conversations-tabs" role="tablist" aria-label="Conversation sections">
                 <button
+                    role="tab"
+                    aria-selected={activeTab === 'all'}
+                    aria-controls="tabpanel-conversations-all"
+                    id="tab-conversations-all"
                     className={`glimmr-tab-button ${activeTab === 'all' ? 'is-active' : ''}`}
                     onClick={() => setActiveTab('all')}
                 >
-                    <span className="dashicons dashicons-format-chat"></span>
+                    <span className="dashicons dashicons-format-chat" aria-hidden="true"></span>
                     All Conversations
                 </button>
                 <button
+                    role="tab"
+                    aria-selected={activeTab === 'flagged'}
+                    aria-controls="tabpanel-conversations-flagged"
+                    id="tab-conversations-flagged"
                     className={`glimmr-tab-button ${activeTab === 'flagged' ? 'is-active' : ''}`}
                     onClick={() => setActiveTab('flagged')}
                 >
-                    <span className="dashicons dashicons-flag"></span>
+                    <span className="dashicons dashicons-flag" aria-hidden="true"></span>
                     Flagged Issues
                     {flaggedIssues.filter((i) => i.status === 'new').length > 0 && (
                         <span className="glimmr-badge">
@@ -718,7 +726,7 @@ const Conversations = () => {
 
             {/* All Conversations Tab */}
             {activeTab === 'all' && (
-                <Card className="glimmr-conversations-card">
+                <Card className="glimmr-conversations-card" role="tabpanel" id="tabpanel-conversations-all" aria-labelledby="tab-conversations-all">
                     <CardHeader>
                         <div className="glimmr-conversations-filters">
                             <SelectControl
@@ -750,7 +758,7 @@ const Conversations = () => {
                             />
                         </div>
                         <Button variant="secondary" onClick={() => setShowExportModal(true)}>
-                            <span className="dashicons dashicons-download"></span>
+                            <span className="dashicons dashicons-download" aria-hidden="true"></span>
                             Export
                         </Button>
                     </CardHeader>
@@ -761,7 +769,7 @@ const Conversations = () => {
                             </div>
                         ) : conversations.length === 0 ? (
                             <div className="glimmr-empty-state">
-                                <span className="dashicons dashicons-format-chat"></span>
+                                <span className="dashicons dashicons-format-chat" aria-hidden="true"></span>
                                 <p>No conversations found.</p>
                             </div>
                         ) : (
@@ -820,7 +828,7 @@ const Conversations = () => {
 
             {/* Flagged Issues Tab */}
             {activeTab === 'flagged' && (
-                <Card className="glimmr-flagged-card">
+                <Card className="glimmr-flagged-card" role="tabpanel" id="tabpanel-conversations-flagged" aria-labelledby="tab-conversations-flagged">
                     <CardHeader>
                         <h3>Flagged Issues</h3>
                     </CardHeader>

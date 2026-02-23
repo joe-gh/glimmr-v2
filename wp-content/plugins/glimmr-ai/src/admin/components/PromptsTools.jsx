@@ -426,33 +426,45 @@ const PromptsTools = () => {
             )}
 
             {/* Section Tabs */}
-            <div className="glimmr-section-tabs">
+            <div className="glimmr-section-tabs" role="tablist" aria-label="Prompt and tools sections">
                 <button
+                    role="tab"
+                    aria-selected={activeSection === 'prompt'}
+                    aria-controls="tabpanel-prompt"
+                    id="tab-prompt"
                     className={`glimmr-section-tab ${activeSection === 'prompt' ? 'is-active' : ''}`}
                     onClick={() => setActiveSection('prompt')}
                 >
-                    <span className="dashicons dashicons-editor-quote"></span>
+                    <span className="dashicons dashicons-editor-quote" aria-hidden="true"></span>
                     System Prompt
                 </button>
                 <button
+                    role="tab"
+                    aria-selected={activeSection === 'guardrails'}
+                    aria-controls="tabpanel-guardrails"
+                    id="tab-guardrails"
                     className={`glimmr-section-tab ${activeSection === 'guardrails' ? 'is-active' : ''}`}
                     onClick={() => setActiveSection('guardrails')}
                 >
-                    <span className="dashicons dashicons-shield"></span>
+                    <span className="dashicons dashicons-shield" aria-hidden="true"></span>
                     Guardrails
                 </button>
                 <button
+                    role="tab"
+                    aria-selected={activeSection === 'tools'}
+                    aria-controls="tabpanel-tools"
+                    id="tab-tools"
                     className={`glimmr-section-tab ${activeSection === 'tools' ? 'is-active' : ''}`}
                     onClick={() => setActiveSection('tools')}
                 >
-                    <span className="dashicons dashicons-admin-tools"></span>
+                    <span className="dashicons dashicons-admin-tools" aria-hidden="true"></span>
                     Tools Configuration
                 </button>
             </div>
 
             {/* System Prompt Section */}
             {activeSection === 'prompt' && (
-                <Card className="glimmr-prompt-card">
+                <Card className="glimmr-prompt-card" role="tabpanel" id="tabpanel-prompt" aria-labelledby="tab-prompt">
                     <CardHeader>
                         <h3>System Prompt</h3>
                         <Button variant="link" onClick={handleResetPrompt}>
@@ -500,7 +512,7 @@ const PromptsTools = () => {
 
             {/* Guardrails Section */}
             {activeSection === 'guardrails' && (
-                <Card className="glimmr-prompt-card">
+                <Card className="glimmr-prompt-card" role="tabpanel" id="tabpanel-guardrails" aria-labelledby="tab-guardrails">
                     <CardHeader>
                         <h3>Agent Guardrails</h3>
                         <Button variant="link" onClick={handleResetGuardrails}>
@@ -538,7 +550,7 @@ const PromptsTools = () => {
 
             {/* Tools Section */}
             {activeSection === 'tools' && (
-                <div className="glimmr-tools-section">
+                <div className="glimmr-tools-section" role="tabpanel" id="tabpanel-tools" aria-labelledby="tab-tools">
                     {Object.entries(TOOL_CATEGORIES).map(([categoryKey, category]) => (
                         <Card key={categoryKey} className="glimmr-tools-category">
                             <CardHeader>

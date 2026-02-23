@@ -1140,13 +1140,17 @@ class Glimmr_AI_Vector_Store {
 
         $table = $wpdb->prefix . 'glimmr_ai_knowledge';
 
+        // Sanitize title and content before storage.
+        $sanitized_title   = isset( $data['title'] ) ? sanitize_text_field( $data['title'] ) : '';
+        $sanitized_content = isset( $data['content'] ) ? wp_kses_post( $data['content'] ) : '';
+
         $record = array(
             'site_id'     => get_current_blog_id(),
             'type'        => $data['type'] ?? 'custom',
             'source_id'   => $data['source_id'] ?? null,
             'source_type' => $data['source_type'] ?? null,
-            'title'       => $data['title'] ?? '',
-            'content'     => $data['content'] ?? '',
+            'title'       => $sanitized_title,
+            'content'     => $sanitized_content,
             'sync_status' => 'pending',
             'updated_at'  => current_time( 'mysql' ),
         );

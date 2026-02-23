@@ -14,7 +14,7 @@
 const toolStatusMessages = {
     // Product tools
     query_products: 'Searching products...',
-    product_lookup: 'Searching products...',
+    product_lookup: 'Looking up product details...',
     product_compare: 'Comparing products...',
     stock_check: 'Checking availability...',
     recommendations: 'Finding recommendations...',
@@ -27,11 +27,12 @@ const toolStatusMessages = {
     checkout_link: 'Preparing checkout...',
 
     // Coupon tools
-    coupon_lookup: 'Finding coupons...',
+    coupon_lookup: 'Finding available coupons...',
 
     // Order tools
     order_status: 'Checking order status...',
     order_history: 'Loading order history...',
+    reorder: 'Processing reorder...',
 
     // Account tools
     account_info: 'Loading account info...',
@@ -39,6 +40,29 @@ const toolStatusMessages = {
     // Knowledge tools
     site_knowledge: 'Searching knowledge base...',
     text_answer: 'Thinking...',
+
+    // Review tools (v1.8.0)
+    get_reviews: 'Loading reviews...',
+    summarize_reviews: 'Analyzing reviews...',
+
+    // Support tools (v1.8.0)
+    contact_request: 'Submitting request...',
+    check_gift_card_balance: 'Checking gift card...',
+    track_package: 'Tracking package...',
+
+    // Navigation tool
+    navigate_to_page: 'Navigating...',
+
+    // Resolver tools
+    resolve_product: 'Finding product...',
+    resolve_variation: 'Checking variations...',
+    resolve_order: 'Locating order...',
+    resolve_cart_item: 'Checking cart...',
+    select_products: 'Selecting products...',
+
+    // Query tools
+    sql_readonly: 'Querying data...',
+    catalog_query: 'Searching catalog...',
 
     // Default fallback
     default: 'Processing...',

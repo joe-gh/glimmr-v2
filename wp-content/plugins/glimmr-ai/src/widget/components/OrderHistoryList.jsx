@@ -64,6 +64,8 @@ const ChevronIcon = ({ isExpanded }) => (
         stroke="currentColor"
         strokeWidth="2"
         className={`glimmr-history-chevron ${isExpanded ? 'is-expanded' : ''}`}
+        aria-hidden="true"
+        focusable="false"
     >
         <polyline points="6 9 12 15 18 9" />
     </svg>
@@ -73,7 +75,7 @@ const ChevronIcon = ({ isExpanded }) => (
  * Package icon for order.
  */
 const PackageIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
         <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -183,7 +185,7 @@ const OrderRow = ({
                         {order.tracking_number && (
                             <div className="glimmr-history-meta-row">
                                 <span>Tracking:</span>
-                                {order.tracking_url ? (
+                                {order.tracking_url && /^https?:\/\//i.test(order.tracking_url) ? (
                                     <a
                                         href={order.tracking_url}
                                         target="_blank"

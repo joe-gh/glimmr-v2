@@ -79,7 +79,7 @@ class Glimmr_AI_Tool_Recommendations extends Glimmr_AI_Tool_Base {
         ),
         'limit' => array(
             'type'        => 'integer',
-            'description' => 'Maximum number of recommendations (default: 4, max: 8)',
+            'description' => 'Maximum number of recommendations (default: 8, max: 8)',
             'minimum'     => 1,
             'maximum'     => 8,
         ),
@@ -102,7 +102,7 @@ class Glimmr_AI_Tool_Recommendations extends Glimmr_AI_Tool_Base {
         }
 
         $type         = $this->get_string_arg( $arguments, 'type', 'popular' );
-        $limit        = min( $this->get_int_arg( $arguments, 'limit', 4 ), 8 );
+        $limit        = min( $this->get_int_arg( $arguments, 'limit', 8 ), 8 );
         $exclude_cart = $this->get_bool_arg( $arguments, 'exclude_cart', true );
 
         // Extract seed data (supports both v1 and v2 format).

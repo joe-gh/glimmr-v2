@@ -374,16 +374,42 @@ class Glimmr_AI_Tool_Summarizer {
 
         $data = &$result['data'];
 
-        // Summarize orders array.
+        // Summarize orders array - preserve key metadata the AI needs for follow-ups.
         if ( isset( $data['orders'] ) && is_array( $data['orders'] ) ) {
             $data['orders'] = array_map( function( $order ) {
-                return array(
-                    'id'         => $order['id'] ?? $order['order_id'] ?? 0,
-                    'status'     => $order['status'] ?? '',
-                    'total'      => $order['total'] ?? '',
-                    'date'       => $order['date'] ?? $order['date_created'] ?? '',
-                    'item_count' => $order['item_count'] ?? count( $order['items'] ?? array() ),
+                $summary = array(
+                    'id'             => $order['id'] ?? $order['order_id'] ?? 0,
+                    'number'         => $order['number'] ?? $order['id'] ?? 0,
+                    'status'         => $order['status'] ?? '',
+                    'status_label'   => $order['status_label'] ?? '',
+                    'total'          => $order['total'] ?? '',
+                    'date'           => $order['date'] ?? $order['date_created'] ?? '',
+                    'item_count'     => $order['item_count'] ?? count( $order['items'] ?? array() ),
                 );
+
+                // Preserve item names/quantities for AI context (strip images/URLs).
+                if ( ! empty( $order['items'] ) && is_array( $order['items'] ) ) {
+                    $summary['items'] = array_map( function( $item ) {
+                        return array(
+                            'name'     => $item['name'] ?? '',
+                            'quantity' => $item['quantity'] ?? 1,
+                            'total'    => $item['total'] ?? '',
+                        );
+                    }, array_slice( $order['items'], 0, 10 ) );
+                }
+
+                // Preserve tracking and shipping info.
+                if ( ! empty( $order['tracking_number'] ) ) {
+                    $summary['tracking_number'] = $order['tracking_number'];
+                }
+                if ( ! empty( $order['shipping_method'] ) ) {
+                    $summary['shipping_method'] = $order['shipping_method'];
+                }
+                if ( ! empty( $order['payment_method'] ) ) {
+                    $summary['payment_method'] = $order['payment_method'];
+                }
+
+                return $summary;
             }, array_slice( $data['orders'], 0, self::MAX_ORDERS ) );
         }
 

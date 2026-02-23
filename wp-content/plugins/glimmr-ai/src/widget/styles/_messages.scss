@@ -77,6 +77,54 @@
     }
 }
 
+// Markdown content styling
+.glimmr-message-markdown {
+    p {
+        margin: 0 0 0.5em;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    ul, ol {
+        margin: 0.5em 0;
+        padding-left: 1.5em;
+
+        li {
+            margin: 0.25em 0;
+        }
+    }
+
+    ul {
+        list-style-type: disc;
+    }
+
+    ol {
+        list-style-type: decimal;
+    }
+
+    strong {
+        font-weight: 600;
+    }
+
+    em {
+        font-style: italic;
+    }
+
+    code {
+        background: rgba(0, 0, 0, 0.08);
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 0.9em;
+
+        .is-user & {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    }
+}
+
 .glimmr-message-footer {
     display: flex;
     align-items: center;
@@ -112,6 +160,11 @@
     cursor: pointer;
     opacity: 0.5;
     transition: opacity var(--glimmr-transition);
+    min-width: 32px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover {
         opacity: 1;

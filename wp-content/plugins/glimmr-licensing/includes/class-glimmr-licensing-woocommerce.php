@@ -50,6 +50,9 @@ class Glimmr_Licensing_WooCommerce {
 
         // Order details — show license key.
         add_action( 'woocommerce_order_details_after_order_table', array( $this, 'display_license_on_order' ), 10, 1 );
+
+        // AJAX handler for secure license key retrieval (My Account copy button).
+        add_action( 'wp_ajax_glimmr_get_license_key', array( $this, 'ajax_get_license_key' ) );
     }
 
     /**
@@ -208,8 +211,9 @@ class Glimmr_Licensing_WooCommerce {
 
         $subscription_id = $subscription->get_id();
 
-        // Check if already generated.
+        // If license was already generated, this is a reactivation (e.g. from on-hold).
         if ( $subscription->get_meta( '_glimmr_license_generated' ) ) {
+            $this->reactivate_subscription_licenses( $subscription );
             return;
         }
 
@@ -333,6 +337,41 @@ class Glimmr_Licensing_WooCommerce {
     }
 
     /**
+     * Reactivate licenses for a subscription coming back to active status.
+     *
+     * Restores the license status to 'active' and updates the expiry date
+     * to the subscription's next payment date.
+     *
+     * @param WC_Subscription $subscription Subscription object.
+     * @return void
+     */
+    private function reactivate_subscription_licenses( $subscription ) {
+        $this->update_subscription_license_status( $subscription, 'active' );
+
+        // Update expiry date to the next payment date.
+        $next_payment = $subscription->get_date( 'next_payment' );
+        if ( ! $next_payment ) {
+            return;
+        }
+
+        $manager = new Glimmr_Licensing_Manager();
+
+        $license_ids = $subscription->get_meta( '_glimmr_license_ids' );
+        if ( is_array( $license_ids ) && ! empty( $license_ids ) ) {
+            foreach ( $license_ids as $id ) {
+                $manager->extend_expiry( (int) $id, $next_payment );
+            }
+            return;
+        }
+
+        // Backwards compat: single license ID.
+        $license_id = $subscription->get_meta( '_glimmr_license_id' );
+        if ( $license_id ) {
+            $manager->extend_expiry( (int) $license_id, $next_payment );
+        }
+    }
+
+    /**
      * Update license status when subscription status changes.
      *
      * @param WC_Subscription $subscription Subscription object.
@@ -409,7 +448,14 @@ class Glimmr_Licensing_WooCommerce {
             $plan_label
         );
 
-        wp_mail( $to, $subject, $message );
+        $sent = wp_mail( $to, $subject, $message );
+        if ( ! $sent ) {
+            error_log( sprintf(
+                'Glimmr Licensing: Failed to send license email to %s for order #%d.',
+                $to,
+                $order->get_id()
+            ) );
+        }
     }
 
     /**
@@ -507,5 +553,35 @@ class Glimmr_Licensing_WooCommerce {
         echo '<p class="woocommerce-info">';
         echo esc_html__( 'Enter this key in your WordPress admin → Glimmr AI to activate the plugin.', 'glimmr-licensing' );
         echo '</p>';
+    }
+
+    /**
+     * AJAX: Retrieve a license key for the clipboard copy button.
+     *
+     * Verifies the current user owns the license via customer_email match.
+     *
+     * @return void
+     */
+    public function ajax_get_license_key() {
+        check_ajax_referer( 'glimmr_licensing_frontend', 'nonce' );
+
+        $license_id = absint( $_POST['license_id'] ?? 0 );
+        if ( 0 === $license_id ) {
+            wp_send_json_error( 'Invalid request.' );
+        }
+
+        $user = wp_get_current_user();
+        if ( ! $user->exists() ) {
+            wp_send_json_error( 'Unauthorized.' );
+        }
+
+        $manager = new Glimmr_Licensing_Manager();
+        $license = $manager->get_license( $license_id );
+
+        if ( ! $license || $license->customer_email !== $user->user_email ) {
+            wp_send_json_error( 'Unauthorized.' );
+        }
+
+        wp_send_json_success( array( 'key' => $license->license_key ) );
     }
 }

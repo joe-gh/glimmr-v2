@@ -86,6 +86,10 @@ class Glimmr_AI_Tool_View_Cart extends Glimmr_AI_Tool_Base {
         ) );
 
         // Check if cart is empty.
+        // Note: WC()->cart uses PHP session which may differ from Store API cart (Cart-Token header).
+        // Items added via frontend widget use Store API, so this may report empty when Store API has items.
+        // Cart modification tools (update_cart, apply_coupon, checkout_link) handle this by returning
+        // cart_action intents for frontend execution via Store API.
         if ( $cart->is_empty() ) {
             $this->log_debug( 'Cart is empty - returning empty response' );
             return $this->format_result(
@@ -236,7 +240,6 @@ class Glimmr_AI_Tool_View_Cart extends Glimmr_AI_Tool_Base {
             'cookie_name'   => $wc_session_cookie_name,
             'cookie_exists' => ! empty( $session_cookie_value ),
             'cookie_length' => strlen( $session_cookie_value ),
-            'all_cookies'   => array_keys( $_COOKIE ?? array() ),
         ) );
 
         // Initialize session if needed.

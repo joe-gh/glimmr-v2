@@ -12,12 +12,12 @@ This file provides guidance to Claude Code when working with the Glimmr AI plugi
 - Site knowledge Q&A via vector store
 - Customer account information
 
-**Version:** 1.8.0
+**Version:** 1.0.2
 **Author:** Joseph DiGiovanna - joseph.p.digiovanna@gmail.com - Vimpact Consulting LLC
 **Requires:** WordPress 6.0+, PHP 8.0+, WooCommerce 8.0+
 **OpenAI Integration:** Uses the Responses API with tool calling
-**Database Version:** 1.6.0
-**Total Lines of Code:** ~30,000+ PHP, ~11,000+ JS/JSX
+**Database Version:** 1.10.0
+**Total Lines of Code:** ~30,000+ PHP, ~14,000+ JS/JSX
 
 ## Architecture
 
@@ -44,7 +44,7 @@ This file provides guidance to Claude Code when working with the Glimmr AI plugi
 | Component | Maturity | Notes |
 |-----------|----------|-------|
 | Core Plugin | 95% | Production ready |
-| Database | 96% | 9 tables with indexes (v1.6.0 adds contact_requests) |
+| Database | 96% | 12 tables with indexes (v1.10.0) |
 | REST API | 90% | Streaming attribution fixed (v1.8.0) |
 | OpenAI Integration | 85% | Retry-After header not parsed |
 | Rate Limiting | 90% | Atomic operations, token budgets |
@@ -92,31 +92,43 @@ glimmr-ai/
 │   ├── class-glimmr-ai-workspace.php     # Slot-filling state manager (v1.1.0)
 │   ├── class-glimmr-ai-controller-schema.php # Agent controller schema (v1.1.0)
 │   ├── class-glimmr-ai-parameter-validator.php # Parameter validation (v1.1.0)
-│   ├── class-glimmr-ai-cli.php           # WP-CLI commands (v1.1.0, extended v1.8.0)
+│   ├── class-glimmr-ai-cli.php           # WP-CLI commands
+│   ├── class-glimmr-ai-license.php       # License activation/validation
+│   ├── class-glimmr-ai-continuity.php    # Entity focus tracking across turns
+│   ├── class-glimmr-ai-entity-card.php   # Product/order entity data cards
+│   ├── class-glimmr-ai-focus-frame.php   # Pronoun resolution focus tracking
+│   ├── class-glimmr-ai-reference-validator.php # Entity reference validation
+│   ├── class-glimmr-ai-contact-response.php # Admin reply to contact requests
+│   ├── class-glimmr-ai-seo.php           # SEO integration
+│   ├── class-glimmr-ai-tool-summarizer.php # Summarize tool results for context
 │   └── tools/                            # AI tool implementations (26 tools)
 │       ├── class-tool-base.php           # Abstract base class
-│       ├── class-tool-product-lookup.php
-│       ├── class-tool-add-to-cart.php
-│       ├── class-tool-view-cart.php
-│       ├── class-tool-update-cart.php
-│       ├── class-tool-apply-coupon.php
-│       ├── class-tool-coupon-lookup.php
-│       ├── class-tool-order-status.php   # With S11/S12 address masking
-│       ├── class-tool-order-history.php
-│       ├── class-tool-checkout-link.php
-│       ├── class-tool-product-compare.php
-│       ├── class-tool-stock-check.php
-│       ├── class-tool-recommendations.php
 │       ├── class-tool-account-info.php   # With S10 PII masking
-│       ├── class-tool-site-knowledge.php # With S11 configurable contact
-│       ├── class-tool-navigate.php       # Page navigation tool
-│       ├── class-tool-text-answer.php
-│       │   # v1.8.0 New Tools
+│       ├── class-tool-add-to-cart.php
+│       ├── class-tool-apply-coupon.php
 │       ├── class-tool-check-gift-card-balance.php  # Multi-plugin gift card support
-│       ├── class-tool-track-package.php            # Carrier URL generation
+│       ├── class-tool-checkout-link.php
+│       ├── class-tool-contact-request.php          # Support request storage
+│       ├── class-tool-coupon-lookup.php
 │       ├── class-tool-get-reviews.php              # Product review retrieval
+│       ├── class-tool-navigate.php       # Page navigation tool
+│       ├── class-tool-order-history.php
+│       ├── class-tool-order-status.php   # With S11/S12 address masking
+│       ├── class-tool-query-products.php # Unified search, compare, details, stock
+│       ├── class-tool-recommendations.php
+│       ├── class-tool-reorder.php        # Reorder from previous order
+│       ├── class-tool-resolve-cart-item.php # Cart item resolution
+│       ├── class-tool-resolve-order.php  # Order reference resolution
+│       ├── class-tool-resolve-product.php # Product name to ID resolution
+│       ├── class-tool-resolve-variation.php # Variation attribute resolution
+│       ├── class-tool-select-products.php # Multi-product hydration
+│       ├── class-tool-site-knowledge.php # With S11 configurable contact
+│       ├── class-tool-sql-readonly.php   # Read-only SQL queries
 │       ├── class-tool-summarize-reviews.php        # AI review Q&A
-│       └── class-tool-contact-request.php          # Support request storage
+│       ├── class-tool-text-answer.php    # RAG-based text answers
+│       ├── class-tool-track-package.php            # Carrier URL generation
+│       ├── class-tool-update-cart.php
+│       └── class-tool-view-cart.php
 ├── public/
 │   ├── class-glimmr-ai-public.php   # Frontend, widget enqueue
 │   └── js/                          # Compiled widget bundles
@@ -125,13 +137,17 @@ glimmr-ai/
 │   │   ├── index.js                 # Admin entry point
 │   │   ├── styles/admin.scss        # Admin styles (including network settings)
 │   │   └── components/
-│   │       ├── Dashboard.jsx        # Admin dashboard
+│   │       ├── Dashboard.jsx        # Admin dashboard with analytics
+│   │       ├── GetStarted.jsx       # Setup wizard and onboarding
 │   │       ├── Settings.jsx         # Settings page (with multisite inheritance)
 │   │       ├── NetworkSettings.jsx  # Network admin settings (multisite)
 │   │       ├── SettingInheritanceIndicator.jsx # Inheritance/lock indicators
-│   │       ├── Conversations.jsx    # Conversation viewer
+│   │       ├── Conversations.jsx    # Conversation viewer with export
+│   │       ├── ContactRequests.jsx  # Customer support request management
 │   │       ├── KnowledgeManager.jsx # Knowledge base management
-│   │       └── PromptsTools.jsx     # System prompt & tools config
+│   │       ├── PromptsTools.jsx     # System prompt & tools config
+│   │       ├── SkeletonLoader.jsx   # Loading skeleton components
+│   │       └── settings/            # Settings tab components (21 tabs)
 │   └── widget/
 │       ├── index.js                 # Widget entry point
 │       ├── styles/widget.scss       # Widget styles (~4400 lines)
@@ -160,10 +176,20 @@ glimmr-ai/
 │           ├── AccountSummaryCard.jsx      # Customer account info
 │           ├── SiteKnowledgeResponse.jsx   # Knowledge base answers
 │           ├── CheckoutCTA.jsx             # Checkout call-to-action
+│           ├── CartActionResult.jsx        # Cart operation feedback
 │           │
 │           │   # Shared Components
 │           ├── ImageGallery.jsx     # Product image gallery
 │           └── VariationSelector.jsx # Product variation selector
+│       └── utils/                   # Utility functions
+│           ├── attributeLabels.js   # Attribute name translation
+│           ├── cartActionHandler.js # Cart operation execution
+│           ├── debug.js             # Debug logging utilities
+│           ├── ga4.js               # Google Analytics 4 integration
+│           ├── numbers.js           # Safe number operations
+│           ├── storeApi.js          # WooCommerce Store API wrapper
+│           ├── toolStatusMessages.js # Tool execution status messages
+│           └── urlValidation.js     # URL safety validation
 ```
 
 ## Database Tables
@@ -178,9 +204,12 @@ All tables prefixed with `wp_glimmr_ai_`:
 | `analytics` | Event tracking data (includes admin_audit events) | v1.0.0 |
 | `knowledge` | Synced knowledge base entries | v1.0.0 |
 | `rate_limits` | Rate limiting records | v1.0.0 |
+| `token_budgets` | Token budget tracking per user/site | v1.0.0 |
 | `product_index` | Indexed product data for search | v1.0.0 |
+| `product_variations` | Product variation data for search | v1.0.0 |
 | `sync_log` | Vector store sync history | v1.0.0 |
 | `contact_requests` | Customer support request storage | v1.6.0 |
+| `contact_responses` | Admin responses to contact requests | v1.6.0 |
 
 ### contact_requests Schema (v1.6.0)
 
@@ -763,6 +792,20 @@ Outputs:
 - `admin/js/glimmr-ai-admin-bundle.js`
 - `public/js/glimmr-ai-widget-bundle.js`
 - `public/js/glimmr-ai-widget-bundle.css`
+
+## Deployment
+
+This development environment is separate from the live testing site. After making changes, deploy to the live site using:
+
+```bash
+bash /Users/josephdigiovanna/Local\ Sites/glimmr/app/public/wp-content/plugins/deploy-glimmr-ai.sh
+```
+
+**Paths:**
+- **Source (development):** `/Users/josephdigiovanna/Local Sites/glimmr/app/public/wp-content/plugins/glimmr-ai`
+- **Destination (live testing):** `/Users/josephdigiovanna/Projects/arborwear/WP2/wp-content/plugins/glimmr-ai`
+
+**Important:** Changes made in the development directory are NOT automatically reflected on the live site. Always run the deploy script after making changes to test them.
 
 ## Debugging
 

@@ -31,7 +31,7 @@ $nonce = wp_create_nonce( 'glimmr_licensing_admin' );
             <dt><?php esc_html_e( 'License Key', 'glimmr-licensing' ); ?></dt>
             <dd>
                 <code style="font-size: 14px;"><?php echo esc_html( $license->license_key ); ?></code>
-                <button type="button" class="glimmr-copy-btn" onclick="navigator.clipboard.writeText('<?php echo esc_js( $license->license_key ); ?>')">
+                <button type="button" class="glimmr-copy-btn" onclick="glimmrCopy(this, '<?php echo esc_js( $license->license_key ); ?>')">
                     <?php esc_html_e( 'Copy', 'glimmr-licensing' ); ?>
                 </button>
             </dd>
@@ -224,6 +224,29 @@ $nonce = wp_create_nonce( 'glimmr_licensing_admin' );
 
 <script>
 (function() {
+    // Copy to clipboard with fallback for non-HTTPS (local dev).
+    window.glimmrCopy = function(btn, text) {
+        function done() {
+            var original = btn.textContent;
+            btn.textContent = '<?php echo esc_js( __( 'Copied!', 'glimmr-licensing' ) ); ?>';
+            btn.style.color = '#0e6027';
+            setTimeout(function() { btn.textContent = original; btn.style.color = ''; }, 2000);
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done);
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+            done();
+        }
+    };
+
     var nonce = '<?php echo esc_js( $nonce ); ?>';
 
     var suspendBtn = document.getElementById('btn-suspend');

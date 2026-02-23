@@ -10,12 +10,13 @@
 
 import { h } from 'preact';
 import { useState, useMemo } from 'preact/hooks';
+import DOMPurify from 'dompurify';
 
 /**
  * Book/document icon.
  */
 const BookIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
     </svg>
@@ -25,7 +26,7 @@ const BookIcon = () => (
  * External link icon.
  */
 const ExternalLinkIcon = () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
         <polyline points="15 3 21 3 21 9" />
         <line x1="10" y1="14" x2="21" y2="3" />
@@ -44,6 +45,8 @@ const ChevronIcon = ({ isExpanded }) => (
         stroke="currentColor"
         strokeWidth="2"
         className={`glimmr-knowledge-chevron ${isExpanded ? 'is-expanded' : ''}`}
+        aria-hidden="true"
+        focusable="false"
     >
         <polyline points="6 9 12 15 18 9" />
     </svg>
@@ -53,7 +56,7 @@ const ChevronIcon = ({ isExpanded }) => (
  * Info icon for tips/notes.
  */
 const InfoIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="16" x2="12" y2="12" />
         <line x1="12" y1="8" x2="12.01" y2="8" />
@@ -119,7 +122,7 @@ const formatText = (text) => {
             <p
                 key={pIndex}
                 className="glimmr-knowledge-paragraph"
-                dangerouslySetInnerHTML={{ __html: formattedParagraph }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formattedParagraph, {ALLOWED_TAGS: ['strong','em','code','br','p','ul','ol','li']}) }}
             />
         );
     });

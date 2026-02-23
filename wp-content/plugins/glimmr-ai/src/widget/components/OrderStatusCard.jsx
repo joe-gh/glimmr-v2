@@ -58,7 +58,7 @@ const getStatusIndex = (status) => {
 const StatusIcon = ({ type }) => {
     const icons = {
         receipt: (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
                 <line x1="16" y1="13" x2="8" y2="13" />
@@ -66,13 +66,13 @@ const StatusIcon = ({ type }) => {
             </svg>
         ),
         cog: (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
         ),
         truck: (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                 <rect x="1" y="3" width="15" height="13" />
                 <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
                 <circle cx="5.5" cy="18.5" r="2.5" />
@@ -80,7 +80,7 @@ const StatusIcon = ({ type }) => {
             </svg>
         ),
         check: (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                 <polyline points="20 6 9 17 4 12" />
             </svg>
         ),
@@ -193,7 +193,7 @@ const OrderStatusCard = ({
             {/* Cancelled/refunded notice */}
             {isCancelled && (
                 <div className="glimmr-order-cancelled">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="12" r="10" />
                         <line x1="15" y1="9" x2="9" y2="15" />
                         <line x1="9" y1="9" x2="15" y2="15" />
@@ -206,7 +206,7 @@ const OrderStatusCard = ({
             {order.tracking_number && (
                 <div className="glimmr-order-tracking">
                     <span className="glimmr-tracking-label">Tracking:</span>
-                    {order.tracking_url ? (
+                    {order.tracking_url && /^https?:\/\//i.test(order.tracking_url) ? (
                         <a
                             href={order.tracking_url}
                             target="_blank"
@@ -214,7 +214,7 @@ const OrderStatusCard = ({
                             className="glimmr-tracking-link"
                         >
                             {order.tracking_number}
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                                 <polyline points="15 3 21 3 21 9" />
                                 <line x1="10" y1="14" x2="21" y2="3" />
@@ -232,7 +232,7 @@ const OrderStatusCard = ({
             {/* Estimated delivery */}
             {order.estimated_delivery && !isCancelled && statusIndex < 3 && (
                 <div className="glimmr-order-estimate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                     </svg>
@@ -248,6 +248,8 @@ const OrderStatusCard = ({
                         className="glimmr-order-items-toggle"
                         onClick={() => setIsExpanded(!isExpanded)}
                         aria-expanded={isExpanded}
+                        aria-controls="order-items-list"
+                        aria-label={isExpanded ? 'Hide order items' : 'Show order items'}
                     >
                         <span>{order.items.length} {order.items.length === 1 ? 'item' : 'items'}</span>
                         <svg
@@ -258,13 +260,15 @@ const OrderStatusCard = ({
                             stroke="currentColor"
                             strokeWidth="2"
                             className={isExpanded ? 'is-expanded' : ''}
+                            aria-hidden="true"
+                            focusable="false"
                         >
                             <polyline points="6 9 12 15 18 9" />
                         </svg>
                     </button>
 
                     {isExpanded && (
-                        <div className="glimmr-order-items-list">
+                        <div className="glimmr-order-items-list" id="order-items-list">
                             {order.items.map((item, index) => (
                                 <OrderItem
                                     key={index}

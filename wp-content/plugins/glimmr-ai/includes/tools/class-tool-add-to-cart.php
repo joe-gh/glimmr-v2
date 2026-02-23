@@ -624,7 +624,6 @@ class Glimmr_AI_Tool_Add_To_Cart extends Glimmr_AI_Tool_Base {
             'cookie_name'   => $wc_session_cookie_name,
             'cookie_exists' => ! empty( $session_cookie_value ),
             'cookie_length' => strlen( $session_cookie_value ),
-            'all_cookies'   => array_keys( $_COOKIE ?? array() ),
         ) );
 
         // Initialize session if needed.

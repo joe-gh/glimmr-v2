@@ -67,6 +67,16 @@ class Glimmr_AI_License {
     const REQUEST_TIMEOUT = 15;
 
     /**
+     * Development license key that bypasses server validation.
+     *
+     * This key works offline and grants unlimited access for development.
+     * Format matches standard license key format for UI consistency.
+     *
+     * @var string
+     */
+    const DEV_LICENSE_KEY = 'GLMR-DEV0-UNLM-ITD0-JPDG';
+
+    /**
      * Singleton instance.
      *
      * @var Glimmr_AI_License|null
@@ -114,6 +124,11 @@ class Glimmr_AI_License {
             return false;
         }
 
+        // Dev key bypass - works offline with unlimited access.
+        if ( strtoupper( $license_key ) === self::DEV_LICENSE_KEY ) {
+            return true;
+        }
+
         $data = $this->get_license_data();
 
         if ( empty( $data ) || empty( $data['activation_id'] ) ) {
@@ -123,6 +138,15 @@ class Glimmr_AI_License {
         // Check if status is explicitly invalid.
         if ( ! empty( $data['status'] ) && 'active' !== $data['status'] ) {
             return false;
+        }
+
+        // If HMAC verification fails, force remote validation on next check.
+        if ( ! $this->verify_hmac( $data ) ) {
+            $result = $this->validate( true );
+            if ( true === $result ) {
+                return true;
+            }
+            return $this->is_in_grace_period();
         }
 
         // Check if validation cache is still fresh.
@@ -175,6 +199,28 @@ class Glimmr_AI_License {
             );
         }
 
+        // Dev key bypass - activate locally without server contact.
+        if ( $license_key === self::DEV_LICENSE_KEY ) {
+            update_option( self::OPT_LICENSE_KEY, $license_key );
+            $license_data = array(
+                'activation_id'    => 'dev-' . wp_generate_uuid4(),
+                'plan'             => 'plan_unlimited',
+                'site_limit'       => 999,
+                'activations_used' => 1,
+                'expiry'           => '',
+                'last_validated'   => time(),
+                'status'           => 'active',
+            );
+            $this->store_license_data( $license_data );
+            $this->clear_grace_period();
+
+            return array(
+                'success' => true,
+                'message' => __( 'Development license activated.', 'glimmr-ai' ),
+                'data'    => $license_data,
+            );
+        }
+
         $response = $this->remote_post( 'activate', array(
             'license_key' => $license_key,
             'site_url'    => home_url(),
@@ -200,7 +246,7 @@ class Glimmr_AI_License {
 
         if ( empty( $body['success'] ) ) {
             $message = ! empty( $body['message'] )
-                ? $body['message']
+                ? sanitize_text_field( $body['message'] )
                 : __( 'License activation failed.', 'glimmr-ai' );
             return array(
                 'success' => false,
@@ -219,9 +265,16 @@ class Glimmr_AI_License {
             'last_validated'   => time(),
             'status'           => 'active',
         );
-        update_option( self::OPT_LICENSE_DATA, $license_data );
+        $this->store_license_data( $license_data );
         $this->clear_grace_period();
-        $this->cached_data = $license_data;
+
+        // Audit log: License activation.
+        if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
+            Glimmr_AI_Audit_Log::log_license_event( 'activate', array(
+                'license_key' => $license_key,
+                'plan'        => $license_data['plan'],
+            ) );
+        }
 
         return array(
             'success' => true,
@@ -265,6 +318,13 @@ class Glimmr_AI_License {
             );
         }
 
+        // Audit log: License deactivation.
+        if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
+            Glimmr_AI_Audit_Log::log_license_event( 'deactivate', array(
+                'license_key' => $license_key,
+            ) );
+        }
+
         return array(
             'success' => true,
             'message' => __( 'License deactivated successfully.', 'glimmr-ai' ),
@@ -283,6 +343,11 @@ class Glimmr_AI_License {
 
         if ( empty( $license_key ) || empty( $data['activation_id'] ) ) {
             return false;
+        }
+
+        // Dev key bypass - always valid, no server contact.
+        if ( strtoupper( $license_key ) === self::DEV_LICENSE_KEY ) {
+            return true;
         }
 
         // Check cache unless forced.
@@ -320,18 +385,25 @@ class Glimmr_AI_License {
             $data['expiry']           = sanitize_text_field( $body['expiry'] ?? $data['expiry'] ?? '' );
             $data['last_validated']   = time();
             $data['status']           = 'active';
-            update_option( self::OPT_LICENSE_DATA, $data );
+            $this->store_license_data( $data );
             $this->clear_grace_period();
-            $this->cached_data = $data;
             return true;
         }
 
         // Server explicitly says invalid — disable immediately (no grace period).
         $data['status']         = 'invalid';
         $data['last_validated'] = time();
-        update_option( self::OPT_LICENSE_DATA, $data );
+        $this->store_license_data( $data );
         $this->clear_grace_period();
-        $this->cached_data = $data;
+
+        // Audit log: License validation failure.
+        if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
+            Glimmr_AI_Audit_Log::log_license_event( 'validation_failed', array(
+                'license_key' => $license_key,
+                'reason'      => 'server_rejected',
+            ) );
+        }
+
         return false;
     }
 
@@ -348,6 +420,22 @@ class Glimmr_AI_License {
             return array(
                 'status'  => 'inactive',
                 'message' => __( 'No license key entered.', 'glimmr-ai' ),
+            );
+        }
+
+        // Dev key has special status display.
+        if ( strtoupper( $license_key ) === self::DEV_LICENSE_KEY ) {
+            return array(
+                'status'           => 'active',
+                'license_key'      => 'GLMR-****-****-****-JPDG',
+                'plan'             => 'dev_unlimited',
+                'plan_label'       => __( 'Development (Unlimited)', 'glimmr-ai' ),
+                'site_limit'       => 999,
+                'activations_used' => 1,
+                'expiry'           => '',
+                'last_validated'   => time(),
+                'grace_period'     => false,
+                'is_dev'           => true,
             );
         }
 
@@ -398,6 +486,10 @@ class Glimmr_AI_License {
     private function remote_post( $endpoint, $data ) {
         $url = $this->get_server_url() . $endpoint;
 
+        // Disable SSL verification for .local domains (self-signed certs).
+        $host      = wp_parse_url( $url, PHP_URL_HOST );
+        $sslverify = ! ( $host && str_ends_with( $host, '.local' ) );
+
         return wp_remote_post( $url, array(
             'timeout'   => self::REQUEST_TIMEOUT,
             'headers'   => array(
@@ -405,19 +497,25 @@ class Glimmr_AI_License {
                 'Accept'       => 'application/json',
             ),
             'body'      => wp_json_encode( $data ),
-            'sslverify' => true,
+            'sslverify' => $sslverify,
         ) );
     }
 
     /**
      * Get the licensing server URL.
      *
-     * Filterable via 'glimmr_ai_license_server_url' for development/testing.
+     * Automatically uses glimmr.local when running on a .local domain,
+     * otherwise defaults to glimmr.us. Filterable for further overrides.
      *
      * @return string Server URL.
      */
     private function get_server_url() {
-        return apply_filters( 'glimmr_ai_license_server_url', self::SERVER_URL );
+        $host = wp_parse_url( home_url(), PHP_URL_HOST );
+        if ( $host && str_ends_with( $host, '.local' ) ) {
+            return 'https://glimmr.local/wp-json/glimmr-licensing/v1/';
+        }
+
+        return self::SERVER_URL;
     }
 
     /**
@@ -444,8 +542,7 @@ class Glimmr_AI_License {
         $data = $this->get_license_data();
         if ( empty( $data['grace_period_start'] ) ) {
             $data['grace_period_start'] = time();
-            update_option( self::OPT_LICENSE_DATA, $data );
-            $this->cached_data = $data;
+            $this->store_license_data( $data );
         }
     }
 
@@ -472,9 +569,45 @@ class Glimmr_AI_License {
         $data = $this->get_license_data();
         if ( isset( $data['grace_period_start'] ) ) {
             unset( $data['grace_period_start'] );
-            update_option( self::OPT_LICENSE_DATA, $data );
-            $this->cached_data = $data;
+            $this->store_license_data( $data );
         }
+    }
+
+    /**
+     * Compute HMAC for license data integrity verification.
+     *
+     * @param array $data License data array.
+     * @return string HMAC-SHA256 hex digest.
+     */
+    private function compute_hmac( $data ) {
+        $payload = ( $data['activation_id'] ?? '' ) . '|' . ( $data['plan'] ?? '' ) . '|' . ( $data['status'] ?? '' );
+        return hash_hmac( 'sha256', $payload, wp_salt( 'auth' ) );
+    }
+
+    /**
+     * Verify HMAC integrity of license data.
+     *
+     * @param array $data License data array.
+     * @return bool True if HMAC is valid or not yet set.
+     */
+    private function verify_hmac( $data ) {
+        if ( empty( $data['_hmac'] ) ) {
+            // No HMAC stored yet (pre-upgrade data) — allow but flag for re-validation.
+            return false;
+        }
+        return hash_equals( $data['_hmac'], $this->compute_hmac( $data ) );
+    }
+
+    /**
+     * Store license data with HMAC integrity tag.
+     *
+     * @param array $data License data array.
+     * @return void
+     */
+    private function store_license_data( $data ) {
+        $data['_hmac'] = $this->compute_hmac( $data );
+        update_option( self::OPT_LICENSE_DATA, $data );
+        $this->cached_data = $data;
     }
 
     /**

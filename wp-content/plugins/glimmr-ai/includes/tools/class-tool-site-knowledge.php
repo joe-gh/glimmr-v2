@@ -290,13 +290,12 @@ class Glimmr_AI_Tool_Site_Knowledge extends Glimmr_AI_Tool_Base {
         );
 
         // Get from WooCommerce store settings.
+        // S11: Only expose city/state/country, never street addresses.
         if ( $this->is_wc_active() ) {
             $info['address'] = array(
-                'line1'    => get_option( 'woocommerce_store_address' ),
-                'line2'    => get_option( 'woocommerce_store_address_2' ),
-                'city'     => get_option( 'woocommerce_store_city' ),
-                'postcode' => get_option( 'woocommerce_store_postcode' ),
-                'country'  => WC()->countries->get_base_country(),
+                'city'    => get_option( 'woocommerce_store_city' ),
+                'state'   => get_option( 'woocommerce_store_state' ),
+                'country' => WC()->countries->get_base_country(),
             );
         }
 

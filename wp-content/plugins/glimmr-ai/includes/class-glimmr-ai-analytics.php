@@ -310,6 +310,7 @@ class Glimmr_AI_Analytics {
 
         $table = Glimmr_AI_Database::get_table_name( 'analytics' );
         $date_filter = self::get_date_filter( $period );
+        $site_id = get_current_blog_id();
 
         // Helper function to safely get count and log errors.
         $safe_get_var = function ( $query ) use ( $wpdb ) {
@@ -329,7 +330,8 @@ class Glimmr_AI_Analytics {
         $conversations = $safe_get_var(
             $wpdb->prepare(
                 "SELECT COUNT(DISTINCT conversation_id) FROM {$table}
-                 WHERE event_type = %s AND created_at >= %s",
+                 WHERE site_id = %d AND event_type = %s AND created_at >= %s",
+                $site_id,
                 self::EVENT_CONVERSATION_START,
                 $date_filter
             )
@@ -339,7 +341,8 @@ class Glimmr_AI_Analytics {
         $messages = $safe_get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$table}
-                 WHERE event_type = %s AND created_at >= %s",
+                 WHERE site_id = %d AND event_type = %s AND created_at >= %s",
+                $site_id,
                 self::EVENT_MESSAGE_SENT,
                 $date_filter
             )
@@ -349,7 +352,8 @@ class Glimmr_AI_Analytics {
         $tool_calls = $safe_get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$table}
-                 WHERE event_type = %s AND created_at >= %s",
+                 WHERE site_id = %d AND event_type = %s AND created_at >= %s",
+                $site_id,
                 self::EVENT_TOOL_CALLED,
                 $date_filter
             )
@@ -360,7 +364,8 @@ class Glimmr_AI_Analytics {
             $wpdb->prepare(
                 "SELECT COUNT(*) as count, SUM(JSON_EXTRACT(properties, '$.order_total')) as revenue
                  FROM {$table}
-                 WHERE event_type = %s AND created_at >= %s",
+                 WHERE site_id = %d AND event_type = %s AND created_at >= %s",
+                $site_id,
                 self::EVENT_ORDER_COMPLETED,
                 $date_filter
             ),
@@ -386,7 +391,8 @@ class Glimmr_AI_Analytics {
         $add_to_carts = $safe_get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$table}
-                 WHERE event_type = %s AND created_at >= %s",
+                 WHERE site_id = %d AND event_type = %s AND created_at >= %s",
+                $site_id,
                 self::EVENT_ADD_TO_CART,
                 $date_filter
             )
@@ -396,7 +402,8 @@ class Glimmr_AI_Analytics {
         $errors = $safe_get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$table}
-                 WHERE event_type = %s AND created_at >= %s",
+                 WHERE site_id = %d AND event_type = %s AND created_at >= %s",
+                $site_id,
                 self::EVENT_ERROR,
                 $date_filter
             )
@@ -431,6 +438,7 @@ class Glimmr_AI_Analytics {
 
         $table = Glimmr_AI_Database::get_table_name( 'analytics' );
         $date_filter = self::get_date_filter( $period );
+        $site_id = get_current_blog_id();
 
         $results = $wpdb->get_results(
             $wpdb->prepare(
@@ -439,9 +447,10 @@ class Glimmr_AI_Analytics {
                     COUNT(*) as count,
                     SUM(CASE WHEN JSON_EXTRACT(properties, '$.success') = true THEN 1 ELSE 0 END) as success_count
                  FROM {$table}
-                 WHERE event_type = %s AND created_at >= %s
+                 WHERE site_id = %d AND event_type = %s AND created_at >= %s
                  GROUP BY tool_name
                  ORDER BY count DESC",
+                $site_id,
                 self::EVENT_TOOL_CALLED,
                 $date_filter
             ),
@@ -463,9 +472,10 @@ class Glimmr_AI_Analytics {
 
         $table = Glimmr_AI_Database::get_table_name( 'analytics' );
         $date_filter = self::get_date_filter( $period );
+        $site_id = get_current_blog_id();
 
-        $where = "created_at >= %s";
-        $values = array( $date_filter );
+        $where = "site_id = %d AND created_at >= %s";
+        $values = array( $site_id, $date_filter );
 
         if ( $event_type ) {
             $where .= " AND event_type = %s";
@@ -500,6 +510,7 @@ class Glimmr_AI_Analytics {
 
         $conv_table = Glimmr_AI_Database::get_table_name( 'conversations' );
         $analytics_table = Glimmr_AI_Database::get_table_name( 'analytics' );
+        $site_id = get_current_blog_id();
 
         $results = $wpdb->get_results(
             $wpdb->prepare(
@@ -512,15 +523,21 @@ class Glimmr_AI_Analytics {
                     c.last_message_at,
                     (SELECT COUNT(*) FROM {$analytics_table} a
                      WHERE a.conversation_id = c.conversation_id
+                     AND a.site_id = %d
                      AND a.event_type = %s) as add_to_cart_count,
                     (SELECT COUNT(*) FROM {$analytics_table} a
                      WHERE a.conversation_id = c.conversation_id
+                     AND a.site_id = %d
                      AND a.event_type = %s) as converted
                  FROM {$conv_table} c
+                 WHERE c.site_id = %d
                  ORDER BY c.created_at DESC
                  LIMIT %d",
+                $site_id,
                 self::EVENT_ADD_TO_CART,
+                $site_id,
                 self::EVENT_ORDER_COMPLETED,
+                $site_id,
                 $limit
             ),
             ARRAY_A
@@ -541,6 +558,7 @@ class Glimmr_AI_Analytics {
 
         $table = Glimmr_AI_Database::get_table_name( 'analytics' );
         $date_filter = self::get_date_filter( $period );
+        $site_id = get_current_blog_id();
 
         // Get first messages of conversations (user intents).
         $results = $wpdb->get_results(
@@ -549,12 +567,14 @@ class Glimmr_AI_Analytics {
                     JSON_UNQUOTE(JSON_EXTRACT(properties, '$.tool_name')) as intent,
                     COUNT(*) as count
                  FROM {$table}
-                 WHERE event_type = %s
+                 WHERE site_id = %d
+                 AND event_type = %s
                  AND created_at >= %s
                  AND JSON_EXTRACT(properties, '$.tool_name') IS NOT NULL
                  GROUP BY intent
                  ORDER BY count DESC
                  LIMIT %d",
+                $site_id,
                 self::EVENT_TOOL_CALLED,
                 $date_filter,
                 $limit

@@ -358,7 +358,7 @@ const Settings = () => {
                     isDismissible={false}
                     className="glimmr-locked-notice"
                 >
-                    <span className="dashicons dashicons-lock"></span>
+                    <span className="dashicons dashicons-lock" aria-hidden="true"></span>
                     Some settings are locked by your network administrator and cannot be changed.
                 </Notice>
             )}

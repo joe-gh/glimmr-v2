@@ -119,9 +119,12 @@ glimmr-ai/
 | `analytics` | Event tracking | v1.0.0 |
 | `knowledge` | Knowledge base items | v1.0.0 |
 | `rate_limits` | Rate limiting state | v1.0.0 |
+| `token_budgets` | Token budget tracking per user/site | v1.0.0 |
 | `product_index` | Product search index | v1.0.0 |
+| `product_variations` | Product variation data | v1.0.0 |
 | `sync_log` | Sync operation history | v1.0.0 |
 | `contact_requests` | Customer support requests | v1.6.0 |
+| `contact_responses` | Admin responses to contact requests | v1.6.0 |
 
 ### conversations
 
@@ -320,7 +323,7 @@ CREATE TABLE {prefix}glimmr_ai_contact_requests (
 
 ### Database Version
 
-- **Current:** `1.6.0`
+- **Current:** `1.10.0`
 - **Option:** `glimmr_ai_db_version`
 
 ---

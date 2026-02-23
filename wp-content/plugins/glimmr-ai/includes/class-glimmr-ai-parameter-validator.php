@@ -256,7 +256,16 @@ class Glimmr_AI_Parameter_Validator {
 
         // pattern for strings (regex).
         if ( isset( $field_schema['pattern'] ) && is_string( $value ) ) {
-            if ( ! preg_match( '/' . $field_schema['pattern'] . '/', $value ) ) {
+            $result = @preg_match( '/' . $field_schema['pattern'] . '/', $value );
+            if ( false === $result ) {
+                // Invalid regex pattern in schema - log and fail open for schema errors.
+                Glimmr_AI_Logger::warning(
+                    'Invalid regex pattern in tool schema',
+                    array( 'pattern' => $field_schema['pattern'], 'field' => $field_path ),
+                    'validation'
+                );
+                // Don't reject value for schema errors.
+            } elseif ( ! $result ) {
                 return self::error( 'pattern_mismatch', $field_path,
                     sprintf( __( 'Field "%s" does not match the required pattern.', 'glimmr-ai' ),
                         $field_path

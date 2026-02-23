@@ -16,7 +16,7 @@ import { toNumber, safeToFixed } from '../utils/numbers';
  * Cart icon.
  */
 const CartIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <circle cx="9" cy="21" r="1" />
         <circle cx="20" cy="21" r="1" />
         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
@@ -27,7 +27,7 @@ const CartIcon = () => (
  * Trash icon.
  */
 const TrashIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <polyline points="3 6 5 6 21 6" />
         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
     </svg>
@@ -37,7 +37,7 @@ const TrashIcon = () => (
  * Tag/coupon icon.
  */
 const TagIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
         <line x1="7" y1="7" x2="7.01" y2="7" />
     </svg>
@@ -47,7 +47,7 @@ const TagIcon = () => (
  * Close/X icon.
  */
 const CloseIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
@@ -195,6 +195,7 @@ const CouponInput = ({ onApply, isApplying }) => {
                     onChange={(e) => setCouponCode(e.target.value)}
                     disabled={isApplying}
                     aria-label="Coupon code"
+                    aria-describedby={error ? 'coupon-error' : undefined}
                 />
                 <button
                     type="submit"
@@ -204,7 +205,7 @@ const CouponInput = ({ onApply, isApplying }) => {
                     {isApplying ? 'Applying...' : 'Apply'}
                 </button>
             </div>
-            {error && <span className="glimmr-cart-coupon-error">{error}</span>}
+            {error && <span className="glimmr-cart-coupon-error" id="coupon-error" role="alert">{error}</span>}
         </form>
     );
 };
@@ -272,7 +273,7 @@ const SavingsDisplay = ({ cart }) => {
 
     return (
         <div className="glimmr-cart-savings">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M8 14s1.5 2 4 2 4-2 4-2" />
                 <line x1="9" y1="9" x2="9.01" y2="9" />
@@ -367,7 +368,7 @@ const CartPreview = ({
                         onClick={() => setShowAllItems(true)}
                     >
                         +{cart.items.length - maxVisibleItems} more items
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                             <polyline points="6 9 12 15 18 9" />
                         </svg>
                     </button>
@@ -380,7 +381,7 @@ const CartPreview = ({
                         onClick={() => setShowAllItems(false)}
                     >
                         Show less
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                             <polyline points="18 15 12 9 6 15" />
                         </svg>
                     </button>
@@ -446,6 +447,7 @@ const CartPreview = ({
                     <a
                         href={cart.cart_url}
                         className="glimmr-btn glimmr-btn-secondary"
+                        aria-label={`View cart (${cart.item_count || 0} ${cart.item_count === 1 ? 'item' : 'items'})`}
                     >
                         View Cart
                     </a>
@@ -453,6 +455,7 @@ const CartPreview = ({
                 <a
                     href={cart.checkout_url || '/checkout'}
                     className="glimmr-btn glimmr-btn-primary"
+                    aria-label="Proceed to checkout"
                 >
                     Checkout
                 </a>

@@ -15,10 +15,29 @@
     border: 0;
 }
 
+// Link-styled button - removes default button chrome for semantic buttons
+.glimmr-link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: inherit;
+    text-decoration: inherit;
+    line-height: inherit;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 // Focus visible styles
 .glimmr-widget *:focus-visible {
     outline: 2px solid var(--glimmr-secondary);
     outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
 }
 
 // Reduced motion - disable all animations and transitions
@@ -44,6 +63,17 @@
     // Disable scroll smooth behavior
     .glimmr-messages {
         scroll-behavior: auto;
+    }
+}
+
+/* WCAG 2.5.5 Touch Target Size - Ensure minimum 44x44px touch targets */
+.glimmr-widget {
+    .glimmr-quantity-btn,
+    .glimmr-carousel-dot,
+    .glimmr-send-btn,
+    .glimmr-carousel-arrow {
+        min-width: 44px;
+        min-height: 44px;
     }
 }
 

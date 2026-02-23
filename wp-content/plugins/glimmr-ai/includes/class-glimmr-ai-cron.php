@@ -316,6 +316,10 @@ class Glimmr_AI_Cron {
             $retention_days = (int) $this->settings->get( 'data_retention_days', 365 );
             $results['analytics_cleaned'] = $this->cleanup_analytics( $retention_days );
 
+            // Cleanup old audit log entries (365 days default for SOC 2 compliance).
+            $audit_retention_days = (int) $this->settings->get( 'audit_log_retention_days', 365 );
+            $results['audit_log_cleaned'] = Glimmr_AI_Database::cleanup_audit_log( $audit_retention_days );
+
             $this->log_cron_run( 'cleanup', $results );
         } catch ( Exception $e ) {
             Glimmr_AI_Logger::error(

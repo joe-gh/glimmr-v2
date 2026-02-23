@@ -18,6 +18,13 @@ if ( ! defined( 'WPINC' ) ) {
 class Glimmr_Licensing_Admin {
 
     /**
+     * Option key for development keys.
+     *
+     * @var string
+     */
+    const DEV_KEYS_OPTION = 'glimmr_licensing_dev_keys';
+
+    /**
      * Menu slug.
      *
      * @var string
@@ -39,6 +46,7 @@ class Glimmr_Licensing_Admin {
     public function register_hooks() {
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+        add_action( 'admin_notices', array( $this, 'maybe_show_wcs_notice' ) );
 
         // AJAX handlers.
         add_action( 'wp_ajax_glimmr_licensing_create_license', array( $this, 'ajax_create_license' ) );
@@ -46,6 +54,9 @@ class Glimmr_Licensing_Admin {
         add_action( 'wp_ajax_glimmr_licensing_delete_license', array( $this, 'ajax_delete_license' ) );
         add_action( 'wp_ajax_glimmr_licensing_deactivate_site', array( $this, 'ajax_deactivate_site' ) );
         add_action( 'wp_ajax_glimmr_licensing_update_license', array( $this, 'ajax_update_license' ) );
+        add_action( 'wp_ajax_glimmr_licensing_bulk_action', array( $this, 'ajax_bulk_action' ) );
+        add_action( 'wp_ajax_glimmr_licensing_add_dev_key', array( $this, 'ajax_add_dev_key' ) );
+        add_action( 'wp_ajax_glimmr_licensing_delete_dev_key', array( $this, 'ajax_delete_dev_key' ) );
     }
 
     /**
@@ -119,7 +130,6 @@ class Glimmr_Licensing_Admin {
     public function render_dashboard_page() {
         $manager = new Glimmr_Licensing_Manager();
         $stats   = $manager->get_stats();
-        $recent  = $manager->get_licenses( array( 'per_page' => 10, 'page' => 1 ) );
 
         include GLIMMR_LICENSING_PLUGIN_DIR . 'admin/partials/dashboard.php';
     }
@@ -191,10 +201,10 @@ class Glimmr_Licensing_Admin {
         // Handle form submission.
         // phpcs:ignore WordPress.Security.NonceVerification.Missing
         if ( isset( $_POST['glimmr_licensing_save_settings'] ) ) {
+            check_admin_referer( 'glimmr_licensing_settings' );
             if ( ! current_user_can( self::CAPABILITY ) ) {
                 wp_die( esc_html__( 'Unauthorized.', 'glimmr-licensing' ) );
             }
-            check_admin_referer( 'glimmr_licensing_settings' );
 
             $settings = array(
                 // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -374,6 +384,79 @@ class Glimmr_Licensing_Admin {
     }
 
     /**
+     * AJAX: Bulk action on licenses (delete or status change).
+     *
+     * @return void
+     */
+    public function ajax_bulk_action() {
+        check_ajax_referer( 'glimmr_licensing_admin', 'nonce' );
+
+        if ( ! current_user_can( self::CAPABILITY ) ) {
+            wp_send_json_error( array( 'message' => __( 'Unauthorized.', 'glimmr-licensing' ) ) );
+        }
+
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+        $ids = isset( $_POST['license_ids'] ) ? array_map( 'absint', (array) $_POST['license_ids'] ) : array();
+        $ids = array_filter( $ids ); // Remove zeroes.
+
+        if ( empty( $ids ) ) {
+            wp_send_json_error( array( 'message' => __( 'No licenses selected.', 'glimmr-licensing' ) ) );
+        }
+
+        $bulk_action = sanitize_text_field( wp_unslash( $_POST['bulk_action'] ?? '' ) );
+        $manager     = new Glimmr_Licensing_Manager();
+        $count       = 0;
+
+        if ( 'delete' === $bulk_action ) {
+            foreach ( $ids as $id ) {
+                if ( $manager->delete_license( $id ) ) {
+                    $count++;
+                }
+            }
+            wp_send_json_success( array(
+                'message' => sprintf(
+                    /* translators: %d: number of deleted licenses */
+                    __( '%d license(s) deleted.', 'glimmr-licensing' ),
+                    $count
+                ),
+            ) );
+        } elseif ( 'status' === $bulk_action ) {
+            $status = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
+            foreach ( $ids as $id ) {
+                if ( $manager->update_license_status( $id, $status ) ) {
+                    $count++;
+                }
+            }
+            wp_send_json_success( array(
+                'message' => sprintf(
+                    /* translators: %d: number of updated licenses */
+                    __( '%d license(s) updated.', 'glimmr-licensing' ),
+                    $count
+                ),
+            ) );
+        } else {
+            wp_send_json_error( array( 'message' => __( 'Invalid bulk action.', 'glimmr-licensing' ) ) );
+        }
+    }
+
+    /**
+     * Show admin notice if WooCommerce Subscriptions is missing and product seeding was skipped.
+     *
+     * @return void
+     */
+    public function maybe_show_wcs_notice() {
+        if ( ! get_transient( 'glimmr_licensing_wcs_missing_notice' ) ) {
+            return;
+        }
+
+        echo '<div class="notice notice-warning is-dismissible"><p>';
+        esc_html_e( 'Glimmr Licensing: WooCommerce Subscriptions is required to create subscription products. Please install and activate it, then re-save settings.', 'glimmr-licensing' );
+        echo '</p></div>';
+
+        delete_transient( 'glimmr_licensing_wcs_missing_notice' );
+    }
+
+    /**
      * Mask a license key for display.
      *
      * @param string $key License key.
@@ -418,5 +501,123 @@ class Glimmr_Licensing_Admin {
         );
         $class = $classes[ $status ] ?? 'glimmr-badge-default';
         return '<span class="glimmr-badge ' . esc_attr( $class ) . '">' . esc_html( ucfirst( $status ) ) . '</span>';
+    }
+
+    /**
+     * Hash a dev key for storage.
+     *
+     * @param string $key Raw license key.
+     * @return string HMAC-SHA256 hash of the key.
+     */
+    public static function hash_dev_key( $key ) {
+        return hash_hmac( 'sha256', strtoupper( $key ), wp_salt( 'auth' ) );
+    }
+
+    /**
+     * Get all development keys.
+     *
+     * @return array Associative array keyed by hashed key, value is array with 'label' and 'created_at'.
+     */
+    public static function get_dev_keys() {
+        $dev_keys = get_option( self::DEV_KEYS_OPTION, array() );
+
+        // One-time migration: re-hash any plaintext keys stored before hashing was implemented.
+        $needs_migration = false;
+        foreach ( array_keys( $dev_keys ) as $stored_key ) {
+            // A SHA-256 HMAC hex digest is exactly 64 hex characters.
+            if ( 64 !== strlen( $stored_key ) || ! ctype_xdigit( $stored_key ) ) {
+                $needs_migration = true;
+                break;
+            }
+        }
+
+        if ( $needs_migration ) {
+            $migrated = array();
+            foreach ( $dev_keys as $stored_key => $meta ) {
+                $hashed = self::hash_dev_key( $stored_key );
+                $migrated[ $hashed ] = $meta;
+            }
+            update_option( self::DEV_KEYS_OPTION, $migrated );
+            $dev_keys = $migrated;
+        }
+
+        return $dev_keys;
+    }
+
+    /**
+     * Check if a license key is a development key.
+     *
+     * @param string $key License key.
+     * @return bool True if this is a dev key.
+     */
+    public static function is_dev_key( $key ) {
+        $dev_keys = self::get_dev_keys();
+        $hashed   = self::hash_dev_key( $key );
+        return isset( $dev_keys[ $hashed ] );
+    }
+
+    /**
+     * AJAX: Add a development key.
+     *
+     * @return void
+     */
+    public function ajax_add_dev_key() {
+        check_ajax_referer( 'glimmr_licensing_admin', 'nonce' );
+
+        if ( ! current_user_can( self::CAPABILITY ) ) {
+            wp_send_json_error( array( 'message' => __( 'Unauthorized.', 'glimmr-licensing' ) ) );
+        }
+
+        $label = sanitize_text_field( wp_unslash( $_POST['label'] ?? '' ) );
+        if ( empty( $label ) ) {
+            wp_send_json_error( array( 'message' => __( 'Label is required.', 'glimmr-licensing' ) ) );
+        }
+
+        $key      = Glimmr_Licensing_Key_Generator::generate();
+        $hashed   = self::hash_dev_key( $key );
+        $dev_keys = self::get_dev_keys();
+
+        $dev_keys[ $hashed ] = array(
+            'label'      => $label,
+            'created_at' => current_time( 'mysql' ),
+        );
+
+        update_option( self::DEV_KEYS_OPTION, $dev_keys );
+
+        wp_send_json_success( array(
+            'message' => __( 'Development key created.', 'glimmr-licensing' ),
+            'key'     => $key,
+            'label'   => $label,
+        ) );
+    }
+
+    /**
+     * AJAX: Delete a development key.
+     *
+     * @return void
+     */
+    public function ajax_delete_dev_key() {
+        check_ajax_referer( 'glimmr_licensing_admin', 'nonce' );
+
+        if ( ! current_user_can( self::CAPABILITY ) ) {
+            wp_send_json_error( array( 'message' => __( 'Unauthorized.', 'glimmr-licensing' ) ) );
+        }
+
+        $key = strtoupper( sanitize_text_field( wp_unslash( $_POST['dev_key'] ?? '' ) ) );
+        if ( empty( $key ) ) {
+            wp_send_json_error( array( 'message' => __( 'Key is required.', 'glimmr-licensing' ) ) );
+        }
+
+        $hashed   = self::hash_dev_key( $key );
+        $dev_keys = self::get_dev_keys();
+
+        if ( ! isset( $dev_keys[ $hashed ] ) ) {
+            wp_send_json_error( array( 'message' => __( 'Key not found.', 'glimmr-licensing' ) ) );
+        }
+
+        unset( $dev_keys[ $hashed ] );
+        update_option( self::DEV_KEYS_OPTION, $dev_keys );
+
+        wp_send_json_success( array( 'message' => __( 'Development key deleted.', 'glimmr-licensing' ) ) );
     }
 }

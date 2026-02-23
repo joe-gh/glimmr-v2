@@ -9,6 +9,7 @@
 
 const { useState, useEffect, useCallback } = wp.element;
 const { Button, SelectControl, TextControl, Modal, Spinner, Notice } = wp.components;
+import DOMPurify from 'dompurify';
 
 /**
  * Status badge component.
@@ -49,8 +50,8 @@ const PriorityBadge = ({ priority, priorityInfo }) => {
         borderRadius: '4px',
         fontSize: '11px',
         fontWeight: '600',
-        backgroundColor: priorityInfo?.color || '#17a2b8',
-        color: '#fff',
+        backgroundColor: priorityInfo?.bgColor || priorityInfo?.color || '#17a2b8',
+        color: priorityInfo?.bgColor ? priorityInfo.color : '#fff',
         textTransform: 'uppercase',
     };
 
@@ -349,7 +350,7 @@ const RequestDetailModal = ({ request, onClose, onUpdate, onReply }) => {
                                         #{detail.order_info.number}
                                     </a>
                                     {' '}&bull;{' '}{detail.order_info.status}
-                                    {' '}&bull;{' '}<span dangerouslySetInnerHTML={{ __html: detail.order_info.total }} />
+                                    {' '}&bull;{' '}<span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(detail.order_info.total) }} />
                                 </div>
                             )}
                             {detail.product_info && (
@@ -521,7 +522,11 @@ const ResponseModal = ({ request, onClose, onSuccess }) => {
                     </Notice>
                 )}
 
+                <label htmlFor="glimmr-contact-response" style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                    Response to Customer
+                </label>
                 <textarea
+                    id="glimmr-contact-response"
                     value={responseText}
                     onChange={(e) => setResponseText(e.target.value)}
                     placeholder="Type your response to the customer..."
@@ -746,7 +751,7 @@ const ContactRequests = () => {
     const priorityInfo = {
         low: { name: 'Low', color: '#28a745' },
         normal: { name: 'Normal', color: '#17a2b8' },
-        high: { name: 'High', color: '#ffc107' },
+        high: { name: 'High', color: '#92400e', bgColor: '#fef3c7' },
         urgent: { name: 'Urgent', color: '#dc3545' },
     };
 

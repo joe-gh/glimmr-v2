@@ -36,17 +36,19 @@ $plan_labels = array(
             </tr>
         </thead>
         <tbody>
+            <?php
+            $manager = new Glimmr_Licensing_Manager();
+            ?>
             <?php foreach ( $licenses as $license ) : ?>
                 <?php
-                $manager       = new Glimmr_Licensing_Manager();
                 $active_sites  = $manager->get_active_activation_count( $license->id );
                 $masked_key    = substr( $license->license_key, 0, 4 ) . '-****-****-****-' . substr( $license->license_key, -4 );
                 ?>
                 <tr>
                     <td data-title="<?php esc_attr_e( 'License Key', 'glimmr-licensing' ); ?>">
                         <code><?php echo esc_html( $masked_key ); ?></code>
-                        <button type="button" class="button button-small"
-                                onclick="navigator.clipboard.writeText('<?php echo esc_js( $license->license_key ); ?>').then(function() { alert('Copied!'); });"
+                        <button type="button" class="button button-small glimmr-copy-key"
+                                data-license-id="<?php echo esc_attr( $license->id ); ?>"
                                 style="margin-left: 8px; font-size: 11px; padding: 0 8px; line-height: 1.8;">
                             <?php esc_html_e( 'Copy', 'glimmr-licensing' ); ?>
                         </button>
@@ -84,4 +86,57 @@ $plan_labels = array(
             <?php endforeach; ?>
         </tbody>
     </table>
+
+    <script>
+    (function() {
+        var glimmrLicensing = {
+            ajaxUrl: '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>',
+            nonce: '<?php echo esc_js( wp_create_nonce( 'glimmr_licensing_frontend' ) ); ?>'
+        };
+
+        function copyText(text, btn) {
+            function done() {
+                var original = btn.textContent;
+                btn.textContent = '<?php echo esc_js( __( 'Copied!', 'glimmr-licensing' ) ); ?>';
+                btn.style.color = '#0e6027';
+                setTimeout(function() { btn.textContent = original; btn.style.color = ''; }, 2000);
+            }
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(done);
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                document.body.removeChild(ta);
+                done();
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.glimmr-copy-key');
+            if (!btn) return;
+            var licenseId = btn.getAttribute('data-license-id');
+            btn.disabled = true;
+            fetch(glimmrLicensing.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=glimmr_get_license_key&license_id=' + encodeURIComponent(licenseId) + '&nonce=' + encodeURIComponent(glimmrLicensing.nonce)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                btn.disabled = false;
+                if (data.success) {
+                    copyText(data.data.key, btn);
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+            });
+        });
+    })();
+    </script>
 <?php endif; ?>

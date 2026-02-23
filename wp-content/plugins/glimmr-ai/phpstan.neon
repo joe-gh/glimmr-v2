@@ -1,0 +1,39 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+
+    paths:
+        - glimmr-ai.php
+        - uninstall.php
+        - admin/
+        - includes/
+        - public/
+
+    excludePaths:
+        - vendor
+
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+
+    ignoreErrors:
+        # WooCommerce classes - no stubs package available
+        -
+            identifier: class.notFound
+            message: '#WC_|WooCommerce|woocommerce#i'
+        # WP-CLI - only loaded in CLI context, no stubs available
+        -
+            identifier: class.notFound
+            message: '#WP_CLI#'
+        # dbDelta - conditionally loaded from wp-admin/includes/upgrade.php
+        -
+            identifier: function.notFound
+            message: '#dbDelta#'
+        # WooCommerce/WP-CLI functions - not available in static analysis
+        -
+            identifier: function.notFound
+            message: '#wc_|wcs_|WC\b|WP_CLI|woocommerce_|is_plugin_active#i'
+        # WordPress constants defined at runtime (COOKIEPATH, etc.)
+        -
+            identifier: constant.notFound

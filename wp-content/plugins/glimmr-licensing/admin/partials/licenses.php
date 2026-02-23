@@ -79,9 +79,22 @@ $nonce        = wp_create_nonce( 'glimmr_licensing_admin' );
     <?php if ( empty( $licenses ) ) : ?>
         <p><?php esc_html_e( 'No licenses found.', 'glimmr-licensing' ); ?></p>
     <?php else : ?>
+        <!-- Bulk Actions -->
+        <div class="glimmr-bulk-actions" id="bulk-actions" style="display: none; margin-bottom: 12px;">
+            <span id="bulk-count"></span>
+            <select id="bulk-action-select">
+                <option value=""><?php esc_html_e( 'Bulk Actions', 'glimmr-licensing' ); ?></option>
+                <option value="delete"><?php esc_html_e( 'Delete', 'glimmr-licensing' ); ?></option>
+                <option value="suspend"><?php esc_html_e( 'Suspend', 'glimmr-licensing' ); ?></option>
+                <option value="activate"><?php esc_html_e( 'Activate', 'glimmr-licensing' ); ?></option>
+            </select>
+            <button type="button" class="button" id="btn-bulk-apply"><?php esc_html_e( 'Apply', 'glimmr-licensing' ); ?></button>
+        </div>
+
         <table class="glimmr-table">
             <thead>
                 <tr>
+                    <th style="width: 30px;"><input type="checkbox" id="cb-select-all" /></th>
                     <th><?php esc_html_e( 'Key', 'glimmr-licensing' ); ?></th>
                     <th><?php esc_html_e( 'Customer', 'glimmr-licensing' ); ?></th>
                     <th><?php esc_html_e( 'Plan', 'glimmr-licensing' ); ?></th>
@@ -94,6 +107,7 @@ $nonce        = wp_create_nonce( 'glimmr_licensing_admin' );
             <tbody>
                 <?php foreach ( $licenses as $license ) : ?>
                     <tr>
+                        <td><input type="checkbox" class="cb-license" value="<?php echo esc_attr( $license->id ); ?>" /></td>
                         <td>
                             <a href="<?php echo esc_url( admin_url( 'admin.php?page=glimmr-licensing-licenses&license_id=' . $license->id ) ); ?>">
                                 <code><?php echo esc_html( Glimmr_Licensing_Admin::mask_key( $license->license_key ) ); ?></code>
@@ -205,6 +219,95 @@ $nonce        = wp_create_nonce( 'glimmr_licensing_admin' );
                 msg.style.color = '#8a1116';
                 msg.textContent = 'Network error.';
             });
+    });
+
+    // Bulk selection.
+    var selectAll = document.getElementById('cb-select-all');
+    var bulkBar = document.getElementById('bulk-actions');
+    var bulkCount = document.getElementById('bulk-count');
+
+    function getCheckedIds() {
+        var ids = [];
+        document.querySelectorAll('.cb-license:checked').forEach(function(cb) {
+            ids.push(cb.value);
+        });
+        return ids;
+    }
+
+    function updateBulkBar() {
+        var ids = getCheckedIds();
+        if (ids.length > 0) {
+            bulkBar.style.display = '';
+            bulkCount.textContent = ids.length + ' <?php echo esc_js( __( 'selected', 'glimmr-licensing' ) ); ?>';
+        } else {
+            bulkBar.style.display = 'none';
+        }
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            var checked = this.checked;
+            document.querySelectorAll('.cb-license').forEach(function(cb) {
+                cb.checked = checked;
+            });
+            updateBulkBar();
+        });
+    }
+
+    document.querySelectorAll('.cb-license').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var all = document.querySelectorAll('.cb-license');
+            var allChecked = document.querySelectorAll('.cb-license:checked');
+            if (selectAll) {
+                selectAll.checked = all.length === allChecked.length;
+            }
+            updateBulkBar();
+        });
+    });
+
+    // Bulk apply.
+    document.getElementById('btn-bulk-apply').addEventListener('click', function() {
+        var action = document.getElementById('bulk-action-select').value;
+        var ids = getCheckedIds();
+
+        if (!action || ids.length === 0) return;
+
+        var messages = {
+            'delete': '<?php echo esc_js( __( 'Delete the selected licenses and all their activations?', 'glimmr-licensing' ) ); ?>',
+            'suspend': '<?php echo esc_js( __( 'Suspend the selected licenses?', 'glimmr-licensing' ) ); ?>',
+            'activate': '<?php echo esc_js( __( 'Activate the selected licenses?', 'glimmr-licensing' ) ); ?>'
+        };
+        if (!confirm(messages[action] || '<?php echo esc_js( __( 'Are you sure?', 'glimmr-licensing' ) ); ?>')) return;
+
+        if (action === 'delete') {
+            var data = new FormData();
+            data.append('action', 'glimmr_licensing_bulk_action');
+            data.append('nonce', nonce);
+            data.append('bulk_action', 'delete');
+            ids.forEach(function(id) { data.append('license_ids[]', id); });
+            fetch(ajaxurl, { method: 'POST', body: data, credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    if (result.success) { location.reload(); }
+                    else { alert(result.data && result.data.message ? result.data.message : '<?php echo esc_js( __( 'Bulk action failed.', 'glimmr-licensing' ) ); ?>'); }
+                })
+                .catch(function() { alert('<?php echo esc_js( __( 'Network error. Please try again.', 'glimmr-licensing' ) ); ?>'); });
+        } else {
+            var status = action === 'suspend' ? 'suspended' : 'active';
+            var data = new FormData();
+            data.append('action', 'glimmr_licensing_bulk_action');
+            data.append('nonce', nonce);
+            data.append('bulk_action', 'status');
+            data.append('status', status);
+            ids.forEach(function(id) { data.append('license_ids[]', id); });
+            fetch(ajaxurl, { method: 'POST', body: data, credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    if (result.success) { location.reload(); }
+                    else { alert(result.data && result.data.message ? result.data.message : '<?php echo esc_js( __( 'Bulk action failed.', 'glimmr-licensing' ) ); ?>'); }
+                })
+                .catch(function() { alert('<?php echo esc_js( __( 'Network error. Please try again.', 'glimmr-licensing' ) ); ?>'); });
+        }
     });
 
     // Suspend / Reactivate / Delete buttons.

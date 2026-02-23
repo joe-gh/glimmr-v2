@@ -15,7 +15,7 @@ import { toNumber, safeToFixed } from '../utils/numbers';
  * Cart icon.
  */
 const CartIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <circle cx="9" cy="21" r="1" />
         <circle cx="20" cy="21" r="1" />
         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
@@ -26,7 +26,7 @@ const CartIcon = () => (
  * Arrow right icon.
  */
 const ArrowRightIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <line x1="5" y1="12" x2="19" y2="12" />
         <polyline points="12 5 19 12 12 19" />
     </svg>
@@ -36,7 +36,7 @@ const ArrowRightIcon = () => (
  * Lock icon for secure checkout.
  */
 const LockIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
@@ -46,7 +46,7 @@ const LockIcon = () => (
  * Truck icon for free shipping.
  */
 const TruckIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <rect x="1" y="3" width="15" height="13" />
         <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
         <circle cx="5.5" cy="18.5" r="2.5" />
@@ -171,8 +171,8 @@ const CheckoutCTA = ({
 
             {/* Payment icons placeholder */}
             <div className="glimmr-checkout-payments">
-                <span className="glimmr-checkout-payment-icon" title="Visa">
-                    <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
+                <span className="glimmr-checkout-payment-icon" title="Visa" role="img" aria-label="Visa">
+                    <svg width="32" height="20" viewBox="0 0 32 20" fill="none" aria-hidden="true" focusable="false">
                         <rect width="32" height="20" rx="2" fill="#1A1F71"/>
                         <path d="M13.5 13.5L14.5 6.5H16.5L15.5 13.5H13.5Z" fill="#FFFFFF"/>
                         <path d="M21.5 6.7C21 6.5 20.2 6.3 19.2 6.3C17.2 6.3 15.8 7.3 15.8 8.7C15.8 9.8 16.8 10.4 17.6 10.8C18.4 11.2 18.7 11.4 18.7 11.8C18.7 12.3 18.1 12.5 17.5 12.5C16.7 12.5 16.2 12.4 15.4 12L15.1 11.9L14.8 13.5C15.4 13.8 16.4 14 17.5 14C19.6 14 21 13 21 11.5C21 10.6 20.4 9.9 19.2 9.3C18.5 8.9 18.1 8.7 18.1 8.3C18.1 7.9 18.5 7.5 19.4 7.5C20.1 7.5 20.7 7.7 21.1 7.8L21.3 7.9L21.5 6.7Z" fill="#FFFFFF"/>
@@ -181,16 +181,16 @@ const CheckoutCTA = ({
                         <path d="M8 6.5H5L5 6.7C7.5 7.3 9.2 8.8 9.8 10.3L9.1 7C9 6.6 8.6 6.5 8 6.5Z" fill="#F9A825"/>
                     </svg>
                 </span>
-                <span className="glimmr-checkout-payment-icon" title="Mastercard">
-                    <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
+                <span className="glimmr-checkout-payment-icon" title="Mastercard" role="img" aria-label="Mastercard">
+                    <svg width="32" height="20" viewBox="0 0 32 20" fill="none" aria-hidden="true" focusable="false">
                         <rect width="32" height="20" rx="2" fill="#F5F5F5"/>
                         <circle cx="12" cy="10" r="6" fill="#EB001B"/>
                         <circle cx="20" cy="10" r="6" fill="#F79E1B"/>
                         <path d="M16 5.5C14.3 6.9 13.2 8.8 13.2 10C13.2 11.2 14.3 13.1 16 14.5C17.7 13.1 18.8 11.2 18.8 10C18.8 8.8 17.7 6.9 16 5.5Z" fill="#FF5F00"/>
                     </svg>
                 </span>
-                <span className="glimmr-checkout-payment-icon" title="PayPal">
-                    <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
+                <span className="glimmr-checkout-payment-icon" title="PayPal" role="img" aria-label="PayPal">
+                    <svg width="32" height="20" viewBox="0 0 32 20" fill="none" aria-hidden="true" focusable="false">
                         <rect width="32" height="20" rx="2" fill="#F5F5F5"/>
                         <path d="M12.5 15.5H10.5L11.5 8.5H13.5L12.5 15.5Z" fill="#253B80"/>
                         <path d="M20 8.5C19.5 8.3 18.7 8 17.7 8C15.9 8 14.6 9 14.6 10.3C14.6 11.3 15.5 11.8 16.2 12.2C16.9 12.5 17.2 12.8 17.2 13.1C17.2 13.6 16.6 13.8 16.1 13.8C15.3 13.8 14.9 13.7 14.2 13.4L13.9 13.3L13.7 14.7C14.3 14.9 15.2 15.1 16.2 15.1C18.1 15.1 19.4 14.1 19.4 12.7C19.4 11.8 18.9 11.2 17.8 10.6C17.2 10.3 16.8 10.1 16.8 9.7C16.8 9.4 17.2 9 18 9C18.6 9 19.1 9.1 19.5 9.2L19.7 9.3L20 8.5Z" fill="#253B80"/>

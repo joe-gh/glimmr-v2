@@ -15,6 +15,21 @@ import VariationSelector from './VariationSelector';
 import { getRating, safeRound, toNumber, safeToFixed } from '../utils/numbers';
 import { debug, debugError } from '../utils/debug';
 import { trackProductView, trackAddToCart } from '../utils/ga4';
+import DOMPurify from 'dompurify';
+
+/**
+ * Decode HTML entities in a string.
+ * Converts entities like &#8217; to their character equivalents.
+ *
+ * @param {string} text - Text containing HTML entities.
+ * @returns {string} Decoded text.
+ */
+const decodeHtmlEntities = (text) => {
+    if (!text || typeof text !== 'string') return text;
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+};
 
 /**
  * Close icon.
@@ -116,7 +131,7 @@ const ProductDetailModal = ({
     } = config.artifacts || config;
 
     /**
-     * Reset state when product changes.
+     * Reset state when product changes and auto-select first valid variation.
      */
     useEffect(() => {
         if (product) {
@@ -131,8 +146,127 @@ const ProductDetailModal = ({
                 product.name,
                 toNumber(product.price) || toNumber(product.price_raw) || 0
             );
+
+            // Auto-select first valid variation for variable products
+            if (product.type === 'variable' && product.attributes && product.variations?.length > 0) {
+                autoSelectFirstVariation(product);
+            }
         }
     }, [product?.id]);
+
+    /**
+     * Auto-select the first valid color and size combination.
+     */
+    const autoSelectFirstVariation = useCallback((prod) => {
+        const { attributes, variations } = prod;
+        if (!attributes || !variations || variations.length === 0) return;
+
+        debug('[ProductDetailModal] Auto-selecting first valid variation');
+
+        // Find color and size attribute names (case-insensitive)
+        let colorAttrName = null;
+        let sizeAttrName = null;
+        const otherAttrs = [];
+
+        Object.keys(attributes).forEach((name) => {
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes('color') || lowerName.includes('colour')) {
+                colorAttrName = name;
+            } else if (lowerName.includes('size')) {
+                sizeAttrName = name;
+            } else {
+                otherAttrs.push(name);
+            }
+        });
+
+        // Get options as arrays
+        const getOptions = (attrValue) => {
+            if (Array.isArray(attrValue)) return attrValue;
+            if (typeof attrValue === 'string') {
+                return attrValue.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            return [];
+        };
+
+        // Find the first in-stock variation
+        const inStockVariations = variations.filter(v => v.in_stock !== false);
+        if (inStockVariations.length === 0) {
+            debug('[ProductDetailModal] No in-stock variations found');
+            return;
+        }
+
+        // Build selected attributes starting with color
+        const autoSelected = {};
+
+        // Select first available color that has in-stock sizes
+        if (colorAttrName) {
+            const colorOptions = getOptions(attributes[colorAttrName]);
+            for (const color of colorOptions) {
+                // Check if this color has any in-stock variation
+                const hasStock = inStockVariations.some(v =>
+                    v.attributes[colorAttrName] === color || v.attributes[colorAttrName] === ''
+                );
+                if (hasStock) {
+                    autoSelected[colorAttrName] = color;
+                    debug('[ProductDetailModal] Auto-selected color:', color);
+                    break;
+                }
+            }
+        }
+
+        // Select first available size for the selected color
+        if (sizeAttrName) {
+            const sizeOptions = getOptions(attributes[sizeAttrName]);
+            for (const size of sizeOptions) {
+                // Check if this size is available with the selected color
+                const matchingVariation = inStockVariations.find(v => {
+                    const colorMatch = !colorAttrName ||
+                        v.attributes[colorAttrName] === autoSelected[colorAttrName] ||
+                        v.attributes[colorAttrName] === '';
+                    const sizeMatch = v.attributes[sizeAttrName] === size || v.attributes[sizeAttrName] === '';
+                    return colorMatch && sizeMatch;
+                });
+                if (matchingVariation) {
+                    autoSelected[sizeAttrName] = size;
+                    debug('[ProductDetailModal] Auto-selected size:', size);
+                    break;
+                }
+            }
+        }
+
+        // Handle other attributes (select first available option)
+        for (const attrName of otherAttrs) {
+            const options = getOptions(attributes[attrName]);
+            for (const option of options) {
+                const matchingVariation = inStockVariations.find(v => {
+                    // Must match all previously selected attributes
+                    const matchesPrevious = Object.entries(autoSelected).every(([name, value]) =>
+                        v.attributes[name] === value || v.attributes[name] === ''
+                    );
+                    const matchesCurrent = v.attributes[attrName] === option || v.attributes[attrName] === '';
+                    return matchesPrevious && matchesCurrent;
+                });
+                if (matchingVariation) {
+                    autoSelected[attrName] = option;
+                    debug('[ProductDetailModal] Auto-selected', attrName + ':', option);
+                    break;
+                }
+            }
+        }
+
+        // Find the matching variation
+        const matchedVariation = inStockVariations.find(v =>
+            Object.entries(autoSelected).every(([attrName, attrValue]) =>
+                v.attributes[attrName] === attrValue || v.attributes[attrName] === ''
+            )
+        );
+
+        if (Object.keys(autoSelected).length > 0) {
+            debug('[ProductDetailModal] Auto-selection complete:', autoSelected, matchedVariation);
+            setSelectedAttributes(autoSelected);
+            setSelectedVariation(matchedVariation || null);
+        }
+    }, []);
 
     /**
      * Focus management: save previous focus and restore on close.
@@ -359,13 +493,13 @@ const ProductDetailModal = ({
                     <div className="glimmr-product-modal-details">
                         {/* Title */}
                         <h2 id="product-modal-title" className="glimmr-product-modal-title">
-                            {product.name}
+                            {decodeHtmlEntities(product.name)}
                         </h2>
 
                         {/* Rating */}
                         {modalShowReviews && product.rating !== undefined && (
                             <div className="glimmr-product-modal-rating">
-                                <div className="glimmr-stars">
+                                <div className="glimmr-stars" aria-label={`${getRating(product.rating)} out of 5 stars`}>
                                     {[...Array(5)].map((_, i) => (
                                         <svg
                                             key={i}
@@ -409,7 +543,7 @@ const ProductDetailModal = ({
                         {product.short_description && (
                             <div
                                 className="glimmr-product-modal-description"
-                                dangerouslySetInnerHTML={{ __html: product.short_description }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.short_description) }}
                             />
                         )}
 
@@ -418,7 +552,7 @@ const ProductDetailModal = ({
                             <div className="glimmr-product-modal-full-description">
                                 <div
                                     className="glimmr-product-modal-full-description-content"
-                                    dangerouslySetInnerHTML={{ __html: product.description }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
                                 />
                             </div>
                         )}
@@ -440,7 +574,7 @@ const ProductDetailModal = ({
                                                 {review.verified && (
                                                     <span className="glimmr-verified-badge">Verified</span>
                                                 )}
-                                                <div className="glimmr-review-stars">
+                                                <div className="glimmr-review-stars" aria-label={`${review.rating} out of 5 stars`}>
                                                     {[...Array(5)].map((_, i) => (
                                                         <svg
                                                             key={i}
@@ -482,6 +616,7 @@ const ProductDetailModal = ({
                                     variations={product.variations}
                                     selectedAttributes={selectedAttributes}
                                     onChange={handleVariationChange}
+                                    colorSwatches={product.available_options?.colors}
                                 />
                             </div>
                         )}

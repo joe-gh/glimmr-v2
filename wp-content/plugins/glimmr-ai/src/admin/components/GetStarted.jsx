@@ -74,14 +74,25 @@ const ApiKeyStep = ({ step, onSave, onTest }) => {
     const [isEditing, setIsEditing] = useState(!step.complete);
 
     const modelOptions = [
-        { label: 'GPT-4o (Recommended)', value: 'gpt-4o' },
-        { label: 'GPT-4o Mini (Faster, cheaper)', value: 'gpt-4o-mini' },
+        { label: '— GPT-5 Series —', value: '', disabled: true },
+        { label: 'GPT-5.2 (Most Capable)', value: 'gpt-5.2' },
+        { label: 'GPT-5.1', value: 'gpt-5.1' },
+        { label: 'GPT-5', value: 'gpt-5' },
+        { label: 'GPT-5 Mini (Faster, Lower Cost)', value: 'gpt-5-mini' },
+        { label: 'GPT-5 Nano (Ultra-Fast)', value: 'gpt-5-nano' },
+        { label: '— GPT-4o Series —', value: '', disabled: true },
+        { label: 'GPT-4o (Fast, Multimodal)', value: 'gpt-4o' },
+        { label: 'GPT-4o Mini (Fastest & Cheapest)', value: 'gpt-4o-mini' },
+        { label: '— GPT-4.1 Series —', value: '', disabled: true },
+        { label: 'GPT-4.1 (Best Overall)', value: 'gpt-4.1' },
+        { label: 'GPT-4.1 Mini (Faster, Cheaper)', value: 'gpt-4.1-mini' },
+        { label: 'GPT-4.1 Nano (Low Cost)', value: 'gpt-4.1-nano' },
+        { label: '— Reasoning Models —', value: '', disabled: true },
+        { label: 'o4-mini (Advanced Reasoning)', value: 'o4-mini' },
+        { label: 'o3-mini (Lightweight Reasoning)', value: 'o3-mini' },
+        { label: '— Legacy —', value: '', disabled: true },
         { label: 'GPT-4 Turbo', value: 'gpt-4-turbo' },
         { label: 'GPT-4', value: 'gpt-4' },
-        { label: 'GPT-4.1', value: 'gpt-4.1' },
-        { label: 'GPT-4.1 Mini', value: 'gpt-4.1-mini' },
-        { label: 'o3-mini (Reasoning)', value: 'o3-mini' },
-        { label: 'o4-mini (Reasoning)', value: 'o4-mini' },
     ];
 
     const handleSave = async () => {
@@ -746,6 +757,7 @@ const GetStarted = () => {
                 }),
             });
 
+            if (!response.ok) throw new Error('Server error');
             const data = await response.json();
 
             if (data.success) {
@@ -777,6 +789,7 @@ const GetStarted = () => {
             }),
         });
 
+        if (!response.ok) throw new Error('Server error');
         const data = await response.json();
 
         if (data.success) {
@@ -820,6 +833,7 @@ const GetStarted = () => {
             }),
         });
 
+        if (!response.ok) throw new Error('Server error');
         const data = await response.json();
 
         if (data.success) {
@@ -844,6 +858,7 @@ const GetStarted = () => {
                 }),
             });
 
+            if (!response.ok) throw new Error('Server error');
             const data = await response.json();
 
             if (data.success) {

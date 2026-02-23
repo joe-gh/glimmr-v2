@@ -11,6 +11,12 @@
     line-height: 1.5;
     box-sizing: border-box;
 
+    // Override WordPress/theme border leakage from rules like:
+    // html :where([style*=border-width]) { border-style: solid; }
+    &, * {
+        border-style: none;
+    }
+
     *, *::before, *::after {
         box-sizing: border-box;
     }

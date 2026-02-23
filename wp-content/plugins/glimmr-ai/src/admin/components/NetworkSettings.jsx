@@ -113,7 +113,9 @@ const NetworkApiTab = ({ settings, onChange }) => (
             value={settings.openai_model || 'gpt-4o-mini'}
             options={[
                 { value: '', label: '— GPT-5 Series —', disabled: true },
-                { value: 'gpt-5', label: 'GPT-5 (Most Capable)' },
+                { value: 'gpt-5.2', label: 'GPT-5.2 (Most Capable)' },
+                { value: 'gpt-5.1', label: 'GPT-5.1' },
+                { value: 'gpt-5', label: 'GPT-5' },
                 { value: 'gpt-5-mini', label: 'GPT-5 Mini (Faster, Lower Cost)' },
                 { value: 'gpt-5-nano', label: 'GPT-5 Nano (Ultra-Fast)' },
                 { value: '', label: '— GPT-4o Series —', disabled: true },
@@ -125,7 +127,6 @@ const NetworkApiTab = ({ settings, onChange }) => (
                 { value: 'gpt-4.1-nano', label: 'GPT-4.1 Nano (Low Cost)' },
                 { value: '', label: '— Reasoning Models —', disabled: true },
                 { value: 'o4-mini', label: 'o4-mini (Advanced Reasoning)' },
-                { value: 'o3', label: 'o3 (High-End Reasoning)' },
                 { value: 'o3-mini', label: 'o3-mini (Lightweight Reasoning)' },
                 { value: '', label: '— Legacy —', disabled: true },
                 { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
@@ -276,8 +277,8 @@ const NetworkAppearanceTab = ({ settings, onChange }) => (
         </p>
 
         <div className="glimmr-color-picker-row">
-            <div className="glimmr-color-picker-item">
-                <label>Primary Color</label>
+            <div className="glimmr-color-picker-item" role="group" aria-labelledby="network-color-primary">
+                <label id="network-color-primary">Primary Color</label>
                 <ColorPicker
                     color={settings.widget_primary_color || '#4F46E5'}
                     onChangeComplete={(color) => onChange('widget_primary_color', color.hex)}
@@ -285,8 +286,8 @@ const NetworkAppearanceTab = ({ settings, onChange }) => (
                 />
             </div>
 
-            <div className="glimmr-color-picker-item">
-                <label>Primary Hover</label>
+            <div className="glimmr-color-picker-item" role="group" aria-labelledby="network-color-primary-hover">
+                <label id="network-color-primary-hover">Primary Hover</label>
                 <ColorPicker
                     color={settings.widget_primary_hover || '#4338CA'}
                     onChangeComplete={(color) => onChange('widget_primary_hover', color.hex)}
@@ -294,8 +295,8 @@ const NetworkAppearanceTab = ({ settings, onChange }) => (
                 />
             </div>
 
-            <div className="glimmr-color-picker-item">
-                <label>Secondary Color</label>
+            <div className="glimmr-color-picker-item" role="group" aria-labelledby="network-color-secondary">
+                <label id="network-color-secondary">Secondary Color</label>
                 <ColorPicker
                     color={settings.widget_secondary_color || '#818CF8'}
                     onChangeComplete={(color) => onChange('widget_secondary_color', color.hex)}
@@ -815,20 +816,24 @@ const NetworkSettings = () => {
             )}
 
             <div className="glimmr-settings-tabs">
-                <div className="glimmr-settings-sidebar">
+                <div className="glimmr-settings-sidebar" role="tablist" aria-label="Network settings sections">
                     {NETWORK_TABS.map((tab) => (
                         <button
                             key={tab.name}
+                            role="tab"
+                            aria-selected={activeTab === tab.name}
+                            aria-controls={`tabpanel-network-${tab.name}`}
+                            id={`tab-network-${tab.name}`}
                             className={`glimmr-settings-tab ${activeTab === tab.name ? 'is-active' : ''}`}
                             onClick={() => setActiveTab(tab.name)}
                         >
-                            <span className={`dashicons dashicons-${tab.icon}`}></span>
+                            <span className={`dashicons dashicons-${tab.icon}`} aria-hidden="true"></span>
                             {tab.title}
                         </button>
                     ))}
                 </div>
 
-                <div className="glimmr-settings-content">
+                <div className="glimmr-settings-content" role="tabpanel" id={`tabpanel-network-${activeTab}`} aria-labelledby={`tab-network-${activeTab}`}>
                     <Card>
                         <CardHeader>
                             <h2>{NETWORK_TABS.find((t) => t.name === activeTab)?.title}</h2>

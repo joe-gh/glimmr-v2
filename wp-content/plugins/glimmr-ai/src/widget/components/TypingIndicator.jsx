@@ -17,7 +17,7 @@ import { h } from 'preact';
  * @param {string} [props.statusMessage] Optional status message to display (e.g., "Searching products...").
  */
 const TypingIndicator = ({ statusMessage = null }) => (
-    <div className="glimmr-typing" aria-label={statusMessage || 'Assistant is typing'}>
+    <div className="glimmr-typing" role="status" aria-label={statusMessage || 'Assistant is typing'}>
         {statusMessage && (
             <span className="glimmr-typing-status">{statusMessage}</span>
         )}

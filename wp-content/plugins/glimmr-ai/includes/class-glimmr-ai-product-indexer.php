@@ -285,7 +285,7 @@ class Glimmr_AI_Product_Indexer {
 
             // Check if it's serialized data that wasn't unserialized.
             if ( is_string( $value ) && $this->is_serialized_string( $value ) ) {
-                $unserialized = @unserialize( $value );
+                $unserialized = @unserialize( $value, array( 'allowed_classes' => false ) );
                 if ( $unserialized !== false ) {
                     return $this->convert_meta_value_to_text( $unserialized, $meta_key );
                 }

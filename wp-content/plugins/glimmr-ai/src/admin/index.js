@@ -45,7 +45,12 @@ const initAdmin = () => {
         const container = document.getElementById(containerId);
 
         if (container) {
-            render(createElement(Component), container);
+            try {
+                render(createElement(Component), container);
+            } catch (err) {
+                console.error(`Failed to render ${containerId}:`, err);
+                container.innerHTML = '<div class="notice notice-error"><p>Failed to load admin interface. Please refresh the page.</p></div>';
+            }
             return;
         }
     }

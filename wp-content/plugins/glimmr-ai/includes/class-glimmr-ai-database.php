@@ -25,7 +25,7 @@ class Glimmr_AI_Database {
      *
      * @var string
      */
-    const DB_VERSION = '1.9.0';
+    const DB_VERSION = '1.11.0';
 
     /**
      * Option name for storing database version.
@@ -70,6 +70,7 @@ class Glimmr_AI_Database {
         self::create_sync_log_table( $charset_collate );
         self::create_contact_requests_table( $charset_collate );
         self::create_contact_responses_table( $charset_collate );
+        self::create_audit_log_table( $charset_collate );
 
         // Update database version.
         update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
@@ -218,12 +219,16 @@ class Glimmr_AI_Database {
             content LONGTEXT NOT NULL,
             vector_file_id VARCHAR(64) NULL,
             sync_status VARCHAR(20) DEFAULT 'pending',
+            status VARCHAR(20) DEFAULT 'active',
+            product_ids TEXT NULL,
+            priority INT DEFAULT 0,
             last_synced_at DATETIME NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             KEY idx_site_id (site_id),
             KEY idx_type (type),
             KEY idx_sync_status (sync_status),
+            KEY idx_status (status),
             KEY idx_source (source_id, source_type)
         ) {$charset_collate};";
 
@@ -551,6 +556,40 @@ class Glimmr_AI_Database {
     }
 
     /**
+     * Create audit log table for SOC 2 compliant event tracking.
+     *
+     * Dedicated table for security and compliance audit events, separate from
+     * the analytics table to allow independent retention policies and access controls.
+     *
+     * @param string $charset_collate The charset collation.
+     * @return void
+     */
+    private static function create_audit_log_table( $charset_collate ) {
+        $table_name = self::get_table_name( 'audit_log' );
+
+        $sql = "CREATE TABLE {$table_name} (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            site_id BIGINT UNSIGNED DEFAULT 1,
+            timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            actor_type VARCHAR(20) NOT NULL,
+            actor_id BIGINT UNSIGNED NULL,
+            actor_ip_hash VARCHAR(64) NULL,
+            action_category VARCHAR(50) NOT NULL,
+            action VARCHAR(100) NOT NULL,
+            resource_type VARCHAR(50) NULL,
+            resource_id VARCHAR(256) NULL,
+            details JSON NULL,
+            KEY idx_timestamp (timestamp),
+            KEY idx_actor (actor_id, timestamp),
+            KEY idx_category (action_category, timestamp),
+            KEY idx_site_timestamp (site_id, timestamp),
+            KEY idx_action (action, timestamp)
+        ) {$charset_collate};";
+
+        dbDelta( $sql );
+    }
+
+    /**
      * Drop all plugin tables.
      *
      * @return void
@@ -569,6 +608,7 @@ class Glimmr_AI_Database {
             'sync_log',
             'contact_responses',
             'contact_requests',
+            'audit_log',
             'conversations', // Drop conversations last due to foreign key references.
         );
 
@@ -715,6 +755,7 @@ class Glimmr_AI_Database {
             // The old migration code tried to DROP/ADD here but that was unreliable.
 
             // Delete existing variation rows from product_index (we're moving to parent-only).
+            // S-WRITE: Intentional DELETE - clears product index variation rows during migration to parent-only model.
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->query( "DELETE FROM {$table} WHERE product_type = 'variation'" );
 
@@ -910,6 +951,248 @@ class Glimmr_AI_Database {
                 Glimmr_AI_Logger::info( 'Database migrated to 1.9.0: Added site_id to rate_limits table for multisite isolation', array(), 'database' );
             }
         }
+
+        // Migration to 1.10.0: Add status, product_ids, priority columns to knowledge table for SEO FAQ support.
+        if ( version_compare( $from_version, '1.10.0', '<' ) ) {
+            $knowledge_table = self::get_table_name( 'knowledge' );
+
+            // Check if status column already exists.
+            $status_exists = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                     WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = 'status'",
+                    DB_NAME,
+                    $knowledge_table
+                )
+            );
+
+            if ( ! $status_exists ) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query( "ALTER TABLE {$knowledge_table} ADD COLUMN status VARCHAR(20) DEFAULT 'active' AFTER sync_status" );
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query( "ALTER TABLE {$knowledge_table} ADD COLUMN product_ids TEXT NULL AFTER status" );
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query( "ALTER TABLE {$knowledge_table} ADD COLUMN priority INT DEFAULT 0 AFTER product_ids" );
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query( "ALTER TABLE {$knowledge_table} ADD KEY idx_status (status)" );
+            }
+
+            if ( class_exists( 'Glimmr_AI_Logger' ) ) {
+                Glimmr_AI_Logger::info( 'Database migrated to 1.10.0: Added status, product_ids, priority to knowledge table', array(), 'database' );
+            }
+        }
+
+        // Migration to 1.11.0: Add dedicated audit_log table for SOC 2 compliance.
+        if ( version_compare( $from_version, '1.11.0', '<' ) ) {
+            // The audit_log table is created by create_audit_log_table() which is called
+            // by create_tables(). Migrate existing admin_audit events from analytics table.
+            $audit_log_table = self::get_table_name( 'audit_log' );
+            $analytics_table = self::get_table_name( 'analytics' );
+
+            // Check if audit_log table exists (it will be created by create_tables after migrations).
+            // We'll migrate data after table creation in a separate step.
+            // For now, just log the migration.
+            if ( class_exists( 'Glimmr_AI_Logger' ) ) {
+                Glimmr_AI_Logger::info( 'Database migrated to 1.11.0: Added dedicated audit_log table for SOC 2 compliance', array(), 'database' );
+            }
+        }
+    }
+
+    /**
+     * Migrate existing admin_audit events from analytics to audit_log table.
+     *
+     * Called after create_tables() to ensure the audit_log table exists.
+     *
+     * @return int Number of migrated rows.
+     */
+    public static function migrate_audit_events() {
+        global $wpdb;
+
+        $audit_log_table = self::get_table_name( 'audit_log' );
+        $analytics_table = self::get_table_name( 'analytics' );
+
+        // Check if there are any events to migrate.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $count = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$analytics_table} WHERE event_type = 'admin_audit'"
+        );
+
+        if ( $count === 0 ) {
+            return 0;
+        }
+
+        // Migrate existing admin_audit events.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $rows = $wpdb->get_results(
+            "SELECT site_id, created_at, user_id, properties
+             FROM {$analytics_table}
+             WHERE event_type = 'admin_audit'
+             ORDER BY created_at ASC
+             LIMIT 10000"
+        );
+
+        $migrated = 0;
+        foreach ( $rows as $row ) {
+            $properties = json_decode( $row->properties, true );
+            if ( ! is_array( $properties ) ) {
+                continue;
+            }
+
+            // S-WRITE: Intentional INSERT - migrates legacy audit events to dedicated table.
+            $wpdb->insert(
+                $audit_log_table,
+                array(
+                    'site_id'         => $row->site_id,
+                    'timestamp'       => $row->created_at,
+                    'actor_type'      => 'admin',
+                    'actor_id'        => $row->user_id,
+                    'actor_ip_hash'   => $properties['ip_hash'] ?? null,
+                    'action_category' => 'data_access',
+                    'action'          => $properties['action'] ?? 'unknown',
+                    'resource_type'   => isset( $properties['context']['conversation_id'] ) ? 'conversation' : null,
+                    'resource_id'     => $properties['context']['conversation_id'] ?? null,
+                    'details'         => wp_json_encode( $properties['context'] ?? array() ),
+                )
+            );
+            ++$migrated;
+        }
+
+        return $migrated;
+    }
+
+    /**
+     * Insert an audit log entry.
+     *
+     * @param array $data Audit log entry data.
+     * @return int|false The entry ID on success, false on failure.
+     */
+    public static function insert_audit_log( $data ) {
+        global $wpdb;
+
+        $table_name = self::get_table_name( 'audit_log' );
+
+        $defaults = array(
+            'site_id'         => self::get_current_site_id(),
+            'timestamp'       => current_time( 'mysql' ),
+            'actor_type'      => 'system',
+            'actor_id'        => null,
+            'actor_ip_hash'   => null,
+            'action_category' => 'system',
+            'action'          => '',
+            'resource_type'   => null,
+            'resource_id'     => null,
+            'details'         => null,
+        );
+
+        $data = wp_parse_args( $data, $defaults );
+
+        if ( is_array( $data['details'] ) ) {
+            $data['details'] = wp_json_encode( $data['details'] );
+        }
+
+        // S-WRITE: Intentional INSERT - records audit log event for SOC 2 compliance.
+        $result = $wpdb->insert( $table_name, $data );
+
+        if ( false === $result || ! empty( $wpdb->last_error ) ) {
+            Glimmr_AI_Logger::error(
+                'Failed to insert audit log entry',
+                array(
+                    'action'   => $data['action'],
+                    'db_error' => $wpdb->last_error,
+                ),
+                'database'
+            );
+            return false;
+        }
+
+        return $wpdb->insert_id;
+    }
+
+    /**
+     * Get audit log entries with filters.
+     *
+     * @param array $args Query arguments.
+     * @return array Audit log entries.
+     */
+    public static function get_audit_log( $args = array() ) {
+        global $wpdb;
+
+        $table_name = self::get_table_name( 'audit_log' );
+        $site_id    = self::get_current_site_id();
+
+        $defaults = array(
+            'actor_id'        => null,
+            'action_category' => null,
+            'action'          => null,
+            'limit'           => 100,
+            'offset'          => 0,
+        );
+
+        $args = wp_parse_args( $args, $defaults );
+
+        $where  = array( 'site_id = %d' );
+        $values = array( $site_id );
+
+        if ( null !== $args['actor_id'] ) {
+            $where[]  = 'actor_id = %d';
+            $values[] = $args['actor_id'];
+        }
+
+        if ( null !== $args['action_category'] ) {
+            $where[]  = 'action_category = %s';
+            $values[] = $args['action_category'];
+        }
+
+        if ( null !== $args['action'] ) {
+            $where[]  = 'action = %s';
+            $values[] = $args['action'];
+        }
+
+        $where_clause = implode( ' AND ', $where );
+        $values[]     = $args['limit'];
+        $values[]     = $args['offset'];
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM {$table_name}
+                 WHERE {$where_clause}
+                 ORDER BY timestamp DESC
+                 LIMIT %d OFFSET %d",
+                $values
+            )
+        );
+    }
+
+    /**
+     * Cleanup old audit log entries based on retention policy.
+     *
+     * @param int $days Days to keep (default 365 for SOC 2 compliance).
+     * @return int Number of deleted rows.
+     */
+    public static function cleanup_audit_log( $days = 365 ) {
+        global $wpdb;
+
+        $table_name = self::get_table_name( 'audit_log' );
+
+        // S-WRITE: Intentional DELETE - removes audit log entries older than retention period.
+        $result = $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$table_name} WHERE timestamp < DATE_SUB(NOW(), INTERVAL %d DAY)",
+                $days
+            )
+        );
+
+        if ( false === $result || ! empty( $wpdb->last_error ) ) {
+            Glimmr_AI_Logger::error(
+                'Failed to cleanup audit log',
+                array( 'db_error' => $wpdb->last_error, 'days' => $days ),
+                'database'
+            );
+            return 0;
+        }
+
+        return $result;
     }
 
     /**
@@ -950,6 +1233,7 @@ class Glimmr_AI_Database {
             $data['metadata'] = wp_json_encode( $data['metadata'] );
         }
 
+        // S-WRITE: Intentional INSERT - creates new chat session record.
         $result = $wpdb->insert( $table_name, $data );
 
         return $result ? $data['conversation_id'] : false;
@@ -1017,6 +1301,7 @@ class Glimmr_AI_Database {
             $data['tool_results'] = wp_json_encode( $data['tool_results'] );
         }
 
+        // S-WRITE: Intentional INSERT - stores chat message with PII-masked content.
         $result = $wpdb->insert( $table_name, $data );
 
         if ( false === $result || ! empty( $wpdb->last_error ) ) {
@@ -1034,6 +1319,7 @@ class Glimmr_AI_Database {
 
         // Update conversation message count and last message time.
         $conversations_table = self::get_table_name( 'conversations' );
+        // S-WRITE: Intentional UPDATE - increments conversation message count.
         // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $update_result = $wpdb->query(
             $wpdb->prepare(
@@ -1125,6 +1411,7 @@ class Glimmr_AI_Database {
             'created_at'      => current_time( 'mysql' ),
         );
 
+        // S-WRITE: Intentional INSERT - records analytics event for tracking.
         $result = $wpdb->insert( $table_name, $data );
 
         if ( false === $result || ! empty( $wpdb->last_error ) ) {
@@ -1166,6 +1453,7 @@ class Glimmr_AI_Database {
 
         $data = wp_parse_args( $data, $defaults );
 
+        // S-WRITE: Intentional INSERT - stores user-flagged message for admin review.
         $result = $wpdb->insert( $table_name, $data );
 
         if ( false === $result || ! empty( $wpdb->last_error ) ) {
@@ -1303,16 +1591,19 @@ class Glimmr_AI_Database {
         $table_name = self::get_table_name( 'flagged_issues' );
         $site_id    = self::get_current_site_id();
 
-        $data = array(
+        $data    = array(
             'status'      => $status,
             'reviewed_at' => current_time( 'mysql' ),
             'reviewed_by' => get_current_user_id(),
         );
+        $formats = array( '%s', '%s', '%d' );
 
         if ( ! empty( $admin_notes ) ) {
             $data['admin_notes'] = $admin_notes;
+            $formats[]           = '%s';
         }
 
+        // S-WRITE: Intentional UPDATE - changes flagged issue status.
         $result = $wpdb->update(
             $table_name,
             $data,
@@ -1320,7 +1611,7 @@ class Glimmr_AI_Database {
                 'id'      => $issue_id,
                 'site_id' => $site_id,
             ),
-            array( '%s', '%s', '%d', '%s' ),
+            $formats,
             array( '%d', '%d' )
         );
 
@@ -1376,6 +1667,7 @@ class Glimmr_AI_Database {
         $data['updated_at'] = current_time( 'mysql' );
 
         if ( $existing ) {
+            // S-WRITE: Intentional UPDATE - updates existing product index entry.
             return $wpdb->update(
                 $table_name,
                 $data,
@@ -1386,6 +1678,7 @@ class Glimmr_AI_Database {
             ) !== false;
         } else {
             $data['created_at'] = current_time( 'mysql' );
+            // S-WRITE: Intentional INSERT - creates new product index entry.
             return $wpdb->insert( $table_name, $data ) !== false;
         }
     }
@@ -1505,6 +1798,7 @@ class Glimmr_AI_Database {
             $data['error_details'] = wp_json_encode( $data['error_details'] );
         }
 
+        // S-WRITE: Intentional INSERT - records sync operation start for tracking.
         $result = $wpdb->insert( $table_name, $data );
 
         return $result ? $wpdb->insert_id : false;
@@ -1526,6 +1820,7 @@ class Glimmr_AI_Database {
             $data['error_details'] = wp_json_encode( $data['error_details'] );
         }
 
+        // S-WRITE: Intentional UPDATE - updates sync log with progress/completion status.
         return $wpdb->update(
             $table_name,
             $data,
@@ -1565,6 +1860,7 @@ class Glimmr_AI_Database {
 
             if ( $allowed ) {
                 // Increment count.
+                // S-WRITE: Intentional UPDATE - increments rate limit request count.
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 $wpdb->query(
                     $wpdb->prepare(
@@ -1581,6 +1877,7 @@ class Glimmr_AI_Database {
         }
 
         // Create new rate limit entry.
+        // S-WRITE: Intentional INSERT - creates new rate limit tracking record.
         $wpdb->insert(
             $table_name,
             array(
@@ -1608,6 +1905,7 @@ class Glimmr_AI_Database {
         $table_name = self::get_table_name( 'rate_limits' );
         $threshold  = gmdate( 'Y-m-d H:i:s', time() - 7200 ); // 2 hours ago.
 
+        // S-WRITE: Intentional DELETE - cleans up expired rate limit records.
         // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         return $wpdb->query(
             $wpdb->prepare(
@@ -1630,6 +1928,7 @@ class Glimmr_AI_Database {
 
         if ( null === $site_id ) {
             // Expire across all sites (for network cron).
+            // S-WRITE: Intentional UPDATE - expires old conversations across all sites.
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             return $wpdb->query(
                 $wpdb->prepare(
@@ -1640,6 +1939,7 @@ class Glimmr_AI_Database {
         }
 
         // Expire only for specific site.
+        // S-WRITE: Intentional UPDATE - expires old conversations for specific site.
         // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         return $wpdb->query(
             $wpdb->prepare(
@@ -2179,6 +2479,7 @@ class Glimmr_AI_Database {
             $data['resolved_at'] = current_time( 'mysql' );
         }
 
+        // S-WRITE: Intentional UPDATE - changes contact request status.
         return $wpdb->update(
             $table_name,
             $data,
@@ -2211,6 +2512,7 @@ class Glimmr_AI_Database {
 
         $data = wp_parse_args( $data, $defaults );
 
+        // S-WRITE: Intentional INSERT - stores admin response to contact request.
         $result = $wpdb->insert( $table_name, $data );
 
         if ( false === $result || ! empty( $wpdb->last_error ) ) {

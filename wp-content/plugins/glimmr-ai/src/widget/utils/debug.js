@@ -42,13 +42,15 @@ export const debug = (...args) => {
 };
 
 /**
- * Log error messages (always logged regardless of debug mode).
+ * Log error messages (only when debugMode is enabled in production).
  *
  * @param {...any} args - Arguments to log
  */
 export const debugError = (...args) => {
-    // Always log errors - they're important for troubleshooting
-    console.error(...args);
+    // Only log errors when debug mode is enabled to avoid leaking internal details
+    if (debugEnabled) {
+        console.error('[Glimmr AI Error]', ...args);
+    }
 };
 
 /**
@@ -105,8 +107,10 @@ export const createScopedLogger = (scope) => {
             }
         },
         error: (...args) => {
-            // Always log errors
-            console.error(prefix, ...args);
+            // Only log errors when debug mode is enabled
+            if (debugEnabled) {
+                console.error(prefix, ...args);
+            }
         },
         warn: (...args) => {
             if (debugEnabled) {

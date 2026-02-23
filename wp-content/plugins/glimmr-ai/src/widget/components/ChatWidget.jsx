@@ -13,7 +13,7 @@ import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import ChatBubble from './ChatBubble';
 import ChatWindow from './ChatWindow';
 import { getCart } from '../utils/storeApi';
-import { executeCartAction, isCartActionArtifact } from '../utils/cartActionHandler';
+import { executeCartAction, isCartActionArtifact, updateCartCount } from '../utils/cartActionHandler';
 import { useProactiveTriggers } from '../hooks/useProactiveTriggers';
 import { debug, debugError, debugWarn } from '../utils/debug';
 import { trackWidgetOpen, trackWidgetClose, trackMessageSent } from '../utils/ga4';
@@ -47,6 +47,7 @@ const getFreshCart = async (nonce) => {
         debug('[ChatWidget] Fresh cart fetched:', cart);
         return {
             item_count: cart.items_count || 0,
+            subtotal: cart.totals?.total_items || '0',
             total: cart.totals?.total_price || '0',
             currency: cart.totals?.currency_code || 'USD',
             items: cart.items?.map(item => ({
@@ -55,8 +56,15 @@ const getFreshCart = async (nonce) => {
                 name: item.name,
                 quantity: item.quantity,
                 price: item.prices?.price || '0',
+                line_total: item.totals?.line_total || '0',
                 variation_id: item.variation?.length > 0 ? item.id : null,
             })) || [],
+            // Include applied coupons
+            coupons: cart.coupons?.map(coupon => ({
+                code: coupon.code,
+                discount: coupon.totals?.total_discount || '0',
+            })) || [],
+            has_coupon: (cart.coupons?.length || 0) > 0,
         };
     } catch (err) {
         debugWarn('[ChatWidget] Failed to fetch fresh cart:', err);
@@ -320,6 +328,16 @@ const ChatWidget = ({ config }) => {
                                                 const actionResult = await executeCartAction(config.storeApiNonce, event.data);
                                                 debug('[ChatWidget] Cart action result:', actionResult);
 
+                                                // Update custom cart count elements on success
+                                                // Try Store API cart first, fall back to backend cart data
+                                                if (actionResult.success) {
+                                                    const cartData = actionResult.cart || event.data;
+                                                    debug('[ChatWidget] Updating cart count with:', cartData);
+                                                    updateCartCount(cartData);
+                                                } else {
+                                                    debug('[ChatWidget] Cart action failed, no cart count update');
+                                                }
+
                                                 // Update the artifact with the result
                                                 const artifactIndex = collectedArtifacts.length - 1;
                                                 collectedArtifacts[artifactIndex] = {
@@ -341,12 +359,17 @@ const ChatWidget = ({ config }) => {
                                                     )
                                                 );
 
-                                                // Handle redirect if requested
+                                                // Handle redirect if requested (validate same-origin)
                                                 if (actionResult.redirect) {
-                                                    debug('[ChatWidget] Redirecting to:', actionResult.redirect);
-                                                    setTimeout(() => {
-                                                        window.location.href = actionResult.redirect;
-                                                    }, 1500);
+                                                    const { isSafeUrl } = await import('../utils/urlValidation');
+                                                    if (isSafeUrl(actionResult.redirect)) {
+                                                        debug('[ChatWidget] Redirecting to:', actionResult.redirect);
+                                                        setTimeout(() => {
+                                                            window.location.href = actionResult.redirect;
+                                                        }, 1500);
+                                                    } else {
+                                                        debugWarn('[ChatWidget] Blocked redirect to unsafe URL:', actionResult.redirect);
+                                                    }
                                                 }
                                             } catch (cartError) {
                                                 debugError('[ChatWidget] Cart action execution failed:', cartError);

@@ -18,17 +18,20 @@ import { HelpText, InfoBox } from '../SharedControls';
 /**
  * ColorPickerItem - Individual color picker with label and help text.
  */
-const ColorPickerItem = ({ label, value, onChange, help }) => (
-    <div className="glimmr-color-item">
-        <label>{label}</label>
-        <ColorPicker
-            color={value}
-            onChangeComplete={(color) => onChange(color.hex)}
-            disableAlpha
-        />
-        <span className="glimmr-color-help">{help}</span>
-    </div>
-);
+const ColorPickerItem = ({ label, value, onChange, help }) => {
+    const labelId = `color-label-${label.replace(/\s+/g, '-').toLowerCase()}`;
+    return (
+        <div className="glimmr-color-item" role="group" aria-labelledby={labelId}>
+            <label id={labelId}>{label}</label>
+            <ColorPicker
+                color={value}
+                onChangeComplete={(color) => onChange(color.hex)}
+                disableAlpha
+            />
+            <span className="glimmr-color-help">{help}</span>
+        </div>
+    );
+};
 
 /**
  * ColorsTab Component

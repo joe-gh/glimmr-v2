@@ -151,8 +151,8 @@ class Glimmr_AI_Tool_SQL_Readonly extends Glimmr_AI_Tool_Base {
 		'CALL',
 		'EXEC',
 		'EXECUTE',
-		'SET ',
-		'SHOW ',
+		'SET',
+		'SHOW',
 		'DESCRIBE',
 		'EXPLAIN',
 		'HANDLER',
@@ -161,6 +161,12 @@ class Glimmr_AI_Tool_SQL_Readonly extends Glimmr_AI_Tool_Base {
 		'WAITFOR',
 		'DELAY',
 		'PG_SLEEP',
+		'VERSION()',
+		'DATABASE()',
+		'USER()',
+		'CURRENT_USER',
+		'SESSION_USER',
+		'SYSTEM_USER',
 	);
 
 	/**
@@ -250,10 +256,10 @@ class Glimmr_AI_Tool_SQL_Readonly extends Glimmr_AI_Tool_Base {
 			return new WP_Error( 'not_select', 'Only SELECT queries are allowed. This query does not start with SELECT.' );
 		}
 
-		// Check for blocked keywords.
-		$query_upper = strtoupper( $query );
+		// Check for blocked keywords using word boundaries to avoid false positives
+		// (e.g., OFFSET contains SET, but should not be blocked).
 		foreach ( $this->blocked_keywords as $keyword ) {
-			if ( false !== strpos( $query_upper, strtoupper( $keyword ) ) ) {
+			if ( preg_match( '/\b' . preg_quote( $keyword, '/' ) . '\b/i', $query ) ) {
 				return new WP_Error(
 					'blocked_keyword',
 					sprintf( 'Query contains blocked keyword: %s', $keyword )
@@ -264,6 +270,11 @@ class Glimmr_AI_Tool_SQL_Readonly extends Glimmr_AI_Tool_Base {
 		// Check for multiple statements (semicolon in middle).
 		if ( preg_match( '/;[^\'\"]*\S/', $query ) ) {
 			return new WP_Error( 'multi_statement', 'Multiple statements (semicolons) are not allowed.' );
+		}
+
+		// Block subqueries to prevent access to sensitive meta via nested SELECTs.
+		if ( preg_match( '/\(\s*SELECT\b/i', $query ) ) {
+			return new WP_Error( 'subquery_blocked', 'Subqueries are not allowed.' );
 		}
 
 		// Check for blocked table patterns.
@@ -304,6 +315,11 @@ class Glimmr_AI_Tool_SQL_Readonly extends Glimmr_AI_Tool_Base {
 		// Check for hex encoding that might bypass keyword checks.
 		if ( preg_match( '/0x[0-9a-f]+/i', $query ) ) {
 			return new WP_Error( 'hex_encoding', 'Hexadecimal encoding is not allowed.' );
+		}
+
+		// Block MySQL system variable access (@@version, @@datadir, etc.).
+		if ( preg_match( '/@@/', $query ) ) {
+			return new WP_Error( 'system_variable', 'System variable access (@@) is not allowed.' );
 		}
 
 		// Check for char() function that might bypass keyword checks.
@@ -451,6 +467,24 @@ class Glimmr_AI_Tool_SQL_Readonly extends Glimmr_AI_Tool_Base {
 	}
 
 	/**
+	 * Blocked meta key patterns for postmeta PII redaction.
+	 *
+	 * When a postmeta row has a meta_key matching any of these patterns,
+	 * the meta_value is redacted. Uses fnmatch-style wildcards.
+	 *
+	 * @var array
+	 */
+	private $blocked_meta_keys = array(
+		'_billing_*',
+		'_shipping_*',
+		'_payment_*',
+		'_customer_ip_address',
+		'_customer_user',
+		'_customer_user_agent',
+		'_transaction_id',
+	);
+
+	/**
 	 * Sanitize query results to remove sensitive data.
 	 *
 	 * @param array $results Query results.
@@ -477,6 +511,19 @@ class Glimmr_AI_Tool_SQL_Readonly extends Glimmr_AI_Tool_Base {
 		);
 
 		foreach ( $results as &$row ) {
+			// Redact postmeta rows with sensitive meta_key values.
+			if ( isset( $row['meta_key'] ) ) {
+				$meta_key_lower = strtolower( $row['meta_key'] );
+				foreach ( $this->blocked_meta_keys as $pattern ) {
+					if ( fnmatch( $pattern, $meta_key_lower ) ) {
+						if ( isset( $row['meta_value'] ) ) {
+							$row['meta_value'] = '[REDACTED]';
+						}
+						break;
+					}
+				}
+			}
+
 			foreach ( $row as $key => $value ) {
 				// Check if column name contains sensitive words.
 				$key_lower = strtolower( $key );

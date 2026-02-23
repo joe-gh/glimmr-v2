@@ -14,6 +14,7 @@
 import * as storeApi from './storeApi';
 import { debug, debugError, debugWarn } from './debug';
 import { trackAddToCart, trackCheckoutStart, trackCouponApplied } from './ga4';
+import { isSafeUrl } from './urlValidation';
 
 /**
  * Execute a cart action from AI tool response.
@@ -142,16 +143,20 @@ export const executeCartAction = async (nonce, action) => {
                     quantity: action.quantity || 1,
                 });
 
-                // Determine redirect URL
+                // Determine redirect URL and validate same-origin
                 const redirectUrl = action.redirect_to === 'checkout'
                     ? action.checkout_url
                     : action.cart_url;
+
+                if (redirectUrl && !isSafeUrl(redirectUrl)) {
+                    debugWarn('[CartActionHandler] Blocked redirect to unsafe URL:', redirectUrl);
+                }
 
                 return {
                     success: true,
                     message: 'Added to cart, redirecting...',
                     cart: result,
-                    redirect: redirectUrl,
+                    redirect: redirectUrl && isSafeUrl(redirectUrl) ? redirectUrl : null,
                     action_type: 'add_then_redirect',
                 };
 
@@ -164,6 +169,11 @@ export const executeCartAction = async (nonce, action) => {
 
                 debug('[CartActionHandler] Navigate action → ', action.redirect_to, navUrl);
 
+                // Validate same-origin before allowing redirect
+                if (navUrl && !isSafeUrl(navUrl)) {
+                    debugWarn('[CartActionHandler] Blocked navigate to unsafe URL:', navUrl);
+                }
+
                 // Track checkout start for GA4 when navigating to checkout
                 if (action.redirect_to === 'checkout' && action.cart_summary) {
                     trackCheckoutStart(
@@ -175,7 +185,7 @@ export const executeCartAction = async (nonce, action) => {
                 return {
                     success: true,
                     message: `Redirecting to ${action.redirect_to}...`,
-                    redirect: navUrl,
+                    redirect: navUrl && isSafeUrl(navUrl) ? navUrl : null,
                     action_type: 'navigate',
                     cart_summary: action.cart_summary || null,
                 };
@@ -282,8 +292,77 @@ export const getCartActionData = (artifact) => {
     return artifact.data || artifact;
 };
 
+/**
+ * Update custom cart count elements on the page.
+ *
+ * Many themes use custom cart icons/counters that don't automatically
+ * update when cart changes via AJAX. This function updates common
+ * selectors used by themes.
+ *
+ * @param {object} cart - Cart object from Store API or backend tool response.
+ */
+export const updateCartCount = (cart) => {
+    if (!cart) {
+        debug('[CartActionHandler] updateCartCount called with null cart');
+        return;
+    }
+
+    debug('[CartActionHandler] updateCartCount called with:', cart);
+
+    // Get item count from cart - handle multiple response formats:
+    // - Store API: items_count
+    // - Backend tool: cart_count
+    // - Fallback: count items array
+    const itemCount = cart.items_count ?? cart.cart_count ?? cart.item_count ?? (cart.items?.length || 0);
+
+    debug('[CartActionHandler] Updating cart count elements:', itemCount);
+
+    // Common selectors used by themes for cart count
+    const selectors = [
+        '#cart-item-count',                    // Arborwear custom
+        '.cart-item-count',                    // Generic class
+        '.cart-count',                         // Common class
+        '.mini-cart-count',                    // Mini cart
+        '.header-cart-count',                  // Header cart
+        '.cart-contents-count',                // WooCommerce default
+        '.wc-block-mini-cart__badge',          // WooCommerce Blocks
+        '[data-cart-count]',                   // Data attribute pattern
+    ];
+
+    let totalUpdated = 0;
+    selectors.forEach((selector) => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((el) => {
+            // Update text content
+            el.textContent = itemCount;
+            totalUpdated++;
+
+            // Also update data attribute if present
+            if (el.hasAttribute('data-cart-count')) {
+                el.setAttribute('data-cart-count', itemCount);
+            }
+
+            debug('[CartActionHandler] Updated cart element:', selector, '→', itemCount);
+        });
+    });
+
+    // Dispatch a custom event for themes that listen for cart updates
+    window.dispatchEvent(new CustomEvent('glimmr_cart_updated', {
+        detail: {
+            count: itemCount,
+            cart: cart,
+        },
+    }));
+
+    // Also trigger WooCommerce's native cart fragment refresh if available
+    if (typeof jQuery !== 'undefined' && jQuery(document.body).trigger) {
+        jQuery(document.body).trigger('wc_fragment_refresh');
+    }
+};
+
 export default {
     executeCartAction,
     isCartActionArtifact,
     getCartActionData,
+    updateCartCount,
 };

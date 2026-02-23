@@ -23,6 +23,7 @@ import { HelpText, InfoBox } from '../SharedControls';
  */
 const CollapsibleSection = ({ title, description, children, defaultOpen = false }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const sectionId = `collapsible-${title.replace(/\s+/g, '-').toLowerCase()}`;
 
     return (
         <div className="glimmr-collapsible-section" style={{
@@ -34,6 +35,8 @@ const CollapsibleSection = ({ title, description, children, defaultOpen = false 
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
+                aria-expanded={isOpen}
+                aria-controls={sectionId}
                 style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -57,7 +60,7 @@ const CollapsibleSection = ({ title, description, children, defaultOpen = false 
                 <Icon icon={isOpen ? 'arrow-up-alt2' : 'arrow-down-alt2'} />
             </button>
             {isOpen && (
-                <div style={{ padding: '16px', borderTop: '1px solid #e0e0e0' }}>
+                <div id={sectionId} style={{ padding: '16px', borderTop: '1px solid #e0e0e0' }}>
                     {children}
                 </div>
             )}

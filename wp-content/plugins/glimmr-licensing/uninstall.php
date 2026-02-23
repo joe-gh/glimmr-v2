@@ -25,6 +25,9 @@ $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}glimmr_licenses" );
 // Remove options.
 delete_option( 'glimmr_licensing_db_version' );
 delete_option( 'glimmr_licensing_settings' );
+delete_option( 'glimmr_licensing_dev_keys' );
+delete_option( 'glimmr_licensing_products_seeded' );
+delete_option( 'glimmr_licensing_needs_product_seed' );
 
 // Clean up transients.
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery

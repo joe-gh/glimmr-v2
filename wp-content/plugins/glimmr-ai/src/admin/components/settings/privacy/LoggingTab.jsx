@@ -106,10 +106,28 @@ const LoggingTab = ({ settings, onChange }) => {
         setClearing(false);
     };
 
-    // Download logs
-    const downloadLogs = () => {
-        const url = `${ajaxUrl}?action=glimmr_ai_download_logs&nonce=${nonce}`;
-        window.open(url, '_blank');
+    // Download logs via POST to avoid nonce in URL.
+    const downloadLogs = async () => {
+        try {
+            const response = await fetch(ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                credentials: 'include',
+                body: new URLSearchParams({
+                    action: 'glimmr_ai_download_logs',
+                    nonce: nonce,
+                }),
+            });
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'glimmr-ai-logs.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Failed to download logs:', err);
+        }
     };
 
     // Auto-refresh effect
@@ -224,6 +242,8 @@ const LoggingTab = ({ settings, onChange }) => {
                     />
 
                     <SelectControl
+                        label="Filter Level"
+                        hideLabelFromVision
                         value={filterLevel}
                         options={[
                             { value: 'all', label: 'All Levels' },

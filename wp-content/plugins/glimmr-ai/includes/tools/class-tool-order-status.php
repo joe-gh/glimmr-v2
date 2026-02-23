@@ -274,17 +274,8 @@ class Glimmr_AI_Tool_Order_Status extends Glimmr_AI_Tool_Base {
                 return $orders[0];
             }
 
-            // Search by formatted order number.
-            $orders = wc_get_orders( array(
-                'limit'  => 100,
-                'return' => 'objects',
-            ) );
-
-            foreach ( $orders as $o ) {
-                if ( $o->get_order_number() === $order_number ) {
-                    return $o;
-                }
-            }
+            // Note: Removed expensive fallback that loaded 100 orders to iterate through.
+            // The meta_query above handles custom order number plugins efficiently.
         }
 
         return null;
@@ -362,6 +353,13 @@ class Glimmr_AI_Tool_Order_Status extends Glimmr_AI_Tool_Base {
 
         // S12: Consistent error messages - don't reveal which field failed to prevent enumeration.
         if ( ! $email_matches || ! $zip_matches ) {
+            // Audit log: Failed guest order verification attempt.
+            if ( class_exists( 'Glimmr_AI_Audit_Log' ) ) {
+                Glimmr_AI_Audit_Log::log_auth_failure( 'order_verification', array(
+                    'order_id' => $order->get_id(),
+                ) );
+            }
+
             return array(
                 'status'   => 'verification_failed',
                 'method'   => 'email_zip',
@@ -447,14 +445,46 @@ class Glimmr_AI_Tool_Order_Status extends Glimmr_AI_Tool_Base {
         // Add status description.
         $data['status_description'] = $this->get_status_description( $order->get_status() );
 
-        // Add items summary.
+        // Add items summary with images and variation details.
         $items = array();
         foreach ( $order->get_items() as $item ) {
-            $items[] = array(
+            $item_data = array(
                 'name'     => $item->get_name(),
                 'quantity' => $item->get_quantity(),
                 'total'    => $this->format_price( $item->get_total() ),
             );
+
+            // Add product image.
+            $product = $item->get_product();
+            if ( $product ) {
+                $image_id = $product->get_image_id();
+                if ( $image_id ) {
+                    $image_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+                    if ( $image_url ) {
+                        $item_data['image'] = $image_url;
+                    }
+                }
+            }
+
+            // Add variation details (e.g., "Size: L, Color: Navy").
+            if ( $item instanceof WC_Order_Item_Product ) {
+                $variation_info = array();
+                $meta_data = $item->get_meta_data();
+                foreach ( $meta_data as $meta ) {
+                    $key = $meta->key;
+                    // Skip internal/hidden meta keys.
+                    if ( str_starts_with( $key, '_' ) ) {
+                        continue;
+                    }
+                    $label = wc_attribute_label( $key );
+                    $variation_info[] = $label . ': ' . $meta->value;
+                }
+                if ( ! empty( $variation_info ) ) {
+                    $item_data['variation'] = implode( ', ', $variation_info );
+                }
+            }
+
+            $items[] = $item_data;
         }
         $data['items'] = $items;
 

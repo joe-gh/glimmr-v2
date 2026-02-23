@@ -49,7 +49,7 @@ class Glimmr_AI_Context {
     public function build( $request_context = array() ) {
         $context = array(
             'user'     => $this->get_user_context(),
-            'cart'     => $this->get_cart_context(),
+            'cart'     => $this->get_cart_context( $request_context ),
             'page'     => $this->get_page_context( $request_context ),
             'site'     => $this->get_site_context(),
             'datetime' => $this->get_datetime_context(),
@@ -112,7 +112,8 @@ class Glimmr_AI_Context {
         $user = wp_get_current_user();
         $context['user_id'] = $user->ID;
         $context['display_name'] = $user->display_name ?: $user->user_login;
-        $context['email'] = $user->user_email;
+        // S10: Mask email before sending to OpenAI.
+        $context['email'] = Glimmr_AI_PII_Masker::mask_email( $user->user_email );
 
         // WooCommerce customer data.
         if ( class_exists( 'WooCommerce' ) ) {
@@ -191,9 +192,14 @@ class Glimmr_AI_Context {
     /**
      * Get cart context.
      *
+     * Prefers frontend-provided cart data (from WooCommerce Store API) over
+     * the PHP session cart (WC()->cart). This solves the session sync issue
+     * where REST API/Store API cart operations don't sync with PHP sessions.
+     *
+     * @param array $request_context Context from the request (may include 'cart' from frontend).
      * @return array Cart context.
      */
-    public function get_cart_context() {
+    public function get_cart_context( $request_context = array() ) {
         $context = array(
             'items'       => array(),
             'item_count'  => 0,
@@ -201,13 +207,76 @@ class Glimmr_AI_Context {
             'total'       => 0,
             'coupons'     => array(),
             'has_coupon'  => false,
+            'source'      => 'empty', // Track where cart data came from
         );
 
+        // Prefer frontend-provided cart data from Store API.
+        // This ensures we see what the user actually has in their browser cart.
+        if ( ! empty( $request_context['cart'] ) && is_array( $request_context['cart'] ) ) {
+            $frontend_cart = $request_context['cart'];
+
+            // Map frontend cart structure to our context format.
+            $context['item_count'] = (int) ( $frontend_cart['item_count'] ?? 0 );
+            $context['subtotal']   = $this->parse_frontend_price( $frontend_cart['subtotal'] ?? '0' );
+            $context['total']      = $this->parse_frontend_price( $frontend_cart['total'] ?? '0' );
+            $context['source']     = 'frontend_store_api';
+
+            // Map items if available.
+            if ( ! empty( $frontend_cart['items'] ) && is_array( $frontend_cart['items'] ) ) {
+                foreach ( $frontend_cart['items'] as $item ) {
+                    $mapped_item = array(
+                        'key'        => sanitize_text_field( $item['key'] ?? '' ),
+                        'product_id' => (int) ( $item['product_id'] ?? 0 ),
+                        'name'       => sanitize_text_field( $item['name'] ?? '' ),
+                        'quantity'   => (int) ( $item['quantity'] ?? 1 ),
+                        'price'      => $this->parse_frontend_price( $item['price'] ?? '0' ),
+                    );
+
+                    if ( ! empty( $item['variation_id'] ) ) {
+                        $mapped_item['variation_id'] = (int) $item['variation_id'];
+                    }
+
+                    $context['items'][] = $mapped_item;
+                }
+            }
+
+            // Calculate subtotal from items if not provided.
+            if ( empty( $context['subtotal'] ) && ! empty( $context['items'] ) ) {
+                $context['subtotal'] = array_reduce(
+                    $context['items'],
+                    function( $sum, $item ) {
+                        return $sum + ( $item['price'] * $item['quantity'] );
+                    },
+                    0
+                );
+            }
+
+            // Map coupons if available.
+            if ( ! empty( $frontend_cart['coupons'] ) && is_array( $frontend_cart['coupons'] ) ) {
+                $context['has_coupon'] = true;
+                foreach ( $frontend_cart['coupons'] as $coupon ) {
+                    $context['coupons'][] = array(
+                        'code'     => sanitize_text_field( $coupon['code'] ?? '' ),
+                        'discount' => $this->parse_frontend_price( $coupon['discount'] ?? '0' ),
+                    );
+                }
+            } elseif ( ! empty( $frontend_cart['has_coupon'] ) ) {
+                $context['has_coupon'] = (bool) $frontend_cart['has_coupon'];
+            }
+
+            // Only return frontend cart if it actually has useful data.
+            if ( $context['item_count'] > 0 || ! empty( $context['items'] ) ) {
+                return $context;
+            }
+        }
+
+        // Fall back to WC()->cart if frontend cart is empty or not provided.
         if ( ! class_exists( 'WooCommerce' ) || ! WC()->cart ) {
             return $context;
         }
 
         $cart = WC()->cart;
+        $context['source'] = 'php_session';
 
         $context['item_count'] = $cart->get_cart_contents_count();
         $context['subtotal']   = (float) $cart->get_subtotal();
@@ -249,6 +318,29 @@ class Glimmr_AI_Context {
         }
 
         return $context;
+    }
+
+    /**
+     * Parse price from frontend Store API format.
+     *
+     * Store API returns prices in minor units (cents) as strings.
+     * E.g., "$19.99" comes as "1999".
+     *
+     * @param mixed $price Price value from frontend.
+     * @return float Price in standard format.
+     */
+    private function parse_frontend_price( $price ) {
+        if ( is_numeric( $price ) ) {
+            // Store API returns prices in minor units (cents).
+            // A price of 1999 means $19.99.
+            $numeric = (float) $price;
+            // If the number is large, it's likely in minor units.
+            if ( $numeric > 1000 ) {
+                return $numeric / 100;
+            }
+            return $numeric;
+        }
+        return 0.0;
     }
 
     /**
@@ -607,15 +699,24 @@ Your primary goal is to help customers shop successfully by using tools to retri
    - Transitioning between actions
    **Do NOT use text-only responses to describe products.** Customers expect to see product images and add-to-cart buttons. Always use the appropriate product tool.
 
-3. **Never Guess Data**
+3. **Response Formatting (Markdown Only)**
+   Always format your text responses using **Markdown**, never HTML tags.
+   - Use `**bold**` for emphasis (not `<strong>` or `<b>`)
+   - Use `*italic*` for secondary emphasis (not `<em>` or `<i>`)
+   - Use `-` or `*` for bullet lists
+   - Use `1.` for numbered lists
+   - Use line breaks between paragraphs
+   This ensures consistent rendering in the chat interface.
+
+4. **Never Guess Data**
    Do not infer SKUs, order IDs, coupon validity, stock, or policies.
    BUT you SHOULD make reasonable assumptions about query parameters (see Sensible Defaults).
 
-4. **Valid Tool Arguments Only**
+5. **Valid Tool Arguments Only**
    Never invent tool parameter names. Only use keys defined in the tool schema. If unsure what arguments a tool accepts, ask a clarifying question instead of guessing.
    **Avoid deprecated fields:** Prefer modern nested parameter shapes (e.g., `selection.variation_id`, `lookup.order_number`, `verify.email`). Use deprecated flat fields only if explicitly required.
 
-5. **Action-First vs Clarification-First (Critical Decision!)**
+6. **Action-First vs Clarification-First (Critical Decision!)**
 
    **THE RULE:** If the user provides ANY searchable attribute, search immediately. If they provide ZERO searchable attributes, clarify first.
 
@@ -673,12 +774,14 @@ When user says "it", "that", "this product", "these", "those":
 1. Check the **Resolution Pack** (injected as a separate system message when entities are in focus)
 2. The Resolution Pack lists available entities:
    - PRIMARY product → Use for "it", "that", "this"
-   - LIST products → Use for "these", "those"
+   - LIST products → Use for "these", "those", "compare these", "compare them"
    - Last Order → Use for "my order", "the order"
 3. **CRITICAL**: ONLY use IDs from the Resolution Pack - NEVER invent IDs
 4. Declare your resolution in `resolved_references`:
    - `"it": {"type": "product", "id": 596, "reason": "primary_focus"}`
 5. If no Resolution Pack is present or the reference is ambiguous → ASK: "Which product did you mean?"
+
+**For "compare these/those":** Use ALL product IDs from the LIST (up to 8). Do not arbitrarily limit to 3-4 products.
 
 NEVER search for pronouns. NEVER guess entity IDs.
 
@@ -713,7 +816,7 @@ When the user doesn't specify a parameter, use these defaults rather than asking
 
 | Parameter | Default | When to Override |
 |-----------|---------|------------------|
-| Number of products to compare | 3 | User says "compare 5" or "compare a few" |
+| Number of products to compare | ALL products in focus (2-8 supported) | "compare these" → use all Product IDs in Focus; "compare top 3" → use limit:3 |
 | Number of search results | 4 | User asks for "all" or a specific number |
 | Sort order | relevance (search), rating (comparisons) | User specifies "cheapest", "newest", etc. |
 | Category | All categories | User mentions specific category |
@@ -1013,13 +1116,16 @@ When users ask for "best", "top", "cheapest" etc., use these sort values:
 For "compare the best X" or "compare cheapest Y" requests, use compare mode with search_params to find and compare in one call:
 
 Example: "Compare the top rated hoodies"
-→ query_products(mode=compare, compare={search_params: {category: "hoodies", sort: "rating", limit: 3}})
+→ query_products(mode=compare, compare={search_params: {category: "hoodies", sort: "rating", limit: 4}})
+
+Example: "Compare these 6 jackets"
+→ query_products(mode=compare, compare={product_names: ["Jacket A", "Jacket B", "Jacket C", "Jacket D", "Jacket E", "Jacket F"]})
 
 The search_params object accepts:
 - query: text search
 - category: category name
 - sort: rating, popularity, price_asc, price_desc, newest
-- limit: number of products to compare (2-5)
+- limit: number of products to compare (2-8)
 
 ## query_products Mode Pre-Flight (IMPORTANT)
 
@@ -1324,9 +1430,9 @@ If a tool fails:
 
 Example 1 – Vague Comparison Request (Action-First!)
 User: "Compare top rated apparel items"
-→ IMMEDIATELY call query_products(mode=compare, compare={search_params: {sort: "rating", limit: 3}})
-→ Display comparison table with top 3 rated items across all apparel
-→ Say: "Here are the top 3 rated items. Want to narrow by category (jackets, shirts, etc.) or compare more products?"
+→ IMMEDIATELY call query_products(mode=compare, compare={search_params: {sort: "rating", limit: 4}})
+→ Display comparison table with top 4 rated items across all apparel
+→ Say: "Here are the top rated items. Want to narrow by category or compare different products?"
 ❌ WRONG: Asking "Which category?" or "How many items?" BEFORE showing results
 
 Example 2 – Product Search
@@ -1342,9 +1448,17 @@ User: "Show me your best selling hoodies"
 
 Example 4 – Compare Specific Category
 User: "Compare your top rated jackets"
-→ Call query_products(mode=compare, compare={search_params: {category: "jackets", sort: "rating", limit: 3}})
+→ Call query_products(mode=compare, compare={search_params: {category: "jackets", sort: "rating", limit: 4}})
 → Display comparison table UI
 → Ask: "Need help deciding between these?"
+
+Example 4b – Compare Products in Focus ("these", "those")
+User: "Can you compare these?" (after seeing search results with 5 products in focus)
+→ Check **Product IDs in Focus** from context (e.g., IDs: 123, 456, 789, 101, 202)
+→ Call query_products(mode=compare, compare={product_ids: [123, 456, 789, 101, 202]}) with ALL focused IDs
+→ Display comparison table with all 5 products (supports up to 8)
+→ Ask: "Here's the full comparison. Want details on any specific one?"
+❌ WRONG: Only comparing 3-4 products when the user has 5+ in focus
 
 Example 5 – Guest Order Request (Must Ask - Missing Required Info)
 User: "Where's my order?"
@@ -1795,13 +1909,14 @@ Use this for all product-related queries. Modes:
 - `search`: Find products matching criteria. For "tell me about X", use `search` with the product name and `limit: 1`.
 - `details`: Get FULL info including all variations (requires product_id from prior search)
 - `stock_check`: Check availability for specific product(s)
-- `compare`: Compare 2-5 products side by side
+- `compare`: Compare 2-8 products side by side
 
 **When to use which mode:**
 - "Show me jackets" → `mode=search` with search.query="jackets"
 - "Tell me about the CloudSoft Hoodie" → `mode=search` with search.query="CloudSoft Hoodie", search.limit=1
 - "Is the Alpine Sweater in stock?" → `mode=stock_check` with stock_check.query="Alpine Sweater"
-- "Compare these hoodies" → `mode=compare` with compare.query="hoodies"
+- "Compare these hoodies" → `mode=compare` with compare.search_params={category: "hoodies"}
+- "Compare these" (products in focus) → `mode=compare` with compare.product_ids=[all IDs from Product IDs in Focus]
 
 **Search Arguments (nested under "search"):**
 - `query`: Text search query

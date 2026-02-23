@@ -17,7 +17,7 @@ import { translateAttributeLabel } from '../utils/attributeLabels';
  * Close icon.
  */
 const CloseIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
@@ -27,7 +27,7 @@ const CloseIcon = () => (
  * Check icon for best value highlight.
  */
 const CheckIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <polyline points="20 6 9 17 4 12" />
     </svg>
 );
@@ -38,7 +38,7 @@ const CheckIcon = () => (
 const StarRating = ({ rating }) => {
     const numRating = getRating(rating);
     return (
-        <div className="glimmr-comparison-stars">
+        <div className="glimmr-comparison-stars" aria-label={`${numRating} out of 5 stars`}>
             {[...Array(5)].map((_, i) => (
                 <svg
                     key={i}
@@ -47,6 +47,8 @@ const StarRating = ({ rating }) => {
                     fill="currentColor"
                     width="14"
                     height="14"
+                    aria-hidden="true"
+                    focusable="false"
                 >
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
@@ -130,7 +132,7 @@ export const ComparisonTrigger = ({ productCount, onClick }) => (
         onClick={onClick}
         aria-label={`Open comparison of ${productCount} products`}
     >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
             <line x1="18" y1="20" x2="18" y2="10" />
             <line x1="12" y1="20" x2="12" y2="4" />
             <line x1="6" y1="20" x2="6" y2="14" />
@@ -150,44 +152,83 @@ const ProductComparisonTable = ({
     onProductClick,
 }) => {
     const modalRef = useRef(null);
+    const previousFocusRef = useRef(null);
 
     // Get config values
     const {
         comparisonLayout = 'table',
         comparisonHighlightBest = true,
-        comparisonMaxProducts = 4,
+        comparisonMaxProducts = 8,
     } = config.artifacts || config;
 
     // Limit products to max
     const displayProducts = products.slice(0, comparisonMaxProducts);
 
     /**
-     * Handle escape key to close modal.
+     * Focus management: save previous focus and restore on close.
      */
     useEffect(() => {
-        const handleEscape = (e) => {
-            if (e.key === 'Escape' && isOpen) {
+        if (isOpen) {
+            // Save the currently focused element
+            previousFocusRef.current = document.activeElement;
+
+            // Focus the close button or first focusable element
+            if (modalRef.current) {
+                const closeBtn = modalRef.current.querySelector('.glimmr-modal-close');
+                if (closeBtn) {
+                    closeBtn.focus();
+                }
+            }
+        } else if (previousFocusRef.current) {
+            // Restore focus when modal closes
+            previousFocusRef.current.focus();
+            previousFocusRef.current = null;
+        }
+    }, [isOpen]);
+
+    /**
+     * Handle keyboard events: escape to close and focus trapping.
+     */
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e) => {
+            // Close on Escape
+            if (e.key === 'Escape') {
                 onClose();
+                return;
+            }
+
+            // Focus trap on Tab
+            if (e.key === 'Tab' && modalRef.current) {
+                const focusableElements = modalRef.current.querySelectorAll(
+                    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+
+                if (focusableElements.length === 0) return;
+
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey) {
+                    // Shift+Tab: if on first element, wrap to last
+                    if (document.activeElement === firstElement) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    }
+                } else {
+                    // Tab: if on last element, wrap to first
+                    if (document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
             }
         };
 
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, onClose]);
-
-    /**
-     * Focus trap inside modal.
-     */
-    useEffect(() => {
-        if (isOpen && modalRef.current) {
-            const focusable = modalRef.current.querySelectorAll(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            );
-            if (focusable.length > 0) {
-                focusable[0].focus();
-            }
-        }
-    }, [isOpen]);
 
     /**
      * Build comparison attributes from products.
@@ -354,11 +395,14 @@ const ProductComparisonTable = ({
                                             className="glimmr-comparison-card-image"
                                         />
                                     )}
-                                    <h3
-                                        className="glimmr-comparison-card-name"
-                                        onClick={() => onProductClick?.(product)}
-                                    >
-                                        {product.name}
+                                    <h3 className="glimmr-comparison-card-name">
+                                        <button
+                                            type="button"
+                                            className="glimmr-link-button"
+                                            onClick={() => onProductClick?.(product)}
+                                        >
+                                            {product.name}
+                                        </button>
                                     </h3>
                                     {product.sku && (
                                         <span className="glimmr-comparison-sku">
@@ -441,12 +485,13 @@ const ProductComparisonTable = ({
                                                     className="glimmr-comparison-image"
                                                 />
                                             )}
-                                            <span
-                                                className="glimmr-comparison-name"
+                                            <button
+                                                type="button"
+                                                className="glimmr-link-button glimmr-comparison-name"
                                                 onClick={() => onProductClick?.(product)}
                                             >
                                                 {product.name}
-                                            </span>
+                                            </button>
                                             {product.sku && (
                                                 <span className="glimmr-comparison-sku">
                                                     {product.sku}

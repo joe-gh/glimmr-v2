@@ -176,7 +176,11 @@ export function useProactiveTriggers(config, { onOpen, onAddSystemMessage }, isO
             try {
                 fetch(`${window.glimmrAIConfig.restUrl}analytics`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': window.glimmrAIConfig?.nonce || '',
+                    },
                     body: JSON.stringify({
                         event: 'proactive_trigger',
                         type,
